@@ -221,20 +221,55 @@ function startVocal(){
     let t=text.match(/tva\s*(\d+)/);
     if(t) tva.value=t[1];
 
-    // LIGNES
-    text.split("suivant").forEach(bloc=>{
-      const nums=bloc.match(/\d+/g);
-      const designation=bloc.replace(/\d+/g,"").replace("à","").replace("a","").trim();
-      if(!designation) return;
+    // =========================
+// EXTRACTION DES ARTICLES
+// =========================
 
-      let q=1,p=0;
-      if(nums){
-        if(nums.length===1) p=nums[0];
-        if(nums.length>=2){q=nums[0];p=nums[1];}
-      }
+// on enlève les parties non articles
+let cleanText = text
+  .replace(/client\s+[^suivant]*/g, "")
+  .replace(/remise\s*\d+/g, "")
+  .replace(/tva\s*\d+/g, "")
+  .trim();
 
-      devis.lignes.push({designation:designation,quantite:q,prix:p});
-    });
+// découpe par "suivant"
+const blocs = cleanText.split("suivant");
+
+blocs.forEach(bloc => {
+
+  // doit contenir au moins un nombre (prix)
+  const numbers = bloc.match(/\d+/g);
+  if(!numbers) return;
+
+  // nettoyage désignation
+  const designation = bloc
+    .replace(/\d+/g,"")
+    .replace("€","")
+    .replace("euro","")
+    .replace("à","")
+    .replace("a","")
+    .trim();
+
+  if(!designation) return;
+
+  let quantite = 1;
+  let prix = 0;
+
+  if(numbers.length === 1){
+    prix = numbers[0];
+  }
+  if(numbers.length >= 2){
+    quantite = numbers[0];
+    prix = numbers[1];
+  }
+
+  devis.lignes.push({
+    designation,
+    quantite,
+    prix
+  });
+
+});
 
     render();
   };
@@ -247,3 +282,4 @@ render();
 </script>
 </body>
 </html>
+
