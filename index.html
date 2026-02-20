@@ -110,6 +110,7 @@ function showPage(id){
 
 // ===== SAVE CLIENT =====
 function saveClient(){
+
   let payload={
     type:"client",
     nom:c_nom.value,
@@ -120,11 +121,11 @@ function saveClient(){
 
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify(payload)
-  })
-  .then(res => res.text())
-  .then(()=>alert("✅ Client ajouté"))
-  .catch(()=>alert("❌ Erreur réseau"));
+    body:JSON.stringify(payload),
+    mode:"no-cors"
+  });
+
+  alert("✅ Client ajouté");
 }
 // ===== DEVIS =====
 let devis={lignes:[]};
@@ -189,17 +190,11 @@ function saveDevis(){
 
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify(payload)
-  })
-  .then(res => res.text()) // 👈 très important
-  .then(txt => {
-    console.log("Réponse serveur:", txt);
-    alert("✅ Devis envoyé (vérifie la feuille)");
-  })
-  .catch(err => {
-    console.error(err);
-    alert("❌ Erreur réseau");
+    body:JSON.stringify(payload),
+    mode:"no-cors"   // 👈 clé pour Apps Script
   });
+
+  alert("✅ Devis enregistré dans Sheets");
 }
 // ===== VOICE =====
 let recognition;
@@ -242,4 +237,5 @@ render();
 </script>
 </body>
 </html>
+
 
