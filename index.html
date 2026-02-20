@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,7 +34,8 @@ input{padding:8px;margin:4px 0;width:100%}
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
 <button onclick="showPage('devisPage')">📄 Créer devis</button>
-<button onclick="showPage('clientPage')">➕ Ajouter client</button>
+<button onclick="showPage('clientPage')">👥 Clients</button>
+<button onclick="showPage('articlePage')">📦 Articles</button>
 </div>
 
 <!-- CLIENT -->
@@ -44,6 +46,22 @@ input{padding:8px;margin:4px 0;width:100%}
 <input id="c_mail" placeholder="Email">
 <input id="c_tel" placeholder="Téléphone">
 <button class="saveBtn" onclick="saveClient()">💾 Enregistrer</button>
+
+<h3>Liste des clients</h3>
+<div id="clientsTable"></div>
+
+<button onclick="showPage('homePage')">⬅️ Retour</button>
+</div>
+
+<!-- ARTICLES -->
+<div id="articlePage" class="card hidden">
+<h3>Ajouter un article</h3>
+<input id="a_nom" placeholder="Nom article">
+<button class="saveBtn" onclick="saveArticle()">💾 Ajouter</button>
+
+<h3>Liste des articles</h3>
+<div id="articlesTable"></div>
+
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
@@ -89,7 +107,6 @@ input{padding:8px;margin:4px 0;width:100%}
 </div>
 
 <script>
-
 const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
 // NAVIGATION
@@ -97,46 +114,111 @@ function showPage(id){
   homePage.classList.add("hidden");
   clientPage.classList.add("hidden");
   devisPage.classList.add("hidden");
+  articlePage.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
 
-// ================= CLIENT SEARCH =================
+// ================= CLIENTS =================
 let clientsList=[];
 
 function loadClients(){
   fetch(WEBAPP_URL+"?clients=1")
   .then(r=>r.json())
-  .then(data=>clientsList=data);
+  .then(data=>{
+    clientsList=data;
+    renderClients();
+  });
 }
 loadClients();
 
+function renderClients(){
+  clientsTable.innerHTML="";
+  clientsList.forEach((c,i)=>{
+    clientsTable.innerHTML+=`
+      <div class="line">
+        <input value="${c}" onchange="updateClient(${i},this.value)">
+        <button class="deleteBtn" onclick="deleteClient(${i})">✖</button>
+      </div>`;
+  });
+}
+
+function updateClient(i,val){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateClient",index:i,nom:val}),mode:"no-cors"});
+  clientsList[i]=val;
+}
+
+function deleteClient(i){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteClient",index:i}),mode:"no-cors"});
+  clientsList.splice(i,1);
+  renderClients();
+}
+
+// SEARCH CLIENT
 clientInput.addEventListener("input",()=>{
   const value=clientInput.value.toLowerCase();
   clientSuggestions.innerHTML="";
   if(!value) return;
 
-  clientsList
-  .filter(c=>c.toLowerCase().includes(value))
-  .forEach(c=>{
+  clientsList.filter(c=>c.toLowerCase().includes(value)).forEach(c=>{
     const div=document.createElement("div");
     div.textContent=c;
     div.className="suggestion";
-    div.onclick=()=>{
-      clientInput.value=c;
-      clientSuggestions.innerHTML="";
-    };
+    div.onclick=()=>{clientInput.value=c;clientSuggestions.innerHTML="";};
     clientSuggestions.appendChild(div);
   });
 });
 
-// ================= SAVE CLIENT =================
+// SAVE CLIENT
 function saveClient(){
   fetch(WEBAPP_URL,{
     method:"POST",
     body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),
     mode:"no-cors"
   });
-  alert("Client ajouté");
+  clientsList.push(c_nom.value);
+  renderClients();
+}
+
+// ================= ARTICLES =================
+let articles=[];
+
+function loadArticles(){
+  fetch(WEBAPP_URL+"?articles=1")
+  .then(r=>r.json())
+  .then(data=>{
+    articles=data;
+    renderArticles();
+  });
+}
+loadArticles();
+
+function renderArticles(){
+  articlesTable.innerHTML="";
+  articles.forEach((a,i)=>{
+    articlesTable.innerHTML+=`
+      <div class="line">
+        <input value="${a}" onchange="updateArticle(${i},this.value)">
+        <button class="deleteBtn" onclick="deleteArticle(${i})">✖</button>
+      </div>`;
+  });
+}
+
+function saveArticle(){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"article",nom:a_nom.value}),mode:"no-cors"});
+  articles.push(a_nom.value);
+  a_nom.value="";
+  renderArticles();
+}
+
+function updateArticle(i,val){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateArticle",index:i,nom:val}),mode:"no-cors"});
+  articles[i]=val;
+}
+
+function deleteArticle(i){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteArticle",index:i}),mode:"no-cors"});
+  articles.splice(i,1);
+  renderArticles();
 }
 
 // ================= DEVIS =================
@@ -160,7 +242,7 @@ function addLine(){devis.lignes.push({designation:"",quantite:1,prix:0});render(
 function deleteLine(i){devis.lignes.splice(i,1);render();}
 function clearAll(){devis={lignes:[]};render();}
 
-// ================= CALCUL =================
+// CALCUL
 function calculate(){
   let ht=0;
   devis.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
@@ -180,17 +262,11 @@ function calculate(){
   totalTTC.textContent=ttc.toFixed(2)+" €";
 }
 
-// ================= SAVE DEVIS =================
+// SAVE DEVIS
 function saveDevis(){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({
-      type:"devis",
-      client:clientInput.value,
-      lignes:devis.lignes,
-      remise:remise.value,
-      tva:tva.value
-    }),
+    body:JSON.stringify({type:"devis",client:clientInput.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
     mode:"no-cors"
   });
   alert("Devis enregistré");
@@ -198,94 +274,60 @@ function saveDevis(){
 
 // ================= VOICE =================
 let recognition;
-let lastProcessedText = "";
+let lastProcessedText="";
 
-// ===== CORRECTION TEXTE GENERIQUE =====
 function cleanSpeechText(text){
-
-  return text
-    .replace(/[€]/g,"")
-    .replace(/\s+/g," ")
-    .replace(/^\s+|\s+$/g,"")
-    .replace(/\b(euh|heu|alors|donc|voilà)\b/g,"")
-    .trim();
+  return text.replace(/[€]/g,"").replace(/\s+/g," ").trim();
 }
 
-// ===== CAPITALISATION =====
 function capitalize(str){
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase()+str.slice(1);
 }
 
 function startVocal(){
-
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "fr-FR";
-  recognition.continuous = true;
-  recognition.interimResults = false;
-
+  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+  recognition.lang="fr-FR";
+  recognition.continuous=true;
   recognition.start();
 
-  recognition.onresult = e => {
+  recognition.onresult=e=>{
+    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
+    if(text===lastProcessedText)return;
+    lastProcessedText=text;
+    status.innerText=text;
 
-    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
+    const remMatch=text.match(/remise\s*(\d+)/);
+    if(remMatch)remise.value=remMatch[1];
 
-    if(text === lastProcessedText) return;
-    lastProcessedText = text;
+    const tvaMatch=text.match(/tva\s*(\d+)/);
+    if(tvaMatch)tva.value=tvaMatch[1];
 
-    status.innerText = text;
+    let cleanText=text.replace(/remise\s*\d+/g,"").replace(/tva\s*\d+/g,"");
+    cleanText=cleanSpeechText(cleanText);
 
-    // ===== REMISE =====
-    const remMatch = text.match(/remise\s*(\d+)/);
-    if(remMatch) remise.value = remMatch[1];
-
-    // ===== TVA =====
-    const tvaMatch = text.match(/tva\s*(\d+)/);
-    if(tvaMatch) tva.value = tvaMatch[1];
-
-    // ===== TEXTE NETTOYÉ =====
-    let cleanText = text
-      .replace(/remise\s*\d+/g,"")
-      .replace(/tva\s*\d+/g,"");
-
-    cleanText = cleanSpeechText(cleanText);
-
-    // ===== SPLIT LIGNES =====
-    const blocs = cleanText.split("suivant");
+    const blocs=cleanText.split("suivant");
 
     blocs.forEach(bloc=>{
+      bloc=bloc.trim();
+      if(!bloc)return;
 
-      bloc = bloc.trim();
-      if(!bloc) return;
+      const numbers=bloc.match(/\d+/g);
 
-      const numbers = bloc.match(/\d+/g);
+      let designation=capitalize(bloc.replace(/\d+/g,"").trim());
 
-      let designation = bloc
-        .replace(/\d+/g,"")
-        .trim();
+      // correspondance article
+      const found=articles.find(a=>designation.toLowerCase().includes(a.toLowerCase()));
+      if(found)designation=found;
 
-      designation = capitalize(cleanSpeechText(designation));
-
-      if(!designation) return;
-
-      let quantite = 1;
-      let prix = 0;
+      let quantite=1;
+      let prix=0;
 
       if(numbers){
-        if(numbers.length === 1){
-          prix = numbers[0];
-        }
-        if(numbers.length >= 2){
-          quantite = numbers[0];
-          prix = numbers[1];
-        }
+        if(numbers.length===1)prix=numbers[0];
+        if(numbers.length>=2){quantite=numbers[0];prix=numbers[1];}
       }
 
-      devis.lignes.push({
-        designation,
-        quantite,
-        prix
-      });
-
+      devis.lignes.push({designation,quantite,prix});
     });
 
     render();
@@ -293,14 +335,10 @@ function startVocal(){
 }
 
 function stopVocal(){
-  if(recognition){
-    recognition.stop();
-    lastProcessedText = "";
-  }
+  if(recognition){recognition.stop();lastProcessedText="";}
 }
-
 </script>
+
 </body>
 </html>
-
-
+```
