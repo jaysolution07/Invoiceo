@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,337 +9,133 @@
 <style>
 body{margin:0;font-family:Arial;background:#f5f7fb}
 .header{background:#2563eb;color:white;padding:20px;font-size:20px}
-.container{max-width:900px;margin:auto;padding:20px}
+.container{max-width:1000px;margin:auto;padding:20px}
 .card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
-button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px}
-input{padding:8px;margin:4px 0;width:100%}
-.line{display:flex;gap:10px;align-items:center}
+button{background:#2563eb;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:3px}
 .deleteBtn{background:#ef4444}
-.clearBtn{background:#f59e0b}
 .saveBtn{background:#16a34a}
-.totals{background:#f1f5f9;padding:15px;border-radius:8px;margin-top:10px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #e5e7eb;padding:6px;text-align:left}
+input{width:100%;border:none;background:transparent}
 .hidden{display:none}
-.suggestion{padding:6px;cursor:pointer}
-.suggestion:hover{background:#f1f5f9}
 </style>
 </head>
 
 <body>
 
 <div class="header">📊 Assistant gestion</div>
-
 <div class="container">
 
 <!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
-<button onclick="showPage('devisPage')">📄 Créer devis</button>
 <button onclick="showPage('clientPage')">👥 Clients</button>
 <button onclick="showPage('articlePage')">📦 Articles</button>
 </div>
 
-<!-- CLIENT -->
+<!-- CLIENTS -->
 <div id="clientPage" class="card hidden">
-<h3>Ajouter un client</h3>
-<input id="c_nom" placeholder="Nom">
-<input id="c_adresse" placeholder="Adresse">
-<input id="c_mail" placeholder="Email">
-<input id="c_tel" placeholder="Téléphone">
-<button class="saveBtn" onclick="saveClient()">💾 Enregistrer</button>
-
-<h3>Liste des clients</h3>
-<div id="clientsTable"></div>
-
+<h3>Clients</h3>
+<table id="clientsTable"></table>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
 <!-- ARTICLES -->
 <div id="articlePage" class="card hidden">
-<h3>Ajouter un article</h3>
-<input id="a_nom" placeholder="Nom article">
-<button class="saveBtn" onclick="saveArticle()">💾 Ajouter</button>
-
-<h3>Liste des articles</h3>
-<div id="articlesTable"></div>
-
+<h3>Articles</h3>
+<table id="articlesTable"></table>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
-<!-- DEVIS -->
-<div id="devisPage" class="card hidden">
-
-<button onclick="showPage('homePage')">⬅️ Retour menu</button>
-<h3>Créer un devis</h3>
-
-<div class="card">
-<button onclick="startVocal()">🎤 Micro</button>
-<button onclick="stopVocal()">🛑 Stop</button>
-<p id="status"></p>
-</div>
-
-<label>Client</label>
-<input id="clientInput" placeholder="Tapez pour rechercher...">
-<div id="clientSuggestions"></div>
-
-<h3>Lignes</h3>
-<div id="lines"></div>
-
-<button onclick="addLine()">➕ Ajouter ligne</button>
-<button class="clearBtn" onclick="clearAll()">🧹 Tout effacer</button>
-
-<label>Remise (%)</label>
-<input id="remise" oninput="calculate()">
-
-<label>TVA (%)</label>
-<input id="tva" oninput="calculate()">
-
-<div class="totals">
-<div>Total HT : <b id="totalHT">0 €</b></div>
-<div>Montant remise : <b id="montantRemise">0 €</b></div>
-<div>Total HT après remise : <b id="totalApresRemise">0 €</b></div>
-<div>Montant TVA : <b id="montantTVA">0 €</b></div>
-<div>Total TTC : <b id="totalTTC">0 €</b></div>
-</div>
-
-<button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
-
-</div>
 </div>
 
 <script>
-const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
+const WEBAPP_URL="TON_URL_SCRIPT";
 
-// NAVIGATION
+// NAV
 function showPage(id){
   homePage.classList.add("hidden");
   clientPage.classList.add("hidden");
-  devisPage.classList.add("hidden");
   articlePage.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
 
-// ================= CLIENTS =================
-let clientsList=[];
+// ================= LOAD CLIENTS TABLE =================
+async function loadClients(){
+  const res = await fetch(WEBAPP_URL+"?clientsTable=1");
+  const data = await res.json();
 
-function loadClients(){
-  fetch(WEBAPP_URL+"?clients=1")
-  .then(r=>r.json())
-  .then(data=>{
-    clientsList=data;
-    renderClients();
+  let html="<tr><th>Nom</th><th>Adresse</th><th>Email</th><th>Tel</th><th></th></tr>";
+
+  data.forEach((row,i)=>{
+    html+=`
+    <tr>
+      <td><input value="${row.nom}" onchange="updateClient(${i},'nom',this.value)"></td>
+      <td><input value="${row.adresse}" onchange="updateClient(${i},'adresse',this.value)"></td>
+      <td><input value="${row.mail}" onchange="updateClient(${i},'mail',this.value)"></td>
+      <td><input value="${row.tel}" onchange="updateClient(${i},'tel',this.value)"></td>
+      <td><button class="deleteBtn" onclick="deleteClient(${i})">✖</button></td>
+    </tr>`;
   });
+
+  clientsTable.innerHTML=html;
 }
 loadClients();
 
-function renderClients(){
-  clientsTable.innerHTML="";
-  clientsList.forEach((c,i)=>{
-    clientsTable.innerHTML+=`
-      <div class="line">
-        <input value="${c}" onchange="updateClient(${i},this.value)">
-        <button class="deleteBtn" onclick="deleteClient(${i})">✖</button>
-      </div>`;
-  });
-}
-
-function updateClient(i,val){
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateClient",index:i,nom:val}),mode:"no-cors"});
-  clientsList[i]=val;
-}
-
-function deleteClient(i){
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteClient",index:i}),mode:"no-cors"});
-  clientsList.splice(i,1);
-  renderClients();
-}
-
-// SEARCH CLIENT
-clientInput.addEventListener("input",()=>{
-  const value=clientInput.value.toLowerCase();
-  clientSuggestions.innerHTML="";
-  if(!value) return;
-
-  clientsList.filter(c=>c.toLowerCase().includes(value)).forEach(c=>{
-    const div=document.createElement("div");
-    div.textContent=c;
-    div.className="suggestion";
-    div.onclick=()=>{clientInput.value=c;clientSuggestions.innerHTML="";};
-    clientSuggestions.appendChild(div);
-  });
-});
-
-// SAVE CLIENT
-function saveClient(){
+function updateClient(index,field,value){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),
+    body:JSON.stringify({type:"updateClientFull",index,field,value}),
     mode:"no-cors"
   });
-  clientsList.push(c_nom.value);
-  renderClients();
 }
 
-// ================= ARTICLES =================
-let articles=[];
-
-function loadArticles(){
-  fetch(WEBAPP_URL+"?articles=1")
-  .then(r=>r.json())
-  .then(data=>{
-    articles=data;
-    renderArticles();
+function deleteClient(index){
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    body:JSON.stringify({type:"deleteClient",index}),
+    mode:"no-cors"
   });
+  loadClients();
+}
+
+// ================= LOAD ARTICLES TABLE =================
+async function loadArticles(){
+  const res = await fetch(WEBAPP_URL+"?articlesTable=1");
+  const data = await res.json();
+
+  let html="<tr><th>Nom article</th><th></th></tr>";
+
+  data.forEach((row,i)=>{
+    html+=`
+    <tr>
+      <td><input value="${row.nom}" onchange="updateArticle(${i},this.value)"></td>
+      <td><button class="deleteBtn" onclick="deleteArticle(${i})">✖</button></td>
+    </tr>`;
+  });
+
+  articlesTable.innerHTML=html;
 }
 loadArticles();
 
-function renderArticles(){
-  articlesTable.innerHTML="";
-  articles.forEach((a,i)=>{
-    articlesTable.innerHTML+=`
-      <div class="line">
-        <input value="${a}" onchange="updateArticle(${i},this.value)">
-        <button class="deleteBtn" onclick="deleteArticle(${i})">✖</button>
-      </div>`;
-  });
-}
-
-function saveArticle(){
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"article",nom:a_nom.value}),mode:"no-cors"});
-  articles.push(a_nom.value);
-  a_nom.value="";
-  renderArticles();
-}
-
-function updateArticle(i,val){
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateArticle",index:i,nom:val}),mode:"no-cors"});
-  articles[i]=val;
-}
-
-function deleteArticle(i){
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteArticle",index:i}),mode:"no-cors"});
-  articles.splice(i,1);
-  renderArticles();
-}
-
-// ================= DEVIS =================
-let devis={lignes:[]};
-
-function render(){
-  lines.innerHTML="";
-  devis.lignes.forEach((l,i)=>{
-    lines.innerHTML+=`
-    <div class="line">
-      <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
-      <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
-      <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
-      <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
-    </div>`;
-  });
-  calculate();
-}
-
-function addLine(){devis.lignes.push({designation:"",quantite:1,prix:0});render();}
-function deleteLine(i){devis.lignes.splice(i,1);render();}
-function clearAll(){devis={lignes:[]};render();}
-
-// CALCUL
-function calculate(){
-  let ht=0;
-  devis.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
-
-  let r=Number(remise.value)||0;
-  let remVal=ht*(r/100);
-  let htApres=ht-remVal;
-
-  let t=Number(tva.value)||0;
-  let tvaVal=htApres*(t/100);
-  let ttc=htApres+tvaVal;
-
-  totalHT.textContent=ht.toFixed(2)+" €";
-  montantRemise.textContent=remVal.toFixed(2)+" €";
-  totalApresRemise.textContent=htApres.toFixed(2)+" €";
-  montantTVA.textContent=tvaVal.toFixed(2)+" €";
-  totalTTC.textContent=ttc.toFixed(2)+" €";
-}
-
-// SAVE DEVIS
-function saveDevis(){
+function updateArticle(index,value){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({type:"devis",client:clientInput.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
+    body:JSON.stringify({type:"updateArticle",index,nom:value}),
     mode:"no-cors"
   });
-  alert("Devis enregistré");
 }
 
-// ================= VOICE =================
-let recognition;
-let lastProcessedText="";
-
-function cleanSpeechText(text){
-  return text.replace(/[€]/g,"").replace(/\s+/g," ").trim();
-}
-
-function capitalize(str){
-  return str.charAt(0).toUpperCase()+str.slice(1);
-}
-
-function startVocal(){
-  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-  recognition.lang="fr-FR";
-  recognition.continuous=true;
-  recognition.start();
-
-  recognition.onresult=e=>{
-    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
-    if(text===lastProcessedText)return;
-    lastProcessedText=text;
-    status.innerText=text;
-
-    const remMatch=text.match(/remise\s*(\d+)/);
-    if(remMatch)remise.value=remMatch[1];
-
-    const tvaMatch=text.match(/tva\s*(\d+)/);
-    if(tvaMatch)tva.value=tvaMatch[1];
-
-    let cleanText=text.replace(/remise\s*\d+/g,"").replace(/tva\s*\d+/g,"");
-    cleanText=cleanSpeechText(cleanText);
-
-    const blocs=cleanText.split("suivant");
-
-    blocs.forEach(bloc=>{
-      bloc=bloc.trim();
-      if(!bloc)return;
-
-      const numbers=bloc.match(/\d+/g);
-
-      let designation=capitalize(bloc.replace(/\d+/g,"").trim());
-
-      // correspondance article
-      const found=articles.find(a=>designation.toLowerCase().includes(a.toLowerCase()));
-      if(found)designation=found;
-
-      let quantite=1;
-      let prix=0;
-
-      if(numbers){
-        if(numbers.length===1)prix=numbers[0];
-        if(numbers.length>=2){quantite=numbers[0];prix=numbers[1];}
-      }
-
-      devis.lignes.push({designation,quantite,prix});
-    });
-
-    render();
-  };
-}
-
-function stopVocal(){
-  if(recognition){recognition.stop();lastProcessedText="";}
+function deleteArticle(index){
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    body:JSON.stringify({type:"deleteArticle",index}),
+    mode:"no-cors"
+  });
+  loadArticles();
 }
 </script>
 
 </body>
 </html>
 ```
-
