@@ -97,10 +97,9 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <script>
 
-// ===== URL WEB APP =====
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
+const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-// ===== NAVIGATION =====
+// NAV
 function showPage(id){
   homePage.classList.add("hidden");
   clientPage.classList.add("hidden");
@@ -108,26 +107,23 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
-// ===== SAVE CLIENT =====
+// SAVE CLIENT
 function saveClient(){
-
-  let payload={
-    type:"client",
-    nom:c_nom.value,
-    adresse:c_adresse.value,
-    mail:c_mail.value,
-    tel:c_tel.value
-  };
-
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify(payload),
+    body:JSON.stringify({
+      type:"client",
+      nom:c_nom.value,
+      adresse:c_adresse.value,
+      mail:c_mail.value,
+      tel:c_tel.value
+    }),
     mode:"no-cors"
   });
-
   alert("✅ Client ajouté");
 }
-// ===== DEVIS =====
+
+// DEVIS
 let devis={lignes:[]};
 
 function render(){
@@ -149,7 +145,7 @@ function addLine(){ devis.lignes.push({designation:"",quantite:1,prix:0}); rende
 function deleteLine(i){ devis.lignes.splice(i,1); render(); }
 function clearAll(){ devis={lignes:[]}; render(); }
 
-// ===== CALCULS =====
+// CALCUL
 function calculate(){
   let totalHT=0;
   devis.lignes.forEach(l=>totalHT+=Number(l.quantite||0)*Number(l.prix||0));
@@ -162,41 +158,32 @@ function calculate(){
   let montantTVA=totalApres*(tv/100);
   let totalTTC=totalApres+montantTVA;
 
-  totalHTEl(totalHT);
-  montantRemiseEl(montantRemise);
-  totalApresRemiseEl(totalApres);
-  montantTVAEl(montantTVA);
-  totalTTCEl(totalTTC);
+  totalHT.textContent=totalHT.toFixed(2)+" €";
+  montantRemise.textContent=montantRemise.toFixed(2)+" €";
+  totalApresRemise.textContent=totalApres.toFixed(2)+" €";
+  montantTVA.textContent=montantTVA.toFixed(2)+" €";
+  totalTTC.textContent=totalTTC.toFixed(2)+" €";
 }
 
-function totalHTEl(v){totalHT.textContent=v.toFixed(2)+" €";}
-function montantRemiseEl(v){montantRemise.textContent=v.toFixed(2)+" €";}
-function totalApresRemiseEl(v){totalApresRemise.textContent=v.toFixed(2)+" €";}
-function montantTVAEl(v){montantTVA.textContent=v.toFixed(2)+" €";}
-function totalTTCEl(v){totalTTC.textContent=v.toFixed(2)+" €";}
-
-// ===== SAVE DEVIS =====
+// SAVE DEVIS
 function saveDevis(){
-
-  let payload={
-    type:"devis",
-    client:client.value,
-    lignes:devis.lignes,
-    remise:remise.value,
-    tva:tva.value,
-    totalHT:totalHT.textContent,
-    totalTTC:totalTTC.textContent
-  };
-
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify(payload),
-    mode:"no-cors"   // 👈 clé pour Apps Script
+    body:JSON.stringify({
+      type:"devis",
+      client:client.value,
+      lignes:devis.lignes,
+      remise:remise.value,
+      tva:tva.value,
+      totalHT:totalHT.textContent,
+      totalTTC:totalTTC.textContent
+    }),
+    mode:"no-cors"
   });
-
-  alert("✅ Devis enregistré dans Sheets");
+  alert("✅ Devis enregistré");
 }
-// ===== VOICE =====
+
+// VOICE
 let recognition;
 
 function startVocal(){
@@ -209,20 +196,28 @@ function startVocal(){
     let text=e.results[e.results.length-1][0].transcript.toLowerCase();
     status.innerText=text;
 
+    // CLIENT
     let clientMatch=text.match(/client\s+(.+)/);
     if(clientMatch){
       client.value=clientMatch[1].replace("monsieur","").replace("madame","").trim();
     }
 
-    const regex=/(radiateur|chauffage|prestation|travaux)\D*(\d+)/g;
+    // LIGNES (quantité + texte + prix)
+    const regex=/(\d+)\s+([a-zàâçéèêëîïôûùüÿñæœ\s]+?)\s*(\d+)/gi;
     let match;
     while((match=regex.exec(text))!==null){
-      devis.lignes.push({designation:match[1],quantite:1,prix:match[2]});
+      devis.lignes.push({
+        designation:match[2].trim(),
+        quantite:parseInt(match[1]),
+        prix:parseFloat(match[3])
+      });
     }
 
+    // REMISE
     let rem=text.match(/remise\s*(\d+)/);
     if(rem){remise.value=rem[1];}
 
+    // TVA
     let tv=text.match(/tva\s*(\d+)/);
     if(tv){tva.value=tv[1];}
 
@@ -237,5 +232,3 @@ render();
 </script>
 </body>
 </html>
-
-
