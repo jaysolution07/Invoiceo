@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,13 +8,13 @@
 <style>
 body{margin:0;font-family:Arial;background:#f5f7fb}
 .header{background:#2563eb;color:white;padding:20px;font-size:20px}
-.container{max-width:1000px;margin:auto;padding:20px}
+.container{max-width:1100px;margin:auto;padding:20px}
 .card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
 button{background:#2563eb;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:3px}
 .deleteBtn{background:#ef4444}
 .saveBtn{background:#16a34a}
 table{width:100%;border-collapse:collapse;margin-top:10px}
-td,th{border:1px solid #e5e7eb;padding:6px;text-align:left}
+td,th{border:1px solid #e5e7eb;padding:6px}
 input{width:100%;border:none;background:transparent}
 .hidden{display:none}
 </style>
@@ -29,6 +28,7 @@ input{width:100%;border:none;background:transparent}
 <!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
+<button onclick="showPage('devisPage')">📄 Devis</button>
 <button onclick="showPage('clientPage')">👥 Clients</button>
 <button onclick="showPage('articlePage')">📦 Articles</button>
 </div>
@@ -37,6 +37,7 @@ input{width:100%;border:none;background:transparent}
 <div id="clientPage" class="card hidden">
 <h3>Clients</h3>
 <table id="clientsTable"></table>
+<button onclick="loadClients()">🔄 Rafraîchir</button>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
@@ -44,7 +45,38 @@ input{width:100%;border:none;background:transparent}
 <div id="articlePage" class="card hidden">
 <h3>Articles</h3>
 <table id="articlesTable"></table>
+<button onclick="loadArticles()">🔄 Rafraîchir</button>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
+</div>
+
+<!-- DEVIS (TA VERSION CONSERVÉE) -->
+<div id="devisPage" class="card hidden">
+
+<button onclick="showPage('homePage')">⬅️ Retour menu</button>
+<h3>Créer un devis</h3>
+
+<label>Client</label>
+<input id="clientInput">
+
+<h3>Lignes</h3>
+<div id="lines"></div>
+
+<button onclick="addLine()">➕ Ligne</button>
+
+<label>Remise (%)</label>
+<input id="remise" oninput="calculate()">
+
+<label>TVA (%)</label>
+<input id="tva" oninput="calculate()">
+
+<div>
+Total HT : <b id="totalHT">0 €</b><br>
+TVA : <b id="montantTVA">0 €</b><br>
+Total TTC : <b id="totalTTC">0 €</b>
+</div>
+
+<button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
+
 </div>
 
 </div>
@@ -57,82 +89,101 @@ function showPage(id){
   homePage.classList.add("hidden");
   clientPage.classList.add("hidden");
   articlePage.classList.add("hidden");
+  devisPage.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
 
-// ================= LOAD CLIENTS TABLE =================
+// ================= CLIENTS TABLE =================
 async function loadClients(){
-  const res = await fetch(WEBAPP_URL+"?clientsTable=1");
-  const data = await res.json();
+  const res=await fetch(WEBAPP_URL+"?clientsTable=1");
+  const data=await res.json();
 
   let html="<tr><th>Nom</th><th>Adresse</th><th>Email</th><th>Tel</th><th></th></tr>";
-
-  data.forEach((row,i)=>{
+  data.forEach((c,i)=>{
     html+=`
     <tr>
-      <td><input value="${row.nom}" onchange="updateClient(${i},'nom',this.value)"></td>
-      <td><input value="${row.adresse}" onchange="updateClient(${i},'adresse',this.value)"></td>
-      <td><input value="${row.mail}" onchange="updateClient(${i},'mail',this.value)"></td>
-      <td><input value="${row.tel}" onchange="updateClient(${i},'tel',this.value)"></td>
+      <td><input value="${c.nom}" onchange="updateClient(${i},'nom',this.value)"></td>
+      <td><input value="${c.adresse}" onchange="updateClient(${i},'adresse',this.value)"></td>
+      <td><input value="${c.mail}" onchange="updateClient(${i},'mail',this.value)"></td>
+      <td><input value="${c.tel}" onchange="updateClient(${i},'tel',this.value)"></td>
       <td><button class="deleteBtn" onclick="deleteClient(${i})">✖</button></td>
     </tr>`;
   });
 
   clientsTable.innerHTML=html;
 }
-loadClients();
 
-function updateClient(index,field,value){
-  fetch(WEBAPP_URL,{
-    method:"POST",
-    body:JSON.stringify({type:"updateClientFull",index,field,value}),
-    mode:"no-cors"
-  });
-}
-
-function deleteClient(index){
-  fetch(WEBAPP_URL,{
-    method:"POST",
-    body:JSON.stringify({type:"deleteClient",index}),
-    mode:"no-cors"
-  });
-  loadClients();
-}
-
-// ================= LOAD ARTICLES TABLE =================
+// ================= ARTICLES TABLE =================
 async function loadArticles(){
-  const res = await fetch(WEBAPP_URL+"?articlesTable=1");
-  const data = await res.json();
+  const res=await fetch(WEBAPP_URL+"?articlesTable=1");
+  const data=await res.json();
 
   let html="<tr><th>Nom article</th><th></th></tr>";
-
-  data.forEach((row,i)=>{
+  data.forEach((a,i)=>{
     html+=`
     <tr>
-      <td><input value="${row.nom}" onchange="updateArticle(${i},this.value)"></td>
+      <td><input value="${a.nom}" onchange="updateArticle(${i},this.value)"></td>
       <td><button class="deleteBtn" onclick="deleteArticle(${i})">✖</button></td>
     </tr>`;
   });
 
   articlesTable.innerHTML=html;
 }
-loadArticles();
 
+// ================= CRUD CLIENT =================
+function updateClient(index,field,value){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateClientFull",index,field,value}),mode:"no-cors"});
+}
+function deleteClient(index){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteClient",index}),mode:"no-cors"});
+  loadClients();
+}
+
+// ================= CRUD ARTICLE =================
 function updateArticle(index,value){
-  fetch(WEBAPP_URL,{
-    method:"POST",
-    body:JSON.stringify({type:"updateArticle",index,nom:value}),
-    mode:"no-cors"
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"updateArticle",index,nom:value}),mode:"no-cors"});
+}
+function deleteArticle(index){
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"deleteArticle",index}),mode:"no-cors"});
+  loadArticles();
+}
+
+// ================= DEVIS =================
+let devis={lignes:[]};
+
+function addLine(){
+  devis.lignes.push({designation:"",quantite:1,prix:0});
+  render();
+}
+
+function render(){
+  lines.innerHTML="";
+  devis.lignes.forEach((l,i)=>{
+    lines.innerHTML+=`
+    <div>
+      <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
+      <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+      <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+    </div>`;
   });
 }
 
-function deleteArticle(index){
+function calculate(){
+  let ht=0;
+  devis.lignes.forEach(l=>ht+=l.quantite*l.prix);
+  let tvaVal=ht*(Number(tva.value||0)/100);
+  totalHT.textContent=ht.toFixed(2)+" €";
+  montantTVA.textContent=tvaVal.toFixed(2)+" €";
+  totalTTC.textContent=(ht+tvaVal).toFixed(2)+" €";
+}
+
+function saveDevis(){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({type:"deleteArticle",index}),
+    body:JSON.stringify({type:"devis",client:clientInput.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
     mode:"no-cors"
   });
-  loadArticles();
+  alert("Devis enregistré");
 }
 </script>
 
