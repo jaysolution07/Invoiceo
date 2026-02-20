@@ -27,7 +27,7 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <div class="container">
 
-<!-- ================= HOME ================= -->
+<!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
 <button onclick="showPage('devisPage')">📄 Créer devis</button>
@@ -36,19 +36,16 @@ input,select{padding:8px;margin:4px 0;width:100%}
 <button disabled>📦 Créer BL</button>
 </div>
 
-<!-- ================= CLIENT FORM ================= -->
+<!-- CLIENT -->
 <div id="clientPage" class="card hidden">
 <h3>Ajouter un client</h3>
 
 <label>Nom</label>
 <input id="c_nom">
-
 <label>Adresse</label>
 <input id="c_adresse">
-
 <label>Email</label>
 <input id="c_mail">
-
 <label>Téléphone</label>
 <input id="c_tel">
 
@@ -56,7 +53,7 @@ input,select{padding:8px;margin:4px 0;width:100%}
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
-<!-- ================= DEVIS PAGE ================= -->
+<!-- DEVIS -->
 <div id="devisPage" class="card hidden">
 
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
@@ -100,41 +97,32 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <script>
 
-// ===== API URLs =====
-const CLIENTS_API="TON_URL?clients=1";
-const SAVE_DEVIS_API="TON_URL";
-const SAVE_CLIENT_API="TON_URL?addClient=1";
+// ===== URL WEB APP =====
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
 // ===== NAVIGATION =====
 function showPage(id){
-  document.getElementById("homePage").classList.add("hidden");
-  document.getElementById("clientPage").classList.add("hidden");
-  document.getElementById("devisPage").classList.add("hidden");
+  homePage.classList.add("hidden");
+  clientPage.classList.add("hidden");
+  devisPage.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
-
-// ===== LOAD CLIENTS =====
-fetch(CLIENTS_API)
-.then(r=>r.json())
-.then(data=>{
-  data.forEach(c=>{
-    let opt=document.createElement("option");
-    opt.value=c;
-    opt.textContent=c;
-    client.appendChild(opt);
-  });
-});
 
 // ===== SAVE CLIENT =====
 function saveClient(){
   let payload={
+    type:"client",
     nom:c_nom.value,
     adresse:c_adresse.value,
     mail:c_mail.value,
     tel:c_tel.value
   };
 
-  fetch(SAVE_CLIENT_API,{method:"POST",body:JSON.stringify(payload)})
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  })
   .then(()=>alert("✅ Client ajouté"))
   .catch(()=>alert("❌ Erreur"));
 }
@@ -147,9 +135,9 @@ function render(){
   devis.lignes.forEach((l,i)=>{
     lines.innerHTML+=`
       <div class="line">
-        <input value="${l.designation}" onchange="devis.lignes[${i}].designation=this.value">
-        <input type="number" value="${l.quantite}" onchange="devis.lignes[${i}].quantite=this.value;calculate()">
-        <input type="number" value="${l.prix}" onchange="devis.lignes[${i}].prix=this.value;calculate()">
+        <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
+        <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+        <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
         <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
       </div>
     `;
@@ -164,7 +152,7 @@ function clearAll(){ devis={lignes:[]}; render(); }
 // ===== CALCULS =====
 function calculate(){
   let totalHT=0;
-  devis.lignes.forEach(l=>totalHT+=Number(l.quantite)*Number(l.prix));
+  devis.lignes.forEach(l=>totalHT+=Number(l.quantite||0)*Number(l.prix||0));
 
   let rem=Number(remise.value)||0;
   let montantRemise=totalHT*(rem/100);
@@ -174,16 +162,24 @@ function calculate(){
   let montantTVA=totalApres*(tv/100);
   let totalTTC=totalApres+montantTVA;
 
-  totalHT.textContent=totalHT.toFixed(2)+" €";
-  montantRemise.textContent=montantRemise.toFixed(2)+" €";
-  totalApresRemise.textContent=totalApres.toFixed(2)+" €";
-  montantTVA.textContent=montantTVA.toFixed(2)+" €";
-  totalTTC.textContent=totalTTC.toFixed(2)+" €";
+  totalHTEl(totalHT);
+  montantRemiseEl(montantRemise);
+  totalApresRemiseEl(totalApres);
+  montantTVAEl(montantTVA);
+  totalTTCEl(totalTTC);
 }
+
+function totalHTEl(v){totalHT.textContent=v.toFixed(2)+" €";}
+function montantRemiseEl(v){montantRemise.textContent=v.toFixed(2)+" €";}
+function totalApresRemiseEl(v){totalApresRemise.textContent=v.toFixed(2)+" €";}
+function montantTVAEl(v){montantTVA.textContent=v.toFixed(2)+" €";}
+function totalTTCEl(v){totalTTC.textContent=v.toFixed(2)+" €";}
 
 // ===== SAVE DEVIS =====
 function saveDevis(){
+
   let payload={
+    type:"devis",
     client:client.value,
     lignes:devis.lignes,
     remise:remise.value,
@@ -192,12 +188,16 @@ function saveDevis(){
     totalTTC:totalTTC.textContent
   };
 
-  fetch(SAVE_DEVIS_API,{method:"POST",body:JSON.stringify(payload)})
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  })
   .then(()=>alert("✅ Devis enregistré"))
   .catch(()=>alert("❌ Erreur"));
 }
 
-// ===== COMMANDE VOCALE =====
+// ===== VOICE =====
 let recognition;
 
 function startVocal(){
@@ -231,9 +231,7 @@ function startVocal(){
   };
 }
 
-function stopVocal(){
-  if(recognition) recognition.stop();
-}
+function stopVocal(){ if(recognition) recognition.stop(); }
 
 render();
 
