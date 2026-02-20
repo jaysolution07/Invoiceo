@@ -27,37 +27,25 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <div class="container">
 
-<!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
 <button onclick="showPage('devisPage')">📄 Créer devis</button>
 <button onclick="showPage('clientPage')">➕ Ajouter client</button>
-<button disabled>🧾 Créer facture</button>
-<button disabled>📦 Créer BL</button>
 </div>
 
-<!-- CLIENT -->
 <div id="clientPage" class="card hidden">
 <h3>Ajouter un client</h3>
-
-<label>Nom</label>
-<input id="c_nom">
-<label>Adresse</label>
-<input id="c_adresse">
-<label>Email</label>
-<input id="c_mail">
-<label>Téléphone</label>
-<input id="c_tel">
-
-<button class="saveBtn" onclick="saveClient()">💾 Enregistrer client</button>
+<input id="c_nom" placeholder="Nom">
+<input id="c_adresse" placeholder="Adresse">
+<input id="c_mail" placeholder="Email">
+<input id="c_tel" placeholder="Téléphone">
+<button class="saveBtn" onclick="saveClient()">💾 Enregistrer</button>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
-<!-- DEVIS -->
 <div id="devisPage" class="card hidden">
 
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
-
 <h3>Créer un devis</h3>
 
 <div class="card">
@@ -92,7 +80,6 @@ input,select{padding:8px;margin:4px 0;width:100%}
 <button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
 
 </div>
-
 </div>
 
 <script>
@@ -107,20 +94,26 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
+// LOAD CLIENTS
+fetch(WEBAPP_URL+"?clients=1")
+.then(r=>r.json())
+.then(data=>{
+  data.forEach(c=>{
+    let opt=document.createElement("option");
+    opt.value=c;
+    opt.textContent=c;
+    client.appendChild(opt);
+  });
+});
+
 // SAVE CLIENT
 function saveClient(){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({
-      type:"client",
-      nom:c_nom.value,
-      adresse:c_adresse.value,
-      mail:c_mail.value,
-      tel:c_tel.value
-    }),
+    body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),
     mode:"no-cors"
   });
-  alert("✅ Client ajouté");
+  alert("Client ajouté");
 }
 
 // DEVIS
@@ -135,8 +128,7 @@ function render(){
         <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
         <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
         <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
-      </div>
-    `;
+      </div>`;
   });
   calculate();
 }
@@ -147,40 +139,32 @@ function clearAll(){ devis={lignes:[]}; render(); }
 
 // CALCUL
 function calculate(){
-  let totalHT=0;
-  devis.lignes.forEach(l=>totalHT+=Number(l.quantite||0)*Number(l.prix||0));
+  let ht=0;
+  devis.lignes.forEach(l=>ht+=Number(l.quantite)*Number(l.prix));
 
-  let rem=Number(remise.value)||0;
-  let montantRemise=totalHT*(rem/100);
-  let totalApres=totalHT-montantRemise;
+  let r=Number(remise.value)||0;
+  let remVal=ht*(r/100);
+  let htApres=ht-remVal;
 
-  let tv=Number(tva.value)||0;
-  let montantTVA=totalApres*(tv/100);
-  let totalTTC=totalApres+montantTVA;
+  let t=Number(tva.value)||0;
+  let tvaVal=htApres*(t/100);
+  let ttc=htApres+tvaVal;
 
-  totalHT.textContent=totalHT.toFixed(2)+" €";
-  montantRemise.textContent=montantRemise.toFixed(2)+" €";
-  totalApresRemise.textContent=totalApres.toFixed(2)+" €";
-  montantTVA.textContent=montantTVA.toFixed(2)+" €";
-  totalTTC.textContent=totalTTC.toFixed(2)+" €";
+  document.getElementById("totalHT").textContent=ht.toFixed(2)+" €";
+  document.getElementById("montantRemise").textContent=remVal.toFixed(2)+" €";
+  document.getElementById("totalApresRemise").textContent=htApres.toFixed(2)+" €";
+  document.getElementById("montantTVA").textContent=tvaVal.toFixed(2)+" €";
+  document.getElementById("totalTTC").textContent=ttc.toFixed(2)+" €";
 }
 
-// SAVE DEVIS
+// SAVE
 function saveDevis(){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({
-      type:"devis",
-      client:client.value,
-      lignes:devis.lignes,
-      remise:remise.value,
-      tva:tva.value,
-      totalHT:totalHT.textContent,
-      totalTTC:totalTTC.textContent
-    }),
+    body:JSON.stringify({type:"devis",client:client.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
     mode:"no-cors"
   });
-  alert("✅ Devis enregistré");
+  alert("Devis enregistré");
 }
 
 // VOICE
@@ -197,29 +181,32 @@ function startVocal(){
     status.innerText=text;
 
     // CLIENT
-    let clientMatch=text.match(/client\s+(.+)/);
-    if(clientMatch){
-      client.value=clientMatch[1].replace("monsieur","").replace("madame","").trim();
+    let c=text.match(/client\s+([a-z\s]+)/);
+    if(c){
+      client.value=c[1].trim();
     }
 
-    // LIGNES (quantité + texte + prix)
-    const regex=/(\d+)\s+([a-zàâçéèêëîïôûùüÿñæœ\s]+?)\s*(\d+)/gi;
-    let match;
-    while((match=regex.exec(text))!==null){
-      devis.lignes.push({
-        designation:match[2].trim(),
-        quantite:parseInt(match[1]),
-        prix:parseFloat(match[3])
-      });
-    }
+    // LIGNES multiples
+    let segments=text.split(/et|,/);
+
+    segments.forEach(seg=>{
+      let m=seg.match(/(\d+)\s+(.+?)\s+(\d+)/);
+      if(m){
+        devis.lignes.push({
+          quantite:Number(m[1]),
+          designation:m[2],
+          prix:Number(m[3])
+        });
+      }
+    });
 
     // REMISE
     let rem=text.match(/remise\s*(\d+)/);
-    if(rem){remise.value=rem[1];}
+    if(rem) remise.value=rem[1];
 
     // TVA
     let tv=text.match(/tva\s*(\d+)/);
-    if(tv){tva.value=tv[1];}
+    if(tv) tva.value=tv[1];
 
     render();
   };
