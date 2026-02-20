@@ -172,50 +172,71 @@ let recognition;
 
 function startVocal(){
 
-  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-  recognition.lang="fr-FR";
-  recognition.continuous=true;
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "fr-FR";
+  recognition.continuous = true;
+  recognition.interimResults = false;
   recognition.start();
 
-  recognition.onresult=e=>{
+  recognition.onresult = e => {
 
-    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
-    status.innerText=text;
+    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
+    status.innerText = text;
 
+    // =========================
     // CLIENT
-    let c=text.match(/client\s+([a-z\s]+)/);
-    if(c) client.value=c[1].trim();
+    // =========================
+    const clientMatch = text.match(/client\s+([a-zA-Z\s]+)/);
+    if(clientMatch){
+      const nom = clientMatch[1]
+        .replace("monsieur","")
+        .replace("madame","")
+        .trim();
+      client.value = nom;
+    }
 
-    // DÉCOUPER PAR "et"
-    let segments=text.split(/ et |,/);
+    // =========================
+    // REMISE
+    // =========================
+    const remMatch = text.match(/remise\s*(\d+)/);
+    if(remMatch) remise.value = remMatch[1];
 
-    segments.forEach(seg=>{
-      let m=seg.match(/(\d+)\s+(.+?)\s+(\d+)/);
-      if(m){
+    // =========================
+    // TVA
+    // =========================
+    const tvaMatch = text.match(/tva\s*(\d+)/);
+    if(tvaMatch) tva.value = tvaMatch[1];
+
+    // =========================
+    // LIGNES PAR "SUIVANT"
+    // =========================
+    const blocs = text.split("suivant");
+
+    blocs.forEach(bloc => {
+
+      // ex: "chauffage 2 à 40"
+      const match = bloc.match(/(.+?)\s*(\d+)\s*(?:a|à)?\s*(\d+)/);
+
+      if(match){
+
+        const designation = match[1].trim();
+        const quantite = match[2];
+        const prix = match[3];
+
         devis.lignes.push({
-          quantite:Number(m[1]),
-          designation:m[2].trim(),
-          prix:Number(m[3])
+          designation,
+          quantite,
+          prix
         });
       }
     });
 
-    // REMISE
-    let rem=text.match(/remise\s*(\d+)/);
-    if(rem) remise.value=rem[1];
-
-    // TVA
-    let tv=text.match(/tva\s*(\d+)/);
-    if(tv) tva.value=tv[1];
-
     render();
   };
 }
-function stopVocal(){ if(recognition) recognition.stop(); }
-
-render();
 
 </script>
 </body>
 </html>
+
 
