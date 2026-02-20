@@ -63,6 +63,12 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <h3>Créer un devis</h3>
 
+<div class="card">
+<button onclick="startVocal()">🎤 Micro</button>
+<button onclick="stopVocal()">🛑 Stop</button>
+<p id="status"></p>
+</div>
+
 <label>Client</label>
 <select id="client"></select>
 
@@ -94,7 +100,7 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <script>
 
-// ===== URL APPS SCRIPT =====
+// ===== API URLs =====
 const CLIENTS_API="TON_URL?clients=1";
 const SAVE_DEVIS_API="TON_URL";
 const SAVE_CLIENT_API="TON_URL?addClient=1";
@@ -105,7 +111,7 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
-// ===== LOAD CLIENT LIST =====
+// ===== LOAD CLIENTS =====
 fetch(CLIENTS_API)
 .then(r=>r.json())
 .then(data=>{
@@ -119,7 +125,6 @@ fetch(CLIENTS_API)
 
 // ===== SAVE CLIENT =====
 function saveClient(){
-
   let payload={
     nom:c_nom.value,
     adresse:c_adresse.value,
@@ -127,10 +132,7 @@ function saveClient(){
     tel:c_tel.value
   };
 
-  fetch(SAVE_CLIENT_API,{
-    method:"POST",
-    body:JSON.stringify(payload)
-  })
+  fetch(SAVE_CLIENT_API,{method:"POST",body:JSON.stringify(payload)})
   .then(()=>alert("✅ Client ajouté"))
   .catch(()=>alert("❌ Erreur"));
 }
@@ -179,7 +181,6 @@ function calculate(){
 
 // ===== SAVE DEVIS =====
 function saveDevis(){
-
   let payload={
     client:client.value,
     lignes:devis.lignes,
@@ -189,13 +190,46 @@ function saveDevis(){
     totalTTC:totalTTC.textContent
   };
 
-  fetch(SAVE_DEVIS_API,{
-    method:"POST",
-    body:JSON.stringify(payload)
-  })
+  fetch(SAVE_DEVIS_API,{method:"POST",body:JSON.stringify(payload)})
   .then(()=>alert("✅ Devis enregistré"))
   .catch(()=>alert("❌ Erreur"));
 }
+
+// ===== VOICE =====
+let recognition;
+
+function startVocal(){
+  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+  recognition.lang="fr-FR";
+  recognition.continuous=true;
+  recognition.start();
+
+  recognition.onresult=e=>{
+    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
+    status.innerText=text;
+
+    let clientMatch=text.match(/client\s+(.+)/);
+    if(clientMatch){
+      client.value=clientMatch[1].replace("monsieur","").replace("madame","").trim();
+    }
+
+    const regex=/(radiateur|chauffage|prestation|travaux)\D*(\d+)/g;
+    let match;
+    while((match=regex.exec(text))!==null){
+      devis.lignes.push({designation:match[1],quantite:1,prix:match[2]});
+    }
+
+    let rem=text.match(/remise\s*(\d+)/);
+    if(rem){remise.value=rem[1];}
+
+    let tv=text.match(/tva\s*(\d+)/);
+    if(tv){tva.value=tv[1];}
+
+    render();
+  };
+}
+
+function stopVocal(){ if(recognition) recognition.stop(); }
 
 </script>
 </body>
