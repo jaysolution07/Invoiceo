@@ -11,13 +11,15 @@ body{margin:0;font-family:Arial;background:#f5f7fb}
 .container{max-width:900px;margin:auto;padding:20px}
 .card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
 button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px}
-input,select{padding:8px;margin:4px 0;width:100%}
+input{padding:8px;margin:4px 0;width:100%}
 .line{display:flex;gap:10px;align-items:center}
 .deleteBtn{background:#ef4444}
 .clearBtn{background:#f59e0b}
 .saveBtn{background:#16a34a}
 .totals{background:#f1f5f9;padding:15px;border-radius:8px;margin-top:10px}
 .hidden{display:none}
+.suggestion{padding:6px;cursor:pointer}
+.suggestion:hover{background:#f1f5f9}
 </style>
 </head>
 
@@ -27,12 +29,14 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 <div class="container">
 
+<!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
 <button onclick="showPage('devisPage')">📄 Créer devis</button>
 <button onclick="showPage('clientPage')">➕ Ajouter client</button>
 </div>
 
+<!-- CLIENT -->
 <div id="clientPage" class="card hidden">
 <h3>Ajouter un client</h3>
 <input id="c_nom" placeholder="Nom">
@@ -43,6 +47,7 @@ input,select{padding:8px;margin:4px 0;width:100%}
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
+<!-- DEVIS -->
 <div id="devisPage" class="card hidden">
 
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
@@ -55,7 +60,8 @@ input,select{padding:8px;margin:4px 0;width:100%}
 </div>
 
 <label>Client</label>
-<select id="client"></select>
+<input id="clientInput" placeholder="Tapez pour rechercher...">
+<div id="clientSuggestions"></div>
 
 <h3>Lignes</h3>
 <div id="lines"></div>
@@ -86,7 +92,7 @@ input,select{padding:8px;margin:4px 0;width:100%}
 
 const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-// NAV
+// NAVIGATION
 function showPage(id){
   homePage.classList.add("hidden");
   clientPage.classList.add("hidden");
@@ -94,19 +100,36 @@ function showPage(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
-// LOAD CLIENTS
-fetch(WEBAPP_URL+"?clients=1")
-.then(r=>r.json())
-.then(data=>{
-  data.forEach(c=>{
-    let opt=document.createElement("option");
-    opt.value=c;
-    opt.textContent=c;
-    client.appendChild(opt);
+// ================= CLIENT SEARCH =================
+let clientsList=[];
+
+function loadClients(){
+  fetch(WEBAPP_URL+"?clients=1")
+  .then(r=>r.json())
+  .then(data=>clientsList=data);
+}
+loadClients();
+
+clientInput.addEventListener("input",()=>{
+  const value=clientInput.value.toLowerCase();
+  clientSuggestions.innerHTML="";
+  if(!value) return;
+
+  clientsList
+  .filter(c=>c.toLowerCase().includes(value))
+  .forEach(c=>{
+    const div=document.createElement("div");
+    div.textContent=c;
+    div.className="suggestion";
+    div.onclick=()=>{
+      clientInput.value=c;
+      clientSuggestions.innerHTML="";
+    };
+    clientSuggestions.appendChild(div);
   });
 });
 
-// SAVE CLIENT
+// ================= SAVE CLIENT =================
 function saveClient(){
   fetch(WEBAPP_URL,{
     method:"POST",
@@ -116,31 +139,31 @@ function saveClient(){
   alert("Client ajouté");
 }
 
-// DEVIS
+// ================= DEVIS =================
 let devis={lignes:[]};
 
 function render(){
   lines.innerHTML="";
   devis.lignes.forEach((l,i)=>{
     lines.innerHTML+=`
-      <div class="line">
-        <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
-        <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
-        <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
-        <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
-      </div>`;
+    <div class="line">
+      <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
+      <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+      <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+      <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
+    </div>`;
   });
   calculate();
 }
 
-function addLine(){ devis.lignes.push({designation:"",quantite:1,prix:0}); render(); }
-function deleteLine(i){ devis.lignes.splice(i,1); render(); }
-function clearAll(){ devis={lignes:[]}; render(); }
+function addLine(){devis.lignes.push({designation:"",quantite:1,prix:0});render();}
+function deleteLine(i){devis.lignes.splice(i,1);render();}
+function clearAll(){devis={lignes:[]};render();}
 
-// CALCUL
+// ================= CALCUL =================
 function calculate(){
   let ht=0;
-  devis.lignes.forEach(l=>ht+=Number(l.quantite)*Number(l.prix));
+  devis.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
 
   let r=Number(remise.value)||0;
   let remVal=ht*(r/100);
@@ -150,109 +173,77 @@ function calculate(){
   let tvaVal=htApres*(t/100);
   let ttc=htApres+tvaVal;
 
-  document.getElementById("totalHT").textContent=ht.toFixed(2)+" €";
-  document.getElementById("montantRemise").textContent=remVal.toFixed(2)+" €";
-  document.getElementById("totalApresRemise").textContent=htApres.toFixed(2)+" €";
-  document.getElementById("montantTVA").textContent=tvaVal.toFixed(2)+" €";
-  document.getElementById("totalTTC").textContent=ttc.toFixed(2)+" €";
+  totalHT.textContent=ht.toFixed(2)+" €";
+  montantRemise.textContent=remVal.toFixed(2)+" €";
+  totalApresRemise.textContent=htApres.toFixed(2)+" €";
+  montantTVA.textContent=tvaVal.toFixed(2)+" €";
+  totalTTC.textContent=ttc.toFixed(2)+" €";
 }
 
-// SAVE
+// ================= SAVE DEVIS =================
 function saveDevis(){
   fetch(WEBAPP_URL,{
     method:"POST",
-    body:JSON.stringify({type:"devis",client:client.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
+    body:JSON.stringify({
+      type:"devis",
+      client:clientInput.value,
+      lignes:devis.lignes,
+      remise:remise.value,
+      tva:tva.value
+    }),
     mode:"no-cors"
   });
   alert("Devis enregistré");
 }
 
-// VOICE
+// ================= VOICE =================
 let recognition;
 
 function startVocal(){
-
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "fr-FR";
-  recognition.continuous = true;
-  recognition.interimResults = false;
+  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+  recognition.lang="fr-FR";
+  recognition.continuous=true;
   recognition.start();
 
-  recognition.onresult = e => {
+  recognition.onresult=e=>{
+    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
+    status.innerText=text;
 
-    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
-    status.innerText = text;
-
-    // =========================
     // CLIENT
-    // =========================
-    const clientMatch = text.match(/client\s+([a-zA-Z\s]+)/);
-    if(clientMatch){
-      const nom = clientMatch[1]
-        .replace("monsieur","")
-        .replace("madame","")
-        .trim();
-      client.value = nom;
-    }
+    let c=text.match(/client\s+(.+)/);
+    if(c) clientInput.value=c[1].replace("monsieur","").replace("madame","").trim();
 
-    // =========================
     // REMISE
-    // =========================
-    const remMatch = text.match(/remise\s*(\d+)/);
-    if(remMatch) remise.value = remMatch[1];
+    let r=text.match(/remise\s*(\d+)/);
+    if(r) remise.value=r[1];
 
-    // =========================
     // TVA
-    // =========================
-    const tvaMatch = text.match(/tva\s*(\d+)/);
-    if(tvaMatch) tva.value = tvaMatch[1];
+    let t=text.match(/tva\s*(\d+)/);
+    if(t) tva.value=t[1];
 
-    // =========================
-    // LIGNES PAR "SUIVANT"
-    // =========================
-   const blocs = text.split("suivant");
+    // LIGNES
+    text.split("suivant").forEach(bloc=>{
+      const nums=bloc.match(/\d+/g);
+      const designation=bloc.replace(/\d+/g,"").replace("à","").replace("a","").trim();
+      if(!designation) return;
 
-blocs.forEach(bloc => {
+      let q=1,p=0;
+      if(nums){
+        if(nums.length===1) p=nums[0];
+        if(nums.length>=2){q=nums[0];p=nums[1];}
+      }
 
-  // récupère tous les nombres du bloc
-  const numbers = bloc.match(/\d+/g);
+      devis.lignes.push({designation:designation,quantite:q,prix:p});
+    });
 
-  // récupère texte sans nombres
-  const designation = bloc
-    .replace(/\d+/g,"")
-    .replace("à","")
-    .replace("a","")
-    .trim();
-
-  if(!designation) return;
-
-  let quantite = 1;
-  let prix = 0;
-
-  if(numbers){
-    if(numbers.length === 1){
-      prix = numbers[0];
-    }
-    if(numbers.length >= 2){
-      quantite = numbers[0];
-      prix = numbers[1];
-    }
-  }
-
-  devis.lignes.push({
-    designation,
-    quantite,
-    prix
-  });
-
-});
     render();
   };
 }
 
+function stopVocal(){if(recognition) recognition.stop();}
+
+render();
+
 </script>
 </body>
 </html>
-
-
-
