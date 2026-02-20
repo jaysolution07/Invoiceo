@@ -120,13 +120,12 @@ function saveClient(){
 
   fetch(WEBAPP_URL,{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
     body:JSON.stringify(payload)
   })
+  .then(res => res.text())
   .then(()=>alert("✅ Client ajouté"))
-  .catch(()=>alert("❌ Erreur"));
+  .catch(()=>alert("❌ Erreur réseau"));
 }
-
 // ===== DEVIS =====
 let devis={lignes:[]};
 
@@ -190,13 +189,18 @@ function saveDevis(){
 
   fetch(WEBAPP_URL,{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
     body:JSON.stringify(payload)
   })
-  .then(()=>alert("✅ Devis enregistré"))
-  .catch(()=>alert("❌ Erreur"));
+  .then(res => res.text()) // 👈 très important
+  .then(txt => {
+    console.log("Réponse serveur:", txt);
+    alert("✅ Devis envoyé (vérifie la feuille)");
+  })
+  .catch(err => {
+    console.error(err);
+    alert("❌ Erreur réseau");
+  });
 }
-
 // ===== VOICE =====
 let recognition;
 
@@ -238,3 +242,4 @@ render();
 </script>
 </body>
 </html>
+
