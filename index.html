@@ -103,9 +103,12 @@ document.getElementById(id).classList.remove("hidden");
 let clientsList=[];
 
 function loadClients(){
-fetch(WEBAPP_URL+"?clients=1")
-.then(r=>r.json())
-.then(data=>clientsList=data);
+  fetch(WEBAPP_URL+"?clients=1")
+  .then(r=>r.json())
+  .then(data=>{
+    clientsList = data || [];
+  })
+  .catch(()=>alert("Erreur chargement clients"));
 }
 
 loadClients();
@@ -296,3 +299,4 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
