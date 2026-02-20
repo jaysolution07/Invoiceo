@@ -210,27 +210,42 @@ function startVocal(){
     // =========================
     // LIGNES PAR "SUIVANT"
     // =========================
-    const blocs = text.split("suivant");
+   const blocs = text.split("suivant");
 
-    blocs.forEach(bloc => {
+blocs.forEach(bloc => {
 
-      // ex: "chauffage 2 à 40"
-      const match = bloc.match(/(.+?)\s*(\d+)\s*(?:a|à)?\s*(\d+)/);
+  // récupère tous les nombres du bloc
+  const numbers = bloc.match(/\d+/g);
 
-      if(match){
+  // récupère texte sans nombres
+  const designation = bloc
+    .replace(/\d+/g,"")
+    .replace("à","")
+    .replace("a","")
+    .trim();
 
-        const designation = match[1].trim();
-        const quantite = match[2];
-        const prix = match[3];
+  if(!designation) return;
 
-        devis.lignes.push({
-          designation,
-          quantite,
-          prix
-        });
-      }
-    });
+  let quantite = 1;
+  let prix = 0;
 
+  if(numbers){
+    if(numbers.length === 1){
+      prix = numbers[0];
+    }
+    if(numbers.length >= 2){
+      quantite = numbers[0];
+      prix = numbers[1];
+    }
+  }
+
+  devis.lignes.push({
+    designation,
+    quantite,
+    prix
+  });
+
+});
     render();
   };
 }
@@ -238,5 +253,6 @@ function startVocal(){
 </script>
 </body>
 </html>
+
 
 
