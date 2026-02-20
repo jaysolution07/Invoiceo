@@ -107,7 +107,9 @@ const SAVE_CLIENT_API="TON_URL?addClient=1";
 
 // ===== NAVIGATION =====
 function showPage(id){
-  document.querySelectorAll(".card").forEach(p=>p.classList.add("hidden"));
+  document.getElementById("homePage").classList.add("hidden");
+  document.getElementById("clientPage").classList.add("hidden");
+  document.getElementById("devisPage").classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
 
@@ -137,7 +139,7 @@ function saveClient(){
   .catch(()=>alert("❌ Erreur"));
 }
 
-// ===== DEVIS LOGIC =====
+// ===== DEVIS =====
 let devis={lignes:[]};
 
 function render(){
@@ -195,7 +197,7 @@ function saveDevis(){
   .catch(()=>alert("❌ Erreur"));
 }
 
-// ===== VOICE =====
+// ===== COMMANDE VOCALE =====
 let recognition;
 
 function startVocal(){
@@ -229,7 +231,11 @@ function startVocal(){
   };
 }
 
-function stopVocal(){ if(recognition) recognition.stop(); }
+function stopVocal(){
+  if(recognition) recognition.stop();
+}
+
+render();
 
 </script>
 </body>
