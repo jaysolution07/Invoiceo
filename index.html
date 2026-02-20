@@ -171,30 +171,30 @@ function saveDevis(){
 let recognition;
 
 function startVocal(){
+
   recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
   recognition.lang="fr-FR";
   recognition.continuous=true;
   recognition.start();
 
   recognition.onresult=e=>{
+
     let text=e.results[e.results.length-1][0].transcript.toLowerCase();
     status.innerText=text;
 
     // CLIENT
     let c=text.match(/client\s+([a-z\s]+)/);
-    if(c){
-      client.value=c[1].trim();
-    }
+    if(c) client.value=c[1].trim();
 
-    // LIGNES multiples
-    let segments=text.split(/et|,/);
+    // DÉCOUPER PAR "et"
+    let segments=text.split(/ et |,/);
 
     segments.forEach(seg=>{
       let m=seg.match(/(\d+)\s+(.+?)\s+(\d+)/);
       if(m){
         devis.lignes.push({
           quantite:Number(m[1]),
-          designation:m[2],
+          designation:m[2].trim(),
           prix:Number(m[3])
         });
       }
@@ -211,7 +211,6 @@ function startVocal(){
     render();
   };
 }
-
 function stopVocal(){ if(recognition) recognition.stop(); }
 
 render();
@@ -219,3 +218,4 @@ render();
 </script>
 </body>
 </html>
+
