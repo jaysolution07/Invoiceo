@@ -198,88 +198,109 @@ function saveDevis(){
 
 // ================= VOICE =================
 let recognition;
+let lastProcessedText = "";
+
+// ===== CORRECTION TEXTE GENERIQUE =====
+function cleanSpeechText(text){
+
+  return text
+    .replace(/[€]/g,"")
+    .replace(/\s+/g," ")
+    .replace(/^\s+|\s+$/g,"")
+    .replace(/\b(euh|heu|alors|donc|voilà)\b/g,"")
+    .trim();
+}
+
+// ===== CAPITALISATION =====
+function capitalize(str){
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function startVocal(){
-  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-  recognition.lang="fr-FR";
-  recognition.continuous=true;
+
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "fr-FR";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
   recognition.start();
 
-  recognition.onresult=e=>{
-    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
-    status.innerText=text;
+  recognition.onresult = e => {
 
-    // CLIENT
-    let c=text.match(/client\s+(.+)/);
-    if(c) clientInput.value=c[1].replace("monsieur","").replace("madame","").trim();
+    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
 
-    // REMISE
-    let r=text.match(/remise\s*(\d+)/);
-    if(r) remise.value=r[1];
+    if(text === lastProcessedText) return;
+    lastProcessedText = text;
 
-    // TVA
-    let t=text.match(/tva\s*(\d+)/);
-    if(t) tva.value=t[1];
+    status.innerText = text;
 
-    // =========================
-// EXTRACTION DES ARTICLES
-// =========================
+    // ===== REMISE =====
+    const remMatch = text.match(/remise\s*(\d+)/);
+    if(remMatch) remise.value = remMatch[1];
 
-// on enlève les parties non articles
-let cleanText = text
-  .replace(/client\s+[^suivant]*/g, "")
-  .replace(/remise\s*\d+/g, "")
-  .replace(/tva\s*\d+/g, "")
-  .trim();
+    // ===== TVA =====
+    const tvaMatch = text.match(/tva\s*(\d+)/);
+    if(tvaMatch) tva.value = tvaMatch[1];
 
-// découpe par "suivant"
-const blocs = cleanText.split("suivant");
+    // ===== TEXTE NETTOYÉ =====
+    let cleanText = text
+      .replace(/remise\s*\d+/g,"")
+      .replace(/tva\s*\d+/g,"");
 
-blocs.forEach(bloc => {
+    cleanText = cleanSpeechText(cleanText);
 
-  // doit contenir au moins un nombre (prix)
-  const numbers = bloc.match(/\d+/g);
-  if(!numbers) return;
+    // ===== SPLIT LIGNES =====
+    const blocs = cleanText.split("suivant");
 
-  // nettoyage désignation
-  const designation = bloc
-    .replace(/\d+/g,"")
-    .replace("€","")
-    .replace("euro","")
-    .replace("à","")
-    .replace("a","")
-    .trim();
+    blocs.forEach(bloc=>{
 
-  if(!designation) return;
+      bloc = bloc.trim();
+      if(!bloc) return;
 
-  let quantite = 1;
-  let prix = 0;
+      const numbers = bloc.match(/\d+/g);
 
-  if(numbers.length === 1){
-    prix = numbers[0];
-  }
-  if(numbers.length >= 2){
-    quantite = numbers[0];
-    prix = numbers[1];
-  }
+      let designation = bloc
+        .replace(/\d+/g,"")
+        .trim();
 
-  devis.lignes.push({
-    designation,
-    quantite,
-    prix
-  });
+      designation = capitalize(cleanSpeechText(designation));
 
-});
+      if(!designation) return;
+
+      let quantite = 1;
+      let prix = 0;
+
+      if(numbers){
+        if(numbers.length === 1){
+          prix = numbers[0];
+        }
+        if(numbers.length >= 2){
+          quantite = numbers[0];
+          prix = numbers[1];
+        }
+      }
+
+      devis.lignes.push({
+        designation,
+        quantite,
+        prix
+      });
+
+    });
 
     render();
   };
 }
 
-function stopVocal(){if(recognition) recognition.stop();}
-
-render();
+function stopVocal(){
+  if(recognition){
+    recognition.stop();
+    lastProcessedText = "";
+  }
+}
 
 </script>
 </body>
 </html>
+
 
