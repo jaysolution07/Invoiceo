@@ -2,323 +2,185 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>INVOICEO</title>
+<title>Assistant Devis</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 body{margin:0;font-family:Arial;background:#f5f7fb}
 .header{background:#2563eb;color:white;padding:20px;font-size:20px}
-.container{max-width:1100px;margin:auto;padding:20px}
+.container{max-width:900px;margin:auto;padding:20px}
 .card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
-button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px}
-input{padding:8px;margin:4px 0;width:100%}
-.line{display:flex;gap:10px;margin-bottom:6px}
-.hidden{display:none}
-.suggestion{padding:6px;cursor:pointer;border-bottom:1px solid #eee}
-.suggestion:hover{background:#f1f5f9}
-.table{width:100%;border-collapse:collapse;margin-top:10px}
-.table th,.table td{border:1px solid #ddd;padding:6px}
+button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin-right:10px;margin-top:10px}
+input,select{padding:8px;margin:4px 0;width:100%}
+.line{display:flex;gap:10px;align-items:center}
 .deleteBtn{background:#ef4444}
+.clearBtn{background:#f59e0b}
+.totals{background:#f1f5f9;padding:15px;border-radius:8px;margin-top:10px}
+.saveBtn{background:#16a34a}
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Assistant gestion</div>
+<div class="header">🎤 Assistant devis</div>
 
 <div class="container">
 
-<div id="homePage" class="card">
-<h3>Menu</h3>
-<button onclick="showPage('devisPage')">📄 Créer devis</button>
-<button onclick="showPage('clientsPage')">👤 Clients</button>
-<button onclick="showPage('articlesPage')">📦 Articles</button>
+<div class="card">
+<button onclick="startVocal()">🎤 Micro</button>
+<button onclick="stopVocal()">🛑 Stop</button>
+<p id="status"></p>
 </div>
 
-<div id="devisPage" class="card hidden">
-<button onclick="showPage('homePage')">⬅️ Retour</button>
-<h3>Créer devis</h3>
+<div class="card">
 
 <label>Client</label>
-<input id="clientInput" placeholder="Rechercher client">
-<div id="clientSuggestions"></div>
+<select id="client"></select>
 
 <h3>Lignes</h3>
 <div id="lines"></div>
-<button onclick="addLine()">➕ Ajouter ligne</button>
 
-<label>Remise %</label>
+<button onclick="addLine()">➕ Ajouter ligne</button>
+<button class="clearBtn" onclick="clearAll()">🧹 Tout effacer</button>
+
+<label>Remise (%)</label>
 <input id="remise" oninput="calculate()">
 
-<label>TVA %</label>
+<label>TVA (%)</label>
 <input id="tva" oninput="calculate()">
 
-<div>Total HT : <b id="totalHT">0</b></div>
-<div>Total TTC : <b id="totalTTC">0</b></div>
-
-<button onclick="saveDevis()">💾 Enregistrer devis</button>
+<div class="totals">
+<div>Total HT : <b id="totalHT">0 €</b></div>
+<div>Montant remise : <b id="montantRemise">0 €</b></div>
+<div>Total HT après remise : <b id="totalApresRemise">0 €</b></div>
+<div>Montant TVA : <b id="montantTVA">0 €</b></div>
+<div>Total TTC : <b id="totalTTC">0 €</b></div>
 </div>
 
-<div id="clientsPage" class="card hidden">
-<button onclick="showPage('homePage')">⬅️ Retour</button>
-<h3>Clients</h3>
+<button class="saveBtn" onclick="saveDevis()">💾 Enregistrer le devis</button>
 
-<table class="table" id="clientsTable"></table>
-
-<h4>Ajouter client</h4>
-<input id="c_nom" placeholder="Nom">
-<input id="c_mail" placeholder="Email">
-<input id="c_tel" placeholder="Téléphone">
-<button onclick="addClient()">💾 Ajouter</button>
 </div>
-
-<div id="articlesPage" class="card hidden">
-<button onclick="showPage('homePage')">⬅️ Retour</button>
-<h3>Articles</h3>
-
-<table class="table" id="articlesTable"></table>
-
-<h4>Ajouter article</h4>
-<input id="a_nom" placeholder="Designation">
-<input id="a_prix" placeholder="Prix">
-<button onclick="addArticle()">💾 Ajouter</button>
-</div>
-
 </div>
 
 <script>
 
-const WEBAPP_URL="TON_URL_WEBAPP";
+const CLIENTS_API="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec?clients=1";
+const SAVE_API="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-function showPage(id){
- document.querySelectorAll(".card").forEach(p=>p.classList.add("hidden"));
- document.getElementById(id).classList.remove("hidden");
-}
+let devis={client:"",lignes:[],remise:0,tva:0};
+let recognition;
 
-let clients=[],articles=[];
-let devis={lignes:[]};
-
-async function loadData(){
- clients=await fetch(WEBAPP_URL+"?clients=1").then(r=>r.json());
- articles=await fetch(WEBAPP_URL+"?articles=1").then(r=>r.json());
-
- buildClientAutocomplete();
- buildClientsTable();
- buildArticlesTable();
-}
-loadData();
-
-function buildClientAutocomplete(){
- clientInput.oninput=()=>{
-  const val=clientInput.value.toLowerCase();
-  clientSuggestions.innerHTML="";
-  if(!val) return;
-
-  clients.filter(c=>c.nom.toLowerCase().includes(val))
-  .forEach(c=>{
-    const div=document.createElement("div");
-    div.textContent=c.nom;
-    div.className="suggestion";
-    div.onclick=()=>{
-      clientInput.value=c.nom;
-      clientSuggestions.innerHTML="";
-    };
-    clientSuggestions.appendChild(div);
+// ===== CLIENT LIST =====
+fetch(CLIENTS_API)
+.then(r=>r.json())
+.then(data=>{
+  data.forEach(c=>{
+    let opt=document.createElement("option");
+    opt.value=c;
+    opt.textContent=c;
+    client.appendChild(opt);
   });
- }
-}
+});
 
-function buildClientsTable(){
- clientsTable.innerHTML="<tr><th>Nom</th><th>Email</th><th>Téléphone</th></tr>";
- clients.forEach(c=>{
-  clientsTable.innerHTML+=`<tr><td>${c.nom}</td><td>${c.mail}</td><td>${c.tel}</td></tr>`;
- });
-}
-
-function buildArticlesTable(){
- articlesTable.innerHTML="<tr><th>Designation</th><th>Prix</th></tr>";
- articles.forEach(a=>{
-  articlesTable.innerHTML+=`<tr><td>${a.designation}</td><td>${a.prix}</td></tr>`;
- });
-}
-
-function addLine(){
- devis.lignes.push({designation:"",quantite:1,prix:0});
- render();
-}
-
+// ===== RENDER =====
 function render(){
- lines.innerHTML="";
+  lines.innerHTML="";
+  devis.lignes.forEach((l,i)=>{
+    lines.innerHTML+=`
+      <div class="line">
+        <input value="${l.designation}" onchange="devis.lignes[${i}].designation=this.value">
+        <input type="number" value="${l.quantite}" onchange="devis.lignes[${i}].quantite=this.value;calculate()">
+        <input type="number" value="${l.prix}" onchange="devis.lignes[${i}].prix=this.value;calculate()">
+        <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
+      </div>
+    `;
+  });
+  calculate();
+}
 
- devis.lignes.forEach((l,i)=>{
+// ===== CALCULS =====
+function calculate(){
+  let totalHT=0;
+  devis.lignes.forEach(l=>{ totalHT+=Number(l.quantite)*Number(l.prix); });
 
-  const row=document.createElement("div");
-  row.className="line";
+  let remiseVal=Number(remise.value)||0;
+  let montantRemise=totalHT*(remiseVal/100);
+  let totalApres=totalHT-montantRemise;
 
-  const des=document.createElement("input");
-  des.value=l.designation;
+  let tvaVal=Number(tva.value)||0;
+  let montantTVA=totalApres*(tvaVal/100);
+  let totalTTC=totalApres+montantTVA;
 
-  des.oninput=()=>{
-   const val=des.value.toLowerCase();
-   const match=articles.find(a=>a.designation.toLowerCase().includes(val));
-   if(match) devis.lignes[i].prix=match.prix;
-   devis.lignes[i].designation=des.value;
-   calculate();
+  totalHTEl(totalHT);
+  montantRemiseEl(montantRemise);
+  totalApresRemiseEl(totalApres);
+  montantTVAEl(montantTVA);
+  totalTTCEl(totalTTC);
+}
+
+function totalHTEl(v){totalHT.textContent=v.toFixed(2)+" €";}
+function montantRemiseEl(v){montantRemise.textContent=v.toFixed(2)+" €";}
+function totalApresRemiseEl(v){totalApresRemise.textContent=v.toFixed(2)+" €";}
+function montantTVAEl(v){montantTVA.textContent=v.toFixed(2)+" €";}
+function totalTTCEl(v){totalTTC.textContent=v.toFixed(2)+" €";}
+
+// ===== LIGNES =====
+function addLine(){ devis.lignes.push({designation:"",quantite:1,prix:0}); render(); }
+function deleteLine(i){ devis.lignes.splice(i,1); render(); }
+function clearAll(){ devis={client:"",lignes:[],remise:0,tva:0}; client.value=""; remise.value=""; tva.value=""; render(); }
+
+// ===== SAVE =====
+function saveDevis(){
+
+  let payload={
+    client:client.value,
+    lignes:devis.lignes,
+    remise:remise.value,
+    tva:tva.value,
+    totalHT:totalHT.textContent,
+    totalTTC:totalTTC.textContent
   };
 
-  const qty=document.createElement("input");
-  qty.type="number";
-  qty.value=l.quantite;
-  qty.oninput=()=>{devis.lignes[i].quantite=qty.value;calculate();};
-
-  const price=document.createElement("input");
-  price.type="number";
-  price.value=l.prix;
-  price.oninput=()=>{devis.lignes[i].prix=price.value;calculate();};
-
-  const del=document.createElement("button");
-  del.textContent="✖";
-  del.className="deleteBtn";
-  del.onclick=()=>{devis.lignes.splice(i,1);render();};
-
-  row.append(des,qty,price,del);
-  lines.appendChild(row);
- });
-
- calculate();
+  fetch(SAVE_API,{method:"POST",body:JSON.stringify(payload)})
+  .then(()=>alert("✅ Devis enregistré dans Sheets"))
+  .catch(()=>alert("❌ Erreur enregistrement"));
 }
 
-function calculate(){
- let ht=0;
- devis.lignes.forEach(l=>ht+=Number(l.quantite)*Number(l.prix));
-
- let rem=Number(remise.value)||0;
- let htApres=ht-(ht*rem/100);
-
- let t=Number(tva.value)||0;
- let ttc=htApres*(1+t/100);
-
- totalHT.textContent=htApres.toFixed(2);
- totalTTC.textContent=ttc.toFixed(2);
-}
-
-function saveDevis(){
- fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({type:"devis",client:clientInput.value,lignes:devis.lignes,remise:remise.value,tva:tva.value}),
-  mode:"no-cors"
- });
- alert("Devis enregistré");
-}
-
-function addClient(){
- fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({type:"clientAdd",nom:c_nom.value,mail:c_mail.value,tel:c_tel.value}),
-  mode:"no-cors"
- });
- alert("Client ajouté");
-}
-
-function addArticle(){
- fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({type:"articleAdd",designation:a_nom.value,prix:a_prix.value}),
-  mode:"no-cors"
- });
- alert("Article ajouté");
-}
-  // ================= VOICE =================
-let recognition;
-let lastSpeech = "";
-
+// ===== VOCAL =====
 function startVocal(){
-
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "fr-FR";
-  recognition.continuous = true;
-  recognition.interimResults = false;
-
+  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+  recognition.lang="fr-FR";
+  recognition.continuous=true;
   recognition.start();
 
-  recognition.onresult = e => {
+  recognition.onresult=e=>{
+    let text=e.results[e.results.length-1][0].transcript.toLowerCase();
+    status.innerText=text;
 
-    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
+    let clientMatch=text.match(/client\s+(.+)/);
+    if(clientMatch){
+      let nom=clientMatch[1].replace("monsieur","").replace("madame","").trim();
+      client.value=nom;
+    }
 
-    // évite doublons
-    if(text === lastSpeech) return;
-    lastSpeech = text;
+    const regex=/(radiateur|chauffage|prestation|travaux)\D*(\d+)/g;
+    let match;
+    while((match=regex.exec(text))!==null){
+      devis.lignes.push({designation:match[1],quantite:1,prix:match[2]});
+    }
 
-    console.log("Vocal:", text);
+    let rem=text.match(/remise\s*(\d+)/);
+    if(rem){remise.value=rem[1];}
 
-    // ===== REMISE =====
-    const rem = text.match(/remise\s*(\d+)/);
-    if(rem) remise.value = rem[1];
-
-    // ===== TVA =====
-    const tvaMatch = text.match(/tva\s*(\d+)/);
-    if(tvaMatch) tva.value = tvaMatch[1];
-
-    // ===== TEXTE SANS COMMANDE =====
-    let clean = text
-      .replace(/remise\s*\d+/g,"")
-      .replace(/tva\s*\d+/g,"")
-      .replace(/[€]/g,"")
-      .trim();
-
-    // ===== LIGNES =====
-    clean.split("suivant").forEach(bloc => {
-
-      bloc = bloc.trim();
-      if(!bloc) return;
-
-      const nums = bloc.match(/\d+/g);
-      if(!nums) return;
-
-      // designation libre
-      let designation = bloc.replace(/\d+/g,"").trim();
-
-      // si article existant → récupère prix
-      const articleMatch = articles.find(a =>
-        designation.toLowerCase().includes(a.designation.toLowerCase())
-      );
-
-      let q = 1;
-      let p = 0;
-
-      if(nums.length === 1){
-        p = nums[0];
-      }
-
-      if(nums.length >= 2){
-        q = nums[0];
-        p = nums[1];
-      }
-
-      if(articleMatch && p === 0){
-        p = articleMatch.prix;
-      }
-
-      devis.lignes.push({
-        designation,
-        quantite:q,
-        prix:p
-      });
-
-    });
+    let tv=text.match(/tva\s*(\d+)/);
+    if(tv){tva.value=tv[1];}
 
     render();
   };
 }
 
-function stopVocal(){
-  if(recognition){
-    recognition.stop();
-    lastSpeech = "";
-  }
-}
+function stopVocal(){ if(recognition) recognition.stop(); }
 
 </script>
 </body>
 </html>
-
