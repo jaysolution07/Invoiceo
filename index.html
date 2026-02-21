@@ -287,7 +287,74 @@ mode:"no-cors"
 });
 alert("Devis enregistré");
 }
+// ================= FACTURE =================
 
+let devisFacture = { lignes: [] };
+
+function renderFacture(){
+linesFacture.innerHTML="";
+devisFacture.lignes.forEach((l,i)=>{
+linesFacture.innerHTML+=`
+<div class="line">
+<input value="${l.designation}" oninput="devisFacture.lignes[${i}].designation=this.value">
+<input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
+<input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
+<button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
+</div>`;
+});
+calculateFacture();
+}
+
+function addLineFacture(){
+devisFacture.lignes.push({designation:"",quantite:1,prix:0});
+renderFacture();
+}
+
+function deleteLineFacture(i){
+devisFacture.lignes.splice(i,1);
+renderFacture();
+}
+
+function clearAllFacture(){
+devisFacture={lignes:[]};
+renderFacture();
+}
+
+// ================= CALCUL FACTURE =================
+function calculateFacture(){
+let ht=0;
+devisFacture.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
+
+let r=Number(remiseFacture.value)||0;
+let remVal=ht*(r/100);
+let htApres=ht-remVal;
+
+let t=Number(tvaFacture.value)||0;
+let tvaVal=htApres*(t/100);
+let ttc=htApres+tvaVal;
+
+totalHTFacture.textContent=ht.toFixed(2)+" €";
+montantRemiseFacture.textContent=remVal.toFixed(2)+" €";
+totalApresRemiseFacture.textContent=htApres.toFixed(2)+" €";
+montantTVAFacture.textContent=tvaVal.toFixed(2)+" €";
+totalTTCFacture.textContent=ttc.toFixed(2)+" €";
+}
+
+// ================= SAVE FACTURE =================
+function saveFacture(){
+fetch(WEBAPP_URL,{
+method:"POST",
+body:JSON.stringify({
+type:"facture",
+client:clientInputFacture.value,
+lignes:devisFacture.lignes,
+remise:remiseFacture.value,
+tva:tvaFacture.value
+}),
+mode:"no-cors"
+});
+alert("Facture enregistrée");
+}
 // ================= VOICE =================
 let recognition;
 let lastProcessedText = "";
@@ -388,6 +455,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
