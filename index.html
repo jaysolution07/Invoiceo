@@ -158,10 +158,20 @@ input{padding:8px;margin:4px 0;width:100%}
 const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
 function showPage(id){
+
 document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage")
 .forEach(p=>p.classList.add("hidden"));
 
 document.getElementById(id).classList.remove("hidden");
+
+// 👇 AJOUT IMPORTANT
+if(id === "devisPage"){
+  documentActif = "devis";
+}
+
+if(id === "facturePage"){
+  documentActif = "facture";
+}
 }
 
 function saveFacture(){
@@ -233,7 +243,7 @@ alert("Client ajouté");
 
 // ================= DEVIS =================
 let devis={lignes:[]};
-
+let documentActif = "devis";
 function render(){
 lines.innerHTML="";
 devis.lignes.forEach((l,i)=>{
@@ -436,7 +446,15 @@ prix = numbers[1];
 }
 }
 
-devis.lignes.push({ designation, quantite, prix });
+if(documentActif === "devis"){
+  devis.lignes.push({ designation, quantite, prix });
+  render();
+}
+
+if(documentActif === "facture"){
+  devisFacture.lignes.push({ designation, quantite, prix });
+  renderFacture();
+}
 
 });
 
@@ -455,6 +473,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
