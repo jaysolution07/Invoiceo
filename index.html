@@ -6,31 +6,121 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-body{margin:0;font-family:Arial;background:#f5f7fb}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:#eef2f7;
+  color:#1f2937;
+}
+
+/* HEADER PREMIUM */
 .header{
-  background:#2563eb;
+  background:linear-gradient(135deg,#2563eb,#1e3a8a);
   color:white;
-  padding:14px 20px;
-  font-size:20px;
+  padding:18px 26px;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 .header img{
-  height:40px;
+  height:55px;
+  animation:floatLogo 4s ease-in-out infinite;
 }
-.container{max-width:900px;margin:auto;padding:20px}
-.card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
-button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px}
-input{padding:8px;margin:4px 0;width:100%}
-.line{display:flex;gap:10px;align-items:center}
+.header span{
+  font-size:22px;
+  font-weight:600;
+  letter-spacing:1px;
+}
+@keyframes floatLogo{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+
+/* LAYOUT */
+.container{
+  max-width:1000px;
+  margin:30px auto;
+  padding:0 20px;
+}
+
+/* CARDS PREMIUM */
+.card{
+  background:white;
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  margin-bottom:22px;
+  transition:0.2s;
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(0,0,0,0.12);
+}
+
+/* INPUTS */
+input{
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  width:100%;
+  font-size:14px;
+  transition:0.2s;
+}
+input:focus{
+  outline:none;
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* BUTTONS */
+button{
+  background:#2563eb;
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s;
+}
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(37,99,235,0.35);
+}
+
 .deleteBtn{background:#ef4444}
 .clearBtn{background:#f59e0b}
 .saveBtn{background:#16a34a}
-.totals{background:#f1f5f9;padding:15px;border-radius:8px;margin-top:10px}
-.hidden{display:none}
-.suggestion{padding:6px;cursor:pointer}
-.suggestion:hover{background:#f1f5f9}
+
+/* TOTAL BOX */
+.totals{
+  background:#f8fafc;
+  padding:18px;
+  border-radius:12px;
+  margin-top:12px;
+  border:1px solid #e5e7eb;
+}
+
+/* FLEX LINE */
+.line{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+/* SUGGESTIONS */
+.suggestion{
+  padding:8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.suggestion:hover{
+  background:#eef2ff;
+}
 </style>
 </head>
 
@@ -313,6 +403,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
