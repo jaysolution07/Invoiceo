@@ -112,7 +112,7 @@ input{padding:8px;margin:4px 0;width:100%}
 <div>Montant TVA : <b id="montantTVA">0 €</b></div>
 <div>Total TTC : <b id="totalTTC">0 €</b></div>
 </div>
-
+<button onclick="transformerEnFacture()">🔁 Transformer en facture</button>
 <button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
 </div>
 
@@ -296,6 +296,25 @@ tva:tva.value
 mode:"no-cors"
 });
 alert("Devis enregistré");
+}
+function transformerEnFacture(){
+
+  // copier les lignes
+  devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
+
+  // copier client
+  clientInputFacture.value = clientInput.value;
+
+  // copier remise et TVA
+  remiseFacture.value = remise.value;
+  tvaFacture.value = tva.value;
+
+  // recalculer
+  renderFacture();
+  calculateFacture();
+
+  // aller sur la page facture
+  showPage("facturePage");
 }
 // ================= FACTURE =================
 
@@ -495,6 +514,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
