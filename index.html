@@ -131,7 +131,57 @@ document.querySelectorAll("#homePage,#clientPage,#devisPage")
 
 document.getElementById(id).classList.remove("hidden");
 }
+<!-- FACTURE -->
+<div id="facturePage" class="card hidden">
+<button onclick="showPage('homePage')">⬅️ Retour menu</button>
+<h3>Créer une facture</h3>
 
+<div class="card">
+<button onclick="startVocal()">🎤 Micro</button>
+<button onclick="stopVocal()">🛑 Stop</button>
+<p id="status"></p>
+</div>
+
+<label>Client</label>
+<input id="clientInputFacture" placeholder="Tapez pour rechercher...">
+<div id="clientSuggestionsFacture"></div>
+
+<h3>Lignes</h3>
+<div id="linesFacture"></div>
+
+<button onclick="addLineFacture()">➕ Ajouter ligne</button>
+<button class="clearBtn" onclick="clearAllFacture()">🧹 Tout effacer</button>
+
+<label>Remise (%)</label>
+<input id="remiseFacture" oninput="calculateFacture()">
+
+<label>TVA (%)</label>
+<input id="tvaFacture" oninput="calculateFacture()">
+
+<div class="totals">
+<div>Total HT : <b id="totalHTFacture">0 €</b></div>
+<div>Montant remise : <b id="montantRemiseFacture">0 €</b></div>
+<div>Total HT après remise : <b id="totalApresRemiseFacture">0 €</b></div>
+<div>Montant TVA : <b id="montantTVAFacture">0 €</b></div>
+<div>Total TTC : <b id="totalTTCFacture">0 €</b></div>
+</div>
+
+<button class="saveBtn" onclick="saveFacture()">💾 Enregistrer facture</button>
+</div>
+  function saveFacture(){
+fetch(WEBAPP_URL,{
+method:"POST",
+body:JSON.stringify({
+type:"facture",
+client:clientInputFacture.value,
+lignes:devisFacture.lignes,
+remise:remiseFacture.value,
+tva:tvaFacture.value
+}),
+mode:"no-cors"
+});
+alert("Facture enregistrée");
+}
 // ================= CLIENT SEARCH =================
 let clientsList=[];
 
@@ -332,6 +382,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
