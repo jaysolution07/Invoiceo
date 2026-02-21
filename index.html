@@ -403,11 +403,33 @@ status.innerText = text;
 
 // ===== REMISE =====
 const remMatch = text.match(/remise\s*(\d+)/);
-if(remMatch) remise.value = remMatch[1];
+
+if(remMatch){
+  if(documentActif === "devis"){
+    remise.value = remMatch[1];
+    calculate();
+  }
+
+  if(documentActif === "facture"){
+    remiseFacture.value = remMatch[1];
+    calculateFacture();
+  }
+}
 
 // ===== TVA =====
 const tvaMatch = text.match(/tva\s*(\d+)/);
-if(tvaMatch) tva.value = tvaMatch[1];
+
+if(tvaMatch){
+  if(documentActif === "devis"){
+    tva.value = tvaMatch[1];
+    calculate();
+  }
+
+  if(documentActif === "facture"){
+    tvaFacture.value = tvaMatch[1];
+    calculateFacture();
+  }
+}
 
 // ===== TEXTE NETTOYÉ =====
 let cleanText = text
@@ -473,6 +495,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
