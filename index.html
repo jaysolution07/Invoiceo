@@ -7,43 +7,44 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#f5f7fb}
-
 .header{
-  background:#2563eb;
+  background:linear-gradient(135deg,#2563eb,#1e40af);
   color:white;
-  padding:14px 20px;
-  font-size:20px;
+  padding:18px 24px;
+  font-size:22px;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
 }
-.header img{height:40px}
 
+.header img{
+  height:55px;
+  animation:logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-4px)}
+  100%{transform:translateY(0)}
+}
+
+.header span{
+  font-weight:600;
+  letter-spacing:1px;
+}
 .container{max-width:900px;margin:auto;padding:20px}
-
-.card{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  margin-bottom:20px
-}
-
-button{
-  background:#2563eb;
-  color:white;
-  border:none;
-  padding:10px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  margin:5px
-}
-
+.card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
+button{background:#2563eb;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px}
+input{padding:8px;margin:4px 0;width:100%}
+.line{display:flex;gap:10px;align-items:center}
 .deleteBtn{background:#ef4444}
 .clearBtn{background:#f59e0b}
 .saveBtn{background:#16a34a}
-
+.totals{background:#f1f5f9;padding:15px;border-radius:8px;margin-top:10px}
 .hidden{display:none}
+.suggestion{padding:6px;cursor:pointer}
+.suggestion:hover{background:#f1f5f9}
 </style>
 </head>
 
@@ -56,41 +57,6 @@ button{
 
 <div class="container">
 
-  <!-- MENU PRINCIPAL -->
-  <div id="menu" class="card">
-    <h3>Menu principal</h3>
-    <button onclick="showPage('clientPage')">Ajouter client</button>
-    <button onclick="showPage('devisPage')">Créer devis</button>
-  </div>
-
-  <!-- PAGE CLIENT -->
-  <div id="clientPage" class="card hidden">
-    <h3>Ajouter un client</h3>
-    <input placeholder="Nom">
-    <input placeholder="Adresse">
-    <input placeholder="Email">
-    <input placeholder="Téléphone">
-    <br><br>
-    <button class="saveBtn">Enregistrer</button>
-    <button onclick="showPage('menu')">Retour menu</button>
-  </div>
-
-  <!-- PAGE DEVIS -->
-  <div id="devisPage" class="card hidden">
-    <h3>Créer un devis</h3>
-    <p>Ici tu pourras mettre ton formulaire devis.</p>
-    <button onclick="showPage('menu')">Retour menu</button>
-  </div>
-
-</div>
-
-<script>
-function showPage(pageId){
-  document.querySelectorAll('.card').forEach(card=>{
-    card.classList.add('hidden')
-  })
-  document.getElementById(pageId).classList.remove('hidden')
-}
 <!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
@@ -153,11 +119,10 @@ function showPage(pageId){
 
 const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-// NAVIGATION
 function showPage(id){
-homePage.classList.add("hidden");
-clientPage.classList.add("hidden");
-devisPage.classList.add("hidden");
+document.querySelectorAll("#homePage,#clientPage,#devisPage")
+.forEach(p=>p.classList.add("hidden"));
+
 document.getElementById(id).classList.remove("hidden");
 }
 
@@ -361,7 +326,6 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
-
 
 
 
