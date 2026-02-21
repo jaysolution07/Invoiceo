@@ -6,121 +6,44 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:#eef2f7;
-  color:#1f2937;
-}
+body{margin:0;font-family:Arial;background:#f5f7fb}
 
-/* HEADER PREMIUM */
 .header{
-  background:linear-gradient(135deg,#2563eb,#1e3a8a);
+  background:#2563eb;
   color:white;
-  padding:18px 26px;
+  padding:14px 20px;
+  font-size:20px;
   display:flex;
   align-items:center;
-  gap:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.15);
-  position:sticky;
-  top:0;
-  z-index:10;
+  gap:12px;
 }
-.header img{
-  height:55px;
-  animation:floatLogo 4s ease-in-out infinite;
-}
-.header span{
-  font-size:22px;
-  font-weight:600;
-  letter-spacing:1px;
-}
-@keyframes floatLogo{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-5px)}
-}
+.header img{height:40px}
 
-/* LAYOUT */
-.container{
-  max-width:1000px;
-  margin:30px auto;
-  padding:0 20px;
-}
+.container{max-width:900px;margin:auto;padding:20px}
 
-/* CARDS PREMIUM */
 .card{
   background:white;
-  padding:22px;
-  border-radius:14px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
-  margin-bottom:22px;
-  transition:0.2s;
-}
-.card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 14px 32px rgba(0,0,0,0.12);
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom:20px
 }
 
-/* INPUTS */
-input{
-  padding:10px 12px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-  width:100%;
-  font-size:14px;
-  transition:0.2s;
-}
-input:focus{
-  outline:none;
-  border-color:#2563eb;
-  box-shadow:0 0 0 3px rgba(37,99,235,0.15);
-}
-
-/* BUTTONS */
 button{
   background:#2563eb;
   color:white;
   border:none;
-  padding:10px 16px;
-  border-radius:8px;
+  padding:10px 14px;
+  border-radius:6px;
   cursor:pointer;
-  font-weight:500;
-  transition:0.2s;
-}
-button:hover{
-  transform:translateY(-1px);
-  box-shadow:0 6px 14px rgba(37,99,235,0.35);
+  margin:5px
 }
 
 .deleteBtn{background:#ef4444}
 .clearBtn{background:#f59e0b}
 .saveBtn{background:#16a34a}
 
-/* TOTAL BOX */
-.totals{
-  background:#f8fafc;
-  padding:18px;
-  border-radius:12px;
-  margin-top:12px;
-  border:1px solid #e5e7eb;
-}
-
-/* FLEX LINE */
-.line{
-  display:flex;
-  gap:12px;
-  align-items:center;
-}
-
-/* SUGGESTIONS */
-.suggestion{
-  padding:8px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.suggestion:hover{
-  background:#eef2ff;
-}
+.hidden{display:none}
 </style>
 </head>
 
@@ -133,6 +56,41 @@ button:hover{
 
 <div class="container">
 
+  <!-- MENU PRINCIPAL -->
+  <div id="menu" class="card">
+    <h3>Menu principal</h3>
+    <button onclick="showPage('clientPage')">Ajouter client</button>
+    <button onclick="showPage('devisPage')">Créer devis</button>
+  </div>
+
+  <!-- PAGE CLIENT -->
+  <div id="clientPage" class="card hidden">
+    <h3>Ajouter un client</h3>
+    <input placeholder="Nom">
+    <input placeholder="Adresse">
+    <input placeholder="Email">
+    <input placeholder="Téléphone">
+    <br><br>
+    <button class="saveBtn">Enregistrer</button>
+    <button onclick="showPage('menu')">Retour menu</button>
+  </div>
+
+  <!-- PAGE DEVIS -->
+  <div id="devisPage" class="card hidden">
+    <h3>Créer un devis</h3>
+    <p>Ici tu pourras mettre ton formulaire devis.</p>
+    <button onclick="showPage('menu')">Retour menu</button>
+  </div>
+
+</div>
+
+<script>
+function showPage(pageId){
+  document.querySelectorAll('.card').forEach(card=>{
+    card.classList.add('hidden')
+  })
+  document.getElementById(pageId).classList.remove('hidden')
+}
 <!-- HOME -->
 <div id="homePage" class="card">
 <h3>Menu principal</h3>
@@ -403,6 +361,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
