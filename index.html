@@ -62,11 +62,8 @@ input{padding:8px;margin:4px 0;width:100%}
   <h3>Menu principal</h3>
 
   <button onclick="showPage('devisPage')">📄 Créer devis</button>
-
   <button onclick="showPage('facturePage')">🧾 Créer facture</button>
-
   <button onclick="showPage('blPage')">📦 Créer BL</button>
-
   <button onclick="showPage('clientPage')">➕ Ajouter client</button>
 </div>
 
@@ -117,20 +114,8 @@ input{padding:8px;margin:4px 0;width:100%}
 </div>
 
 <button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
-
-</div>
 </div>
 
-<script>
-
-const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
-
-function showPage(id){
-document.querySelectorAll("#homePage,#clientPage,#devisPage")
-.forEach(p=>p.classList.add("hidden"));
-
-document.getElementById(id).classList.remove("hidden");
-}
 <!-- FACTURE -->
 <div id="facturePage" class="card hidden">
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
@@ -168,7 +153,18 @@ document.getElementById(id).classList.remove("hidden");
 
 <button class="saveBtn" onclick="saveFacture()">💾 Enregistrer facture</button>
 </div>
-  function saveFacture(){
+
+<script>
+const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
+
+function showPage(id){
+document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage")
+.forEach(p=>p.classList.add("hidden"));
+
+document.getElementById(id).classList.remove("hidden");
+}
+
+function saveFacture(){
 fetch(WEBAPP_URL,{
 method:"POST",
 body:JSON.stringify({
@@ -182,6 +178,7 @@ mode:"no-cors"
 });
 alert("Facture enregistrée");
 }
+</script>
 // ================= CLIENT SEARCH =================
 let clientsList=[];
 
@@ -382,6 +379,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
