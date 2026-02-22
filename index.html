@@ -235,25 +235,27 @@ function showPage(id){
     setDateFacture();
     loadNumeroFacture();
   }
-if(id === "infosPage"){
-  loadInfos();
-}
+
+  if(id === "infosPage"){
+    loadInfos();
+  }
+} // ✅ fermeture manquante ici
+
+
 function saveInfos(){
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"infos",
+      nom: info_nom.value,
+      adresse: info_adresse.value,
+      siret: info_siret.value,
+      tva: info_tva.value
+    }),
+    mode:"no-cors"
+  });
 
-fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({
-    type:"infos",
-    nom: info_nom.value,
-    adresse: info_adresse.value,
-    siret: info_siret.value,
-    tva: info_tva.value
-  }),
-  mode:"no-cors"
-});
-
-alert("Infos enregistrées");
-
+  alert("Infos enregistrées");
 }
 // ================= CLIENT SEARCH =================
 let clientsList = [];
@@ -686,6 +688,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
