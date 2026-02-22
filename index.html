@@ -131,6 +131,17 @@ input{padding:8px;margin:4px 0;width:100%}
 <div id="facturePage" class="card hidden">
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
 <h3>Créer une facture</h3>
+  <div class="line">
+  <div style="flex:1">
+    <label>Date</label>
+    <input id="dateFacture" readonly>
+  </div>
+
+  <div style="flex:1">
+    <label>N° Facture</label>
+    <input id="numeroFacture" readonly>
+  </div>
+</div>
 
 <div class="card">
 <button onclick="startVocal()">🎤 Micro</button>
@@ -188,12 +199,18 @@ if(id === "facturePage"){
   documentActif = "facture";
 }
 }
-
+if(id === "facturePage"){
+  documentActif = "facture";
+  setDateFacture();
+  loadNumeroFacture();
+}
 function saveFacture(){
 fetch(WEBAPP_URL,{
 method:"POST",
 body:JSON.stringify({
 type:"facture",
+numero: numeroFacture.value,
+date: dateFacture.value,
 client:clientInputFacture.value,
 lignes:devisFacture.lignes,
 remise:remiseFacture.value,
@@ -401,7 +418,37 @@ function clearAllFacture(){
 devisFacture={lignes:[]};
 renderFacture();
 }
+function setDateFacture(){
+  const d = new Date();
+  const j = String(d.getDate()).padStart(2,"0");
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const a = d.getFullYear();
 
+  dateFacture.value = `${j}/${m}/${a}`;
+}
+  function loadNumeroFacture(){
+
+  fetch(WEBAPP_URL + "?lastFacture=1")
+  .then(r => r.json())
+  .then(data => {
+
+    const annee = new Date().getFullYear();
+    let next = 1;
+
+    if(data && data.numero){
+      const parts = data.numero.split("-");
+      next = Number(parts[1]) + 1;
+    }
+
+    numeroFacture.value = `FAC-${annee}-${next}`;
+
+  })
+  .catch(()=>{
+    const annee = new Date().getFullYear();
+    numeroFacture.value = `FAC-${annee}-1`;
+  });
+
+}
 // ================= CALCUL FACTURE =================
 function calculateFacture(){
 let ht=0;
@@ -567,6 +614,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
