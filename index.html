@@ -81,6 +81,7 @@ input{padding:8px;margin:4px 0;width:100%}
 
   <!-- MES INFOS -->
 <div id="infosPage" class="card hidden">
+
   <button onclick="showPage('homePage')">⬅️ Retour menu</button>
   <h3>Informations entreprise</h3>
 
@@ -97,21 +98,22 @@ input{padding:8px;margin:4px 0;width:100%}
   <input id="info_tva">
 
   <button class="saveBtn" onclick="saveInfos()">💾 Enregistrer</button>
-</div>
+
   <h4>Informations enregistrées</h4>
 
-<table border="1" style="width:100%;border-collapse:collapse">
-  <thead>
-    <tr>
-      <th>Nom</th>
-      <th>Adresse</th>
-      <th>SIRET</th>
-      <th>TVA</th>
-    </tr>
-  </thead>
-  <tbody id="infosTableBody"></tbody>
-</table>
+  <table border="1" style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Adresse</th>
+        <th>SIRET</th>
+        <th>TVA</th>
+      </tr>
+    </thead>
+    <tbody id="infosTableBody"></tbody>
+  </table>
 
+</div>
 <!-- DEVIS -->
 <div id="devisPage" class="card hidden">
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
@@ -215,7 +217,7 @@ const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1
 
 function showPage(id){
 
-  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage,")
+  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage,#infosPage")
   .forEach(p => p.classList.add("hidden"));
 
   document.getElementById(id).classList.remove("hidden");
@@ -235,23 +237,6 @@ function showPage(id){
   }
 if(id === "infosPage"){
   loadInfos();
-}
-}
-function saveFacture(){
-fetch(WEBAPP_URL,{
-method:"POST",
-body:JSON.stringify({
-type:"facture",
-numero: numeroFacture.value,
-date: dateFacture.value,
-client:clientInputFacture.value,
-lignes:devisFacture.lignes,
-remise:remiseFacture.value,
-tva:tvaFacture.value
-}),
-mode:"no-cors"
-});
-alert("Facture enregistrée");
 }
 function saveInfos(){
 
@@ -553,18 +538,23 @@ totalTTCFacture.textContent=ttc.toFixed(2)+" €";
 
 // ================= SAVE FACTURE =================
 function saveFacture(){
+
 fetch(WEBAPP_URL,{
-method:"POST",
-body:JSON.stringify({
-type:"facture",
-client:clientInputFacture.value,
-lignes:devisFacture.lignes,
-remise:remiseFacture.value,
-tva:tvaFacture.value
-}),
-mode:"no-cors"
+  method:"POST",
+  body:JSON.stringify({
+    type:"facture",
+    numero: numeroFacture.value,
+    date: dateFacture.value,
+    client: clientInputFacture.value,
+    lignes: devisFacture.lignes,
+    remise: remiseFacture.value,
+    tva: tvaFacture.value
+  }),
+  mode:"no-cors"
 });
+
 alert("Facture enregistrée");
+
 }
 // ================= VOICE =================
 let recognition;
@@ -696,6 +686,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
