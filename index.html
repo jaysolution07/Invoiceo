@@ -65,6 +65,7 @@ input{padding:8px;margin:4px 0;width:100%}
   <button onclick="showPage('facturePage')">🧾 Créer facture</button>
   <button onclick="showPage('blPage')">📦 Créer BL</button>
   <button onclick="showPage('clientPage')">➕ Ajouter client</button>
+  <button onclick="showPage('infosPage')">🏢 Mes infos</button>
 </div>
 
 <!-- CLIENT -->
@@ -77,6 +78,39 @@ input{padding:8px;margin:4px 0;width:100%}
 <button class="saveBtn" onclick="saveClient()">💾 Enregistrer</button>
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
+
+  <!-- MES INFOS -->
+<div id="infosPage" class="card hidden">
+  <button onclick="showPage('homePage')">⬅️ Retour menu</button>
+  <h3>Informations entreprise</h3>
+
+  <label>Nom de l'entreprise</label>
+  <input id="info_nom">
+
+  <label>Adresse</label>
+  <input id="info_adresse">
+
+  <label>N° SIRET</label>
+  <input id="info_siret">
+
+  <label>N° TVA</label>
+  <input id="info_tva">
+
+  <button class="saveBtn" onclick="saveInfos()">💾 Enregistrer</button>
+</div>
+  <h4>Informations enregistrées</h4>
+
+<table border="1" style="width:100%;border-collapse:collapse">
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Adresse</th>
+      <th>SIRET</th>
+      <th>TVA</th>
+    </tr>
+  </thead>
+  <tbody id="infosTableBody"></tbody>
+</table>
 
 <!-- DEVIS -->
 <div id="devisPage" class="card hidden">
@@ -181,7 +215,7 @@ const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1
 
 function showPage(id){
 
-  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage")
+  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage,#infosPage")
   .forEach(p => p.classList.add("hidden"));
 
   document.getElementById(id).classList.remove("hidden");
@@ -199,7 +233,9 @@ function showPage(id){
     setDateFacture();
     loadNumeroFacture();
   }
-
+if(id === "infosPage"){
+  loadInfos();
+}
 }
 function saveFacture(){
 fetch(WEBAPP_URL,{
@@ -216,6 +252,23 @@ tva:tvaFacture.value
 mode:"no-cors"
 });
 alert("Facture enregistrée");
+}
+function saveInfos(){
+
+fetch(WEBAPP_URL,{
+  method:"POST",
+  body:JSON.stringify({
+    type:"infos",
+    nom: info_nom.value,
+    adresse: info_adresse.value,
+    siret: info_siret.value,
+    tva: info_tva.value
+  }),
+  mode:"no-cors"
+});
+
+alert("Infos enregistrées");
+
 }
 // ================= CLIENT SEARCH =================
 let clientsList = [];
@@ -323,6 +376,38 @@ function setDateDevis(){
     numeroDevis.value = `DEV-${annee}-1`;
   });
 
+}
+  function loadInfos(){
+
+fetch(WEBAPP_URL + "?infos=1")
+.then(r => r.json())
+.then(data => {
+
+  const tbody = infosTableBody;
+  tbody.innerHTML = "";
+
+  if(!data) return;
+
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>${data.nom || ""}</td>
+    <td>${data.adresse || ""}</td>
+    <td>${data.siret || ""}</td>
+    <td>${data.tva || ""}</td>
+  `;
+
+  // 👉 clic = remplir formulaire
+  tr.onclick = () => {
+    info_nom.value = data.nom || "";
+    info_adresse.value = data.adresse || "";
+    info_siret.value = data.siret || "";
+    info_tva.value = data.tva || "";
+  };
+
+  tbody.appendChild(tr);
+
+});
 }
 // ================= CALCUL =================
 function calculate(){
@@ -611,6 +696,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
