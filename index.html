@@ -181,28 +181,25 @@ const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1
 
 function showPage(id){
 
-document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage")
-.forEach(p=>p.classList.add("hidden"));
+  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage")
+  .forEach(p => p.classList.add("hidden"));
 
-document.getElementById(id).classList.remove("hidden");
+  document.getElementById(id).classList.remove("hidden");
 
-// 👇 AJOUT IMPORTANT
-if(id === "devisPage"){
-  documentActif = "devis";
-}
-if(id === "devisPage"){
-  documentActif = "devis";
-  setDateDevis();
-  loadNumeroDevis();
-}
-if(id === "facturePage"){
-  documentActif = "facture";
-}
-}
-if(id === "facturePage"){
-  documentActif = "facture";
-  setDateFacture();
-  loadNumeroFacture();
+  // ===== DEVIS =====
+  if(id === "devisPage"){
+    documentActif = "devis";
+    setDateDevis();
+    loadNumeroDevis();
+  }
+
+  // ===== FACTURE =====
+  if(id === "facturePage"){
+    documentActif = "facture";
+    setDateFacture();
+    loadNumeroFacture();
+  }
+
 }
 function saveFacture(){
 fetch(WEBAPP_URL,{
@@ -614,6 +611,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
