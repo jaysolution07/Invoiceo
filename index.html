@@ -82,6 +82,17 @@ input{padding:8px;margin:4px 0;width:100%}
 <div id="devisPage" class="card hidden">
 <button onclick="showPage('homePage')">⬅️ Retour menu</button>
 <h3>Créer un devis</h3>
+<div class="line">
+  <div style="flex:1">
+    <label>Date</label>
+    <input id="dateDevis" readonly>
+  </div>
+
+  <div style="flex:1">
+    <label>N° Devis</label>
+    <input id="numeroDevis" readonly>
+  </div>
+</div>
 
 <div class="card">
 <button onclick="startVocal()">🎤 Micro</button>
@@ -168,7 +179,11 @@ document.getElementById(id).classList.remove("hidden");
 if(id === "devisPage"){
   documentActif = "devis";
 }
-
+if(id === "devisPage"){
+  documentActif = "devis";
+  setDateDevis();
+  loadNumeroDevis();
+}
 if(id === "facturePage"){
   documentActif = "facture";
 }
@@ -261,7 +276,40 @@ calculate();
 function addLine(){devis.lignes.push({designation:"",quantite:1,prix:0});render();}
 function deleteLine(i){devis.lignes.splice(i,1);render();}
 function clearAll(){devis={lignes:[]};render();}
+function setDateDevis(){
+  const d = new Date();
+  const jour = String(d.getDate()).padStart(2,"0");
+  const mois = String(d.getMonth()+1).padStart(2,"0");
+  const annee = d.getFullYear();
 
+  dateDevis.value = `${jour}/${mois}/${annee}`;
+}
+  function loadNumeroDevis(){
+
+  fetch(WEBAPP_URL + "?lastDevis=1")
+  .then(r => r.json())
+  .then(data => {
+
+    // data = numéro précédent (ex: 2026-1)
+    const annee = new Date().getFullYear();
+
+    let next = 1;
+
+    if(data && data.numero){
+      const parts = data.numero.split("-");
+      next = Number(parts[1]) + 1;
+    }
+
+    numeroDevis.value = `DEV-${annee}-${next}`;
+
+  })
+  .catch(()=> {
+    // si erreur → numéro 1
+    const annee = new Date().getFullYear();
+    numeroDevis.value = `DEV-${annee}-1`;
+  });
+
+}
 // ================= CALCUL =================
 function calculate(){
 let ht=0;
@@ -284,18 +332,23 @@ totalTTC.textContent=ttc.toFixed(2)+" €";
 
 // ================= SAVE DEVIS =================
 function saveDevis(){
+
 fetch(WEBAPP_URL,{
-method:"POST",
-body:JSON.stringify({
-type:"devis",
-client:clientInput.value,
-lignes:devis.lignes,
-remise:remise.value,
-tva:tva.value
-}),
-mode:"no-cors"
+  method:"POST",
+  body:JSON.stringify({
+    type:"devis",
+    numero: numeroDevis.value,
+    date: dateDevis.value,
+    client: clientInput.value,
+    lignes: devis.lignes,
+    remise: remise.value,
+    tva: tva.value
+  }),
+  mode:"no-cors"
 });
+
 alert("Devis enregistré");
+
 }
 function transformerEnFacture(){
 
@@ -514,6 +567,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
