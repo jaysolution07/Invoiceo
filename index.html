@@ -262,28 +262,42 @@ function saveInfos(){
 
   alert("Infos enregistrées");
 }
-function uploadLogo(){
+function uploadLogo() {
 
   const file = document.getElementById("logoInput").files[0];
-  if(!file){
+
+  if (!file) {
     alert("Sélectionne une image");
     return;
   }
 
   const reader = new FileReader();
 
-  reader.onload = function(e){
+  reader.onload = async function (e) {
 
-    fetch(WEBAPP_URL,{
-      method:"POST",
-      body:JSON.stringify({
-        type:"logo",
-        image: e.target.result // base64
-      }),
-      mode:"no-cors"
-    });
+    try {
 
-    alert("Logo envoyé");
+      const response = await fetch(WEBAPP_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          type: "logo",
+          image: e.target.result // base64
+        })
+      });
+
+      const text = await response.text();
+      console.log("Réponse serveur :", text);
+
+      alert("✅ Logo envoyé avec succès");
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Erreur lors de l’envoi du logo");
+    }
+
   };
 
   reader.readAsDataURL(file);
@@ -719,6 +733,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
