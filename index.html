@@ -414,9 +414,17 @@ function telechargerPDFDevis() {
   fetch(WEBAPP_URL + "?pdfDevis=1")
   .then(r => r.json())
   .then(data => {
-    const nomFichier = `${data.numero} - ${data.client}`;
-    const url = `https://docs.google.com/spreadsheets/d/${data.sheetId}/export?format=pdf&gid=${data.gid}&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false&attachment=true&title=${encodeURIComponent(nomFichier)}`;
-    window.open(url, "_blank");
+    const nomFichier = `${data.numero} - ${data.client}.pdf`;
+    const byteChars = atob(data.base64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for(let i = 0; i < byteChars.length; i++){
+      byteArray[i] = byteChars.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nomFichier;
+    a.click();
   })
   .catch(err => {
     console.error(err);
@@ -747,6 +755,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
