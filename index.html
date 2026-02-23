@@ -166,6 +166,8 @@ input{padding:8px;margin:4px 0;width:100%}
 </div>
 <button onclick="transformerEnFacture()">🔁 Transformer en facture</button>
 <button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
+<button onclick="telechargerPDFDevis()" style="background:#7c3aed;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px">📄 Télécharger PDF</button>
+
 </div>
 
 <!-- FACTURE -->
@@ -407,6 +409,14 @@ function setDateDevis(){
     numeroDevis.value = `DEV-${annee}-1`;
   });
 
+}
+function telechargerPDFDevis() {
+  fetch(WEBAPP_URL + "?pdfDevis=1")
+  .then(r => r.json())
+  .then(data => {
+    const url = `https://docs.google.com/spreadsheets/d/${data.sheetId}/export?format=pdf&gid=${data.gid}&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false`;
+    window.open(url, "_blank");
+  });
 }
   function loadInfos(){
 
@@ -732,6 +742,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
