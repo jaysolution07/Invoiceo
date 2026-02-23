@@ -414,8 +414,18 @@ function telechargerPDFDevis() {
   fetch(WEBAPP_URL + "?pdfDevis=1")
   .then(r => r.json())
   .then(data => {
+    const nomFichier = `${data.numero} - ${data.client}`;
     const url = `https://docs.google.com/spreadsheets/d/${data.sheetId}/export?format=pdf&gid=${data.gid}&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false`;
-    window.open(url, "_blank");
+
+    // Télécharger avec le bon nom
+    fetch(url)
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = nomFichier + ".pdf";
+      a.click();
+    });
   });
 }
   function loadInfos(){
@@ -742,6 +752,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
