@@ -79,7 +79,7 @@ input{padding:8px;margin:4px 0;width:100%}
 <button onclick="showPage('homePage')">⬅️ Retour</button>
 </div>
 
-  <!-- MES INFOS -->
+<!-- MES INFOS -->
 <div id="infosPage" class="card hidden">
 
   <button onclick="showPage('homePage')">⬅️ Retour menu</button>
@@ -96,6 +96,11 @@ input{padding:8px;margin:4px 0;width:100%}
 
   <label>N° TVA</label>
   <input id="info_tva">
+
+  <!-- ✅ NOUVEAU : LOGO -->
+  <label>Logo entreprise</label>
+  <input type="file" id="logoInput" accept="image/*">
+  <button onclick="uploadLogo()">📤 Ajouter le logo</button>
 
   <button class="saveBtn" onclick="saveInfos()">💾 Enregistrer</button>
 
@@ -235,25 +240,53 @@ function showPage(id){
     setDateFacture();
     loadNumeroFacture();
   }
-if(id === "infosPage"){
-  loadInfos();
-}
+
+  if(id === "infosPage"){
+    loadInfos();
+  }
+} // ✅ fermeture manquante ici
+
+
 function saveInfos(){
+  fetch(WEBAPP_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      type:"infos",
+      nom: info_nom.value,
+      adresse: info_adresse.value,
+      siret: info_siret.value,
+      tva: info_tva.value
+    }),
+    mode:"no-cors"
+  });
 
-fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({
-    type:"infos",
-    nom: info_nom.value,
-    adresse: info_adresse.value,
-    siret: info_siret.value,
-    tva: info_tva.value
-  }),
-  mode:"no-cors"
-});
+  alert("Infos enregistrées");
+}
+function uploadLogo(){
 
-alert("Infos enregistrées");
+  const file = document.getElementById("logoInput").files[0];
+  if(!file){
+    alert("Sélectionne une image");
+    return;
+  }
 
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+
+    fetch(WEBAPP_URL,{
+      method:"POST",
+      body:JSON.stringify({
+        type:"logo",
+        image: e.target.result // base64
+      }),
+      mode:"no-cors"
+    });
+
+    alert("Logo envoyé");
+  };
+
+  reader.readAsDataURL(file);
 }
 // ================= CLIENT SEARCH =================
 let clientsList = [];
@@ -686,6 +719,8 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
+
 
 
 
