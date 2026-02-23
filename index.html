@@ -100,7 +100,7 @@ input{padding:8px;margin:4px 0;width:100%}
   <!-- ✅ NOUVEAU : LOGO -->
   <label>Logo entreprise</label>
   <input type="file" id="logoInput" accept="image/*">
-  <button onclick="uploadLogo()">📤 Ajouter le logo</button>
+  <button onclick="Logo()">📤 Ajouter le logo</button>
 
   <button class="saveBtn" onclick="saveInfos()">💾 Enregistrer</button>
 
@@ -284,8 +284,12 @@ function uploadLogo(){
         image:e.target.result
       })
     })
-    .then(()=> alert("Logo envoyé"))
-    .catch(()=> alert("Erreur envoi logo"));
+    .then(res => res.text())
+    .then(() => alert("Logo envoyé"))
+    .catch(err => {
+      console.error(err);
+      alert("Erreur envoi logo");
+    });
 
   };
 
@@ -722,6 +726,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
