@@ -415,17 +415,12 @@ function telechargerPDFDevis() {
   .then(r => r.json())
   .then(data => {
     const nomFichier = `${data.numero} - ${data.client}`;
-    const url = `https://docs.google.com/spreadsheets/d/${data.sheetId}/export?format=pdf&gid=${data.gid}&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false`;
-
-    // Télécharger avec le bon nom
-    fetch(url)
-    .then(r => r.blob())
-    .then(blob => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = nomFichier + ".pdf";
-      a.click();
-    });
+    const url = `https://docs.google.com/spreadsheets/d/${data.sheetId}/export?format=pdf&gid=${data.gid}&portrait=true&fitw=true&gridlines=false&printtitle=false&sheetnames=false&attachment=true&title=${encodeURIComponent(nomFichier)}`;
+    window.open(url, "_blank");
+  })
+  .catch(err => {
+    console.error(err);
+    alert("❌ Erreur téléchargement PDF");
   });
 }
   function loadInfos(){
@@ -752,6 +747,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
