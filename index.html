@@ -263,7 +263,6 @@ function saveInfos(){
   alert("Infos enregistrées");
 }
 function uploadLogo() {
-
   const file = document.getElementById("logoInput").files[0];
 
   if (!file) {
@@ -271,33 +270,41 @@ function uploadLogo() {
     return;
   }
 
+  // Réduire l'image avant envoi (évite timeout Apps Script)
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+
   const reader = new FileReader();
 
-  reader.onload = async function (e) {
+  reader.onload = function(e) {
+    img.onload = function() {
 
-    try {
+      // Réduire à max 800px de large
+      const maxW = 800;
+      const ratio = Math.min(1, maxW / img.width);
+      canvas.width = Math.floor(img.width * ratio);
+      canvas.height = Math.floor(img.height * ratio);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      const response = await fetch(WEBAPP_URL, {
+      const base64 = canvas.toDataURL("image/png");
+
+      fetch(WEBAPP_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({
           type: "logo",
-          image: e.target.result // base64
-        })
+          image: base64
+        }),
+        mode: "no-cors"  // ✅ OBLIGATOIRE avec Apps Script
+      })
+      .then(() => alert("✅ Logo envoyé avec succès"))
+      .catch(err => {
+        console.error(err);
+        alert("❌ Erreur lors de l'envoi du logo");
       });
 
-      const text = await response.text();
-      console.log("Réponse serveur :", text);
-
-      alert("✅ Logo envoyé avec succès");
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erreur lors de l’envoi du logo");
-    }
-
+    };
+    img.src = e.target.result;
   };
 
   reader.readAsDataURL(file);
@@ -733,6 +740,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
