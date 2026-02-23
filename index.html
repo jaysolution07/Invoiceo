@@ -276,14 +276,17 @@ function uploadLogo(){
 
     fetch(WEBAPP_URL,{
       method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
       body:JSON.stringify({
         type:"logo",
-        image: e.target.result // base64
-      }),
-      mode:"no-cors"
-    });
+        image:e.target.result
+      })
+    })
+    .then(()=> alert("Logo envoyé"))
+    .catch(()=> alert("Erreur envoi logo"));
 
-    alert("Logo envoyé");
   };
 
   reader.readAsDataURL(file);
@@ -719,6 +722,7 @@ lastProcessedText = "";
 </script>
 </body>
 </html>
+
 
 
 
