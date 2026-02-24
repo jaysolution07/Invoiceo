@@ -1,689 +1,870 @@
-<!DOCTYPE html> <html lang="fr"> <head> <meta charset="UTF-8"> <title>INVOICEO</title> <meta name="viewport" content="width=device-width,initial-scale=1"> <style> @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap'); body{ margin:0; font-family:'Inter',sans-serif; background: radial-gradient(circle at 20% 20%, #d1fae5 0%, transparent 40%), radial-gradient(circle at 80% 0%, #a7f3d0 0%, transparent 40%), linear-gradient(135deg,#ecfdf5,#f0fdf4); color:#052e16; } /* HEADER */ .header{ background:linear-gradient(135deg,#14532d,#0b3d2e); color:white; padding:14px 24px; display:flex; align-items:center; gap:16px; box-shadow:0 10px 30px rgba(0,0,0,0.25); position:sticky; top:0; z-index:10; } .header img{ height:64px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.25); } .header span{ font-size:22px; font-weight:700; letter-spacing:1px; } /* CONTAINER */ .container{ max-width:1000px; margin:auto; padding:40px 20px; } /* CARD */ .card{ background:rgba(255,255,255,0.85); backdrop-filter:blur(8px); padding:26px; border-radius:18px; box-shadow:0 15px 40px rgba(0,0,0,0.1); margin-bottom:24px; transition:0.25s; } .card:hover{ transform:translateY(-4px); box-shadow:0 20px 50px rgba(0,0,0,0.15); } h3{ margin-top:0; font-size:22px; } /* BUTTONS */ button{ background:linear-gradient(135deg,#166534,#14532d); color:white; border:none; padding:13px 18px; border-radius:12px; cursor:pointer; margin:8px 6px 0 0; font-weight:600; letter-spacing:.3px; transition:0.2s; } button:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(20,83,45,0.35); } .deleteBtn{background:linear-gradient(135deg,#dc2626,#991b1b)} .clearBtn{background:linear-gradient(135deg,#f59e0b,#b45309)} .saveBtn{background:linear-gradient(135deg,#16a34a,#166534)} /* INPUT */ input{ padding:11px; margin:6px 0; width:100%; border-radius:10px; border:1px solid #bbf7d0; transition:0.2s; font-size:14px; } input:focus{ outline:none; border-color:#14b8a6; box-shadow:0 0 0 3px rgba(20,184,166,0.15); } .line{display:flex;gap:10px;align-items:center} /* TOTAL BOX */ .totals{ background:linear-gradient(135deg,#ecfdf5,#d1fae5); padding:18px; border-radius:12px; margin-top:10px; font-weight:600; } .hidden{display:none} .suggestion{ padding:8px; border-radius:6px; cursor:pointer; } .suggestion:hover{ background:#d1fae5; } </style> </head> <body> <div class="header"> <img src="logo.png" alt="logo"> <span>INVOICEO</span> </div> <div class="container"> <!-- HOME --> <div id="homePage" class="card"> <h3>Menu principal</h3> <button onclick="showPage('devisPage')">📄 Créer devis</button> <button onclick="showPage('facturePage')">🧾 Créer facture</button> <button onclick="showPage('blPage')">📦 Créer BL</button> <button onclick="showPage('clientPage')">➕ Ajouter client</button> <button onclick="showPage('infosPage')">🏢 Mes infos</button> </div> </div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>INVOICEO</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080d0a;
+    --surface: #0e1812;
+    --surface2: #13201a;
+    --surface3: #182a20;
+    --border: rgba(52,211,153,0.12);
+    --border2: rgba(52,211,153,0.22);
+    --accent: #34d399;
+    --accent2: #6ee7b7;
+    --accent-dim: rgba(52,211,153,0.08);
+    --text: #e8f5ee;
+    --text-2: #8fbfa0;
+    --text-3: #4d7a5e;
+    --danger: #f43f5e;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
 
-<!-- CLIENT -->
-<div id="clientPage" class="card hidden">
-<h3>Ajouter un client</h3>
-<input id="c_nom" placeholder="Nom">
-<input id="c_adresse" placeholder="Adresse">
-<input id="c_mail" placeholder="Email">
-<input id="c_tel" placeholder="Téléphone">
-<button class="saveBtn" onclick="saveClient()">💾 Enregistrer</button>
-<button onclick="showPage('homePage')">⬅️ Retour</button>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  .bg-orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(90px); opacity: 0.18;
+    animation: orb-drift 12s ease-in-out infinite alternate;
+  }
+  .orb-1 { width:600px;height:600px;background:#34d399;top:-200px;left:-150px; }
+  .orb-2 { width:400px;height:400px;background:#059669;bottom:-100px;right:-100px;animation-delay:-4s; }
+  .orb-3 { width:300px;height:300px;background:#6ee7b7;top:40%;left:55%;animation-delay:-8s;opacity:0.1; }
+  @keyframes orb-drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(40px,30px) scale(1.08); }
+  }
+
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image:
+      linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* NAV */
+  .nav-shell {
+    position:fixed; top:20px; left:50%; transform:translateX(-50%);
+    z-index:100; width:min(900px, calc(100vw - 32px));
+  }
+  .nav {
+    background: rgba(14,24,18,0.78);
+    backdrop-filter: blur(28px) saturate(1.8);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 12px 20px;
+    display: flex; align-items: center;
+    box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .logo-pill {
+    display:flex; align-items:center;
+    background: linear-gradient(135deg, var(--accent-dim), rgba(52,211,153,0.04));
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 6px 10px;
+  }
+
+  /* MAIN */
+  .main {
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto;
+    padding: 110px 16px 60px;
+  }
+
+  /* PAGES */
+  .page { display:none; animation: page-in 0.35s cubic-bezier(0.4,0,0.2,1); }
+  .page.active { display:block; }
+  @keyframes page-in {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* CARD */
+  .card {
+    background: rgba(14,24,18,0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition);
+    margin-bottom: 16px;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    opacity:0.3;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  /* HOME */
+  .home-header { text-align:center; padding:20px 0 40px; }
+  .home-header h1 {
+    font-family: var(--font-head);
+    font-size: clamp(32px,5vw,52px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #e8f5ee 0%, #34d399 60%, #6ee7b7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .menu-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+    gap:14px;
+  }
+  .menu-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 22px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    position: relative; overflow:hidden;
+  }
+  .menu-card::after {
+    content:''; position:absolute;
+    bottom:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity:0; transition: opacity var(--transition);
+  }
+  .menu-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(52,211,153,0.1);
+    background: var(--surface3);
+  }
+  .menu-card:hover::after { opacity:1; }
+  .mc-icon {
+    width:44px; height:44px; border-radius:12px;
+    display:grid; place-items:center;
+    font-size:20px; margin-bottom:14px;
+  }
+  .mc-green  { background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.2); }
+  .mc-purple { background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.2); }
+  .mc-gold   { background:rgba(251,191,36,0.12);  border:1px solid rgba(251,191,36,0.2); }
+  .mc-blue   { background:rgba(96,165,250,0.12);  border:1px solid rgba(96,165,250,0.2); }
+  .mc-red    { background:rgba(244,63,94,0.12);   border:1px solid rgba(244,63,94,0.2); }
+  .menu-card h3 { font-family:var(--font-head); font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .menu-card p  { font-size:12px; color:var(--text-3); font-weight:300; }
+  .mc-arrow {
+    position:absolute; top:22px; right:20px;
+    color:var(--text-3); font-size:18px;
+    transition: transform var(--transition), color var(--transition);
+  }
+  .menu-card:hover .mc-arrow { transform:translate(3px,-3px); color:var(--accent); }
+
+  /* PAGE HEADER */
+  .page-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+  .back-btn {
+    width:36px; height:36px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:10px; display:grid; place-items:center;
+    cursor:pointer; transition:all var(--transition);
+    font-size:14px; flex-shrink:0; color:var(--text);
+  }
+  .back-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+  .page-title { font-family:var(--font-head); font-size:22px; font-weight:800; color:var(--text); }
+  .page-title span { color:var(--accent); }
+
+  /* FORMS */
+  label {
+    display:block; font-size:11px; font-weight:500;
+    color:var(--text-3); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:6px; margin-top:16px;
+  }
+  label:first-child { margin-top:0; }
+
+  input, select, textarea {
+    width:100%; background:var(--surface2);
+    border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:10px 14px; color:var(--text);
+    font-family:var(--font-body); font-size:14px;
+    outline:none; transition:all var(--transition); appearance:none;
+  }
+  input::placeholder { color:var(--text-3); }
+  input:focus, select:focus {
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(52,211,153,0.12);
+    background:var(--surface3);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 18px; border-radius:var(--radius-sm);
+    font-family:var(--font-body); font-size:13px; font-weight:500;
+    cursor:pointer; border:none; transition:all var(--transition);
+    white-space:nowrap;
+  }
+  .btn-primary {
+    background:linear-gradient(135deg,#34d399,#059669);
+    color:#052e16; box-shadow:0 4px 16px rgba(52,211,153,0.3);
+  }
+  .btn-primary:hover { box-shadow:0 8px 28px rgba(52,211,153,0.5); transform:translateY(-1px); }
+  .btn-ghost {
+    background:var(--surface2); color:var(--text-2);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+  .btn-danger {
+    background:rgba(244,63,94,0.1); color:var(--danger);
+    border:1px solid rgba(244,63,94,0.2);
+  }
+  .btn-danger:hover { background:rgba(244,63,94,0.18); }
+  .btn-purple {
+    background:linear-gradient(135deg,#7c3aed,#6d28d9);
+    color:white; box-shadow:0 4px 16px rgba(124,58,237,0.3);
+  }
+  .btn-purple:hover { box-shadow:0 8px 24px rgba(124,58,237,0.45); transform:translateY(-1px); }
+  .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+
+  /* SUGGESTIONS */
+  #clientSuggestions, #clientSuggestionsFacture {
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:var(--radius-sm); margin-top:4px; overflow:hidden;
+  }
+  .suggestion {
+    padding:10px 14px; cursor:pointer; font-size:13px;
+    color:var(--text-2); transition:all var(--transition);
+    border-bottom:1px solid var(--border);
+  }
+  .suggestion:last-child { border-bottom:none; }
+  .suggestion:hover { background:var(--surface3); color:var(--accent); }
+
+  /* LINE ITEMS */
+  .line {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:12px 14px;
+    margin-bottom:10px;
+    display:grid; grid-template-columns:1fr 80px 90px 36px;
+    gap:10px; align-items:center;
+    transition:border-color var(--transition);
+    animation:line-in 0.2s ease;
+  }
+  @keyframes line-in {
+    from { opacity:0; transform:translateX(-8px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  .line:hover { border-color:var(--border2); }
+  .line input { margin-top:0; padding:8px 10px; }
+
+  .deleteBtn {
+    width:32px; height:32px; background:transparent;
+    border:1px solid rgba(244,63,94,0.2); color:var(--danger);
+    border-radius:8px; cursor:pointer;
+    display:grid; place-items:center;
+    font-size:13px; transition:all var(--transition); padding:0;
+  }
+  .deleteBtn:hover { background:rgba(244,63,94,0.12); border-color:var(--danger); }
+
+  /* TOTALS */
+  .totals-card {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:20px 24px; margin-top:20px;
+  }
+  .total-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 0; font-size:13px; color:var(--text-2);
+    border-bottom:1px solid rgba(52,211,153,0.06);
+  }
+  .total-row:last-child { border-bottom:none; }
+  .total-row.highlight {
+    color:var(--text); font-size:16px;
+    font-family:var(--font-head); font-weight:700;
+    padding-top:12px; margin-top:4px;
+    border-top:1px solid var(--border2);
+  }
+  .total-row b { color:var(--accent); }
+
+  /* VOICE */
+  .voice-card {
+    background:linear-gradient(135deg,rgba(52,211,153,0.06),rgba(5,150,105,0.04));
+    border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:14px 18px; display:flex; align-items:center; gap:12px;
+    margin-bottom:20px;
+  }
+  .voice-dot {
+    width:10px; height:10px; border-radius:50%;
+    background:var(--text-3); transition:all 0.3s; flex-shrink:0;
+  }
+  .voice-dot.active { background:var(--danger); box-shadow:0 0 10px var(--danger); animation:vpulse 1s infinite; }
+  @keyframes vpulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.3);} }
+
+  /* INFO TABLE */
+  .info-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .info-table th {
+    background:var(--surface2); padding:10px 14px; text-align:left;
+    font-size:11px; font-weight:600; color:var(--text-3);
+    letter-spacing:0.08em; text-transform:uppercase;
+    border-bottom:1px solid var(--border);
+  }
+  .info-table td { padding:10px 14px; color:var(--text-2); border-bottom:1px solid rgba(52,211,153,0.04); cursor:pointer; }
+  .info-table tr:hover td { color:var(--text); background:var(--surface2); }
+
+  /* DIVIDER */
+  .divider {
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--border2),transparent);
+    margin:24px 0;
+  }
+
+  /* GRID 2 */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:520px) { .grid-2 { grid-template-columns:1fr; } }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family:var(--font-head); font-size:13px; font-weight:700;
+    color:var(--text-2); letter-spacing:0.05em; text-transform:uppercase;
+    margin-bottom:12px; margin-top:24px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 </div>
 
-<!-- MES INFOS -->
-<div id="infosPage" class="card hidden">
-
-  <button onclick="showPage('homePage')">⬅️ Retour menu</button>
-  <h3>Informations entreprise</h3>
-
-  <label>Nom de l'entreprise</label>
-  <input id="info_nom">
-
-  <label>Adresse</label>
-  <input id="info_adresse">
-
-  <label>N° SIRET</label>
-  <input id="info_siret">
-
-  <label>N° TVA</label>
-  <input id="info_tva">
-
-  <!-- ✅ NOUVEAU : LOGO -->
-  <label>Logo entreprise</label>
-  <input type="file" id="logoInput" accept="image/*">
-  <button onclick="uploadLogo()">📤 Ajouter le logo</button>
-
-  <button class="saveBtn" onclick="saveInfos()">💾 Enregistrer</button>
-
-  <h4>Informations enregistrées</h4>
-
-  <table border="1" style="width:100%;border-collapse:collapse">
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Adresse</th>
-        <th>SIRET</th>
-        <th>TVA</th>
-      </tr>
-    </thead>
-    <tbody id="infosTableBody"></tbody>
-  </table>
-
+<div class="nav-shell">
+  <nav class="nav">
+    <div class="logo-pill">
+      <img src="logo.png" alt="logo" style="height:32px;width:32px;object-fit:contain;border-radius:8px;">
+    </div>
+  </nav>
 </div>
-<!-- DEVIS -->
-<div id="devisPage" class="card hidden">
-<button onclick="showPage('homePage')">⬅️ Retour menu</button>
-<h3>Créer un devis</h3>
-<div class="line">
-  <div style="flex:1">
-    <label>Date</label>
-    <input id="dateDevis" readonly>
+
+<div class="main">
+
+  <!-- HOME -->
+  <div id="homePage" class="page active">
+    <div class="home-header"><h1>INVOICEO</h1></div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="showPage('devisPage')">
+        <div class="mc-icon mc-green">📄</div>
+        <h3>Créer un Devis</h3><p>Générez des devis professionnels</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+      <div class="menu-card" onclick="showPage('facturePage')">
+        <div class="mc-icon mc-purple">🧾</div>
+        <h3>Créer une Facture</h3><p>Facturez vos clients rapidement</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+      <div class="menu-card" onclick="showPage('blPage')">
+        <div class="mc-icon mc-gold">📦</div>
+        <h3>Bon de Livraison</h3><p>Suivez vos expéditions</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+      <div class="menu-card" onclick="showPage('clientPage')">
+        <div class="mc-icon mc-blue">👤</div>
+        <h3>Ajouter Client</h3><p>Gérez votre base clients</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+      <div class="menu-card" onclick="showPage('infosPage')">
+        <div class="mc-icon mc-red">🏢</div>
+        <h3>Mes Infos</h3><p>Configurez votre entreprise</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+    </div>
   </div>
 
-  <div style="flex:1">
-    <label>N° Devis</label>
-    <input id="numeroDevis" readonly>
-  </div>
-</div>
-
-<div class="card">
-<button onclick="startVocal()">🎤 Micro</button>
-<button onclick="stopVocal()">🛑 Stop</button>
-<p id="status"></p>
-</div>
-
-<label>Client</label>
-<input id="clientInput" placeholder="Tapez pour rechercher...">
-<div id="clientSuggestions"></div>
-
-<h3>Lignes</h3>
-<div id="lines"></div>
-
-<button onclick="addLine()">➕ Ajouter ligne</button>
-<button class="clearBtn" onclick="clearAll()">🧹 Tout effacer</button>
-
-<label>Remise (%)</label>
-<input id="remise" oninput="calculate()">
-
-<label>TVA (%)</label>
-<input id="tva" oninput="calculate()">
-
-<div class="totals">
-<div>Total HT : <b id="totalHT">0 €</b></div>
-<div>Montant remise : <b id="montantRemise">0 €</b></div>
-<div>Total HT après remise : <b id="totalApresRemise">0 €</b></div>
-<div>Montant TVA : <b id="montantTVA">0 €</b></div>
-<div>Total TTC : <b id="totalTTC">0 €</b></div>
-</div>
-<button onclick="transformerEnFacture()">🔁 Transformer en facture</button>
-<button class="saveBtn" onclick="saveDevis()">💾 Enregistrer devis</button>
-<button onclick="telechargerPDFDevis()" style="background:#7c3aed;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;margin:5px">📄 Télécharger PDF</button>
-
-</div>
-
-<!-- FACTURE -->
-<div id="facturePage" class="card hidden">
-<button onclick="showPage('homePage')">⬅️ Retour menu</button>
-<h3>Créer une facture</h3>
-  <div class="line">
-  <div style="flex:1">
-    <label>Date</label>
-    <input id="dateFacture" readonly>
+  <!-- CLIENT -->
+  <div id="clientPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Ajouter un <span>Client</span></div>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Nom complet</label><input id="c_nom" placeholder="Jean Dupont"></div>
+        <div><label>Email</label><input id="c_mail" placeholder="jean@example.com"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Adresse</label><input id="c_adresse" placeholder="15 rue de la Paix, Paris"></div>
+        <div><label>Téléphone</label><input id="c_tel" placeholder="+33 6 12 34 56 78"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveClient()">💾 Enregistrer le client</button>
+        <button class="btn btn-ghost" onclick="showPage('homePage')">Annuler</button>
+      </div>
+    </div>
   </div>
 
-  <div style="flex:1">
-    <label>N° Facture</label>
-    <input id="numeroFacture" readonly>
+  <!-- MES INFOS -->
+  <div id="infosPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Mon <span>Entreprise</span></div>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Nom de l'entreprise</label><input id="info_nom" placeholder="Ma Société SAS"></div>
+        <div><label>N° SIRET</label><input id="info_siret" placeholder="XXX XXX XXX XXXXX"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Adresse</label><input id="info_adresse" placeholder="10 avenue des Champs-Élysées"></div>
+        <div><label>N° TVA Intracom.</label><input id="info_tva" placeholder="FRXX XXXXXXXXX"></div>
+      </div>
+      <div class="divider"></div>
+      <label>Logo entreprise</label>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
+        <input type="file" id="logoInput" accept="image/*" style="flex:1">
+        <button class="btn btn-ghost" onclick="uploadLogo()" style="white-space:nowrap">📤 Upload</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveInfos()">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="section-label" style="margin-top:28px">Données enregistrées</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="info-table">
+        <thead><tr><th>Nom</th><th>Adresse</th><th>SIRET</th><th>TVA</th></tr></thead>
+        <tbody id="infosTableBody"></tbody>
+      </table>
+    </div>
   </div>
-</div>
 
-<div class="card">
-<button onclick="startVocal()">🎤 Micro</button>
-<button onclick="stopVocal()">🛑 Stop</button>
-<p id="status"></p>
-</div>
+  <!-- DEVIS -->
+  <div id="devisPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Créer un <span>Devis</span></div>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Date</label><input id="dateDevis" readonly></div>
+        <div><label>N° Devis</label><input id="numeroDevis" readonly></div>
+      </div>
+      <div class="divider"></div>
+      <div class="voice-card">
+        <div class="voice-dot" id="voiceDot"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
+          <div style="font-size:12px;color:var(--text-3)" id="status">Prêt — appuyez sur le micro</div>
+        </div>
+        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
+        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+      </div>
+      <label>Client</label>
+      <input id="clientInput" placeholder="Tapez pour rechercher un client...">
+      <div id="clientSuggestions"></div>
+      <div class="section-label">Lignes de commande</div>
+      <div id="lines"></div>
+      <button class="btn btn-ghost" onclick="addLine()">➕ Ajouter une ligne</button>
+      <div class="divider"></div>
+      <div class="grid-2">
+        <div><label>Remise (%)</label><input id="remise" placeholder="0" oninput="calculate()"></div>
+        <div><label>TVA (%)</label><input id="tva" placeholder="20" oninput="calculate()"></div>
+      </div>
+      <div class="totals-card">
+        <div class="total-row"><span>Total HT</span><b id="totalHT">0.00 €</b></div>
+        <div class="total-row"><span>Remise</span><b id="montantRemise">0.00 €</b></div>
+        <div class="total-row"><span>HT après remise</span><b id="totalApresRemise">0.00 €</b></div>
+        <div class="total-row"><span>TVA</span><b id="montantTVA">0.00 €</b></div>
+        <div class="total-row highlight"><span>Total TTC</span><b id="totalTTC">0.00 €</b></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveDevis()">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="transformerEnFacture()">🔁 En facture</button>
+        <button class="btn btn-purple" onclick="telechargerPDFDevis()">📄 PDF</button>
+        <button class="btn btn-danger" onclick="clearAll()">🧹 Effacer</button>
+      </div>
+    </div>
+  </div>
 
-<label>Client</label>
-<input id="clientInputFacture" placeholder="Tapez pour rechercher...">
-<div id="clientSuggestionsFacture"></div>
+  <!-- FACTURE -->
+  <div id="facturePage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Créer une <span>Facture</span></div>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Date</label><input id="dateFacture" readonly></div>
+        <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
+      </div>
+      <div class="divider"></div>
+      <div class="voice-card">
+        <div class="voice-dot"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
+          <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
+        </div>
+        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
+        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+      </div>
+      <label>Client</label>
+      <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
+      <div id="clientSuggestionsFacture"></div>
+      <div class="section-label">Lignes de facturation</div>
+      <div id="linesFacture"></div>
+      <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
+      <div class="divider"></div>
+      <div class="grid-2">
+        <div><label>Remise (%)</label><input id="remiseFacture" placeholder="0" oninput="calculateFacture()"></div>
+        <div><label>TVA (%)</label><input id="tvaFacture" placeholder="20" oninput="calculateFacture()"></div>
+      </div>
+      <div class="totals-card">
+        <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
+        <div class="total-row"><span>Remise</span><b id="montantRemiseFacture">0.00 €</b></div>
+        <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseFacture">0.00 €</b></div>
+        <div class="total-row"><span>TVA</span><b id="montantTVAFacture">0.00 €</b></div>
+        <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
+        <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
+      </div>
+    </div>
+  </div>
 
-<h3>Lignes</h3>
-<div id="linesFacture"></div>
+  <!-- BL -->
+  <div id="blPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Bon de <span>Livraison</span></div>
+    </div>
+    <div class="card" style="text-align:center;padding:60px 20px">
+      <div style="font-size:48px;margin-bottom:16px">📦</div>
+      <div style="font-family:var(--font-head);font-size:18px;color:var(--text-2)">Module en cours de développement</div>
+      <div style="color:var(--text-3);margin-top:8px;font-size:13px">Bientôt disponible</div>
+    </div>
+  </div>
 
-<button onclick="addLineFacture()">➕ Ajouter ligne</button>
-<button class="clearBtn" onclick="clearAllFacture()">🧹 Tout effacer</button>
-
-<label>Remise (%)</label>
-<input id="remiseFacture" oninput="calculateFacture()">
-
-<label>TVA (%)</label>
-<input id="tvaFacture" oninput="calculateFacture()">
-
-<div class="totals">
-<div>Total HT : <b id="totalHTFacture">0 €</b></div>
-<div>Montant remise : <b id="montantRemiseFacture">0 €</b></div>
-<div>Total HT après remise : <b id="totalApresRemiseFacture">0 €</b></div>
-<div>Montant TVA : <b id="montantTVAFacture">0 €</b></div>
-<div>Total TTC : <b id="totalTTCFacture">0 €</b></div>
-</div>
-
-<button class="saveBtn" onclick="saveFacture()">💾 Enregistrer facture</button>
 </div>
 
 <script>
-const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-function showPage(id){
-
-  document.querySelectorAll("#homePage,#clientPage,#devisPage,#facturePage,#infosPage")
-  .forEach(p => p.classList.add("hidden"));
-
-  document.getElementById(id).classList.remove("hidden");
-
-  // ===== DEVIS =====
-  if(id === "devisPage"){
-    documentActif = "devis";
-    setDateDevis();
-    loadNumeroDevis();
-  }
-
-  // ===== FACTURE =====
-  if(id === "facturePage"){
-    documentActif = "facture";
-    setDateFacture();
-    loadNumeroFacture();
-  }
-
-  if(id === "infosPage"){
-    loadInfos();
-  }
-} // ✅ fermeture manquante ici
-
-
-function saveInfos(){
-  fetch(WEBAPP_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      type:"infos",
-      nom: info_nom.value,
-      adresse: info_adresse.value,
-      siret: info_siret.value,
-      tva: info_tva.value
-    }),
-    mode:"no-cors"
+// ── NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.remove("active");
+    p.classList.add("hidden");
   });
+  const target = document.getElementById(id);
+  if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
+  if (id === "devisPage")   { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
+  if (id === "facturePage") { documentActif = "facture"; setDateFacture(); loadNumeroFacture(); }
+  if (id === "infosPage")   { loadInfos(); }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
+// ── INFOS ──
+function saveInfos() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }),
+    mode: "no-cors"
+  });
   alert("Infos enregistrées");
 }
+
 function uploadLogo() {
   const file = document.getElementById("logoInput").files[0];
-
-  if (!file) {
-    alert("Sélectionne une image");
-    return;
-  }
-
+  if (!file) { alert("Sélectionne une image"); return; }
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   const img = new Image();
   const reader = new FileReader();
-
   reader.onload = function(e) {
     img.onload = function() {
-
       const maxW = 800;
       const ratio = Math.min(1, maxW / img.width);
       canvas.width = Math.floor(img.width * ratio);
       canvas.height = Math.floor(img.height * ratio);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
       const base64 = canvas.toDataURL("image/png");
-
-      // ✅ Envoyer sans attendre
-      fetch(WEBAPP_URL, {
-        method: "POST",
-        body: JSON.stringify({ type: "logo", image: base64 }),
-        mode: "no-cors"
-      });
-
-      // ✅ Afficher le message IMMÉDIATEMENT
+      fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logo", image:base64 }), mode:"no-cors" });
       alert("✅ Logo envoyé avec succès");
     };
     img.src = e.target.result;
   };
-
   reader.readAsDataURL(file);
 }
-// ================= CLIENT SEARCH =================
-let clientsList = [];
 
-function loadClients(){
-  fetch(WEBAPP_URL + "?clients=1")
-  .then(r => r.json())
-  .then(data => {
-    clientsList = data || [];
-  })
-  .catch(() => alert("Erreur chargement clients"));
+function loadInfos() {
+  fetch(WEBAPP_URL + "?infos=1")
+    .then(r => r.json())
+    .then(data => {
+      const tbody = infosTableBody;
+      tbody.innerHTML = "";
+      if (!data) return;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
+      tr.onclick = () => {
+        info_nom.value = data.nom||""; info_adresse.value = data.adresse||"";
+        info_siret.value = data.siret||""; info_tva.value = data.tva||"";
+      };
+      tbody.appendChild(tr);
+    });
 }
 
+// ── CLIENTS ──
+let clientsList = [];
+
+function loadClients() {
+  fetch(WEBAPP_URL + "?clients=1")
+    .then(r => r.json())
+    .then(data => { clientsList = data || []; })
+    .catch(() => alert("Erreur chargement clients"));
+}
 loadClients();
 
-function setupClientSearch(inputId, suggestionsId){
+function saveClient() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
+    mode: "no-cors"
+  });
+  alert("Client ajouté");
+}
+
+function setupClientSearch(inputId, suggestionsId) {
   const input = document.getElementById(inputId);
   const suggestions = document.getElementById(suggestionsId);
-
   input.addEventListener("input", () => {
     const value = input.value.toLowerCase();
     suggestions.innerHTML = "";
-    if(!value) return;
-
-    clientsList
-      .filter(c => c.toLowerCase().includes(value))
-      .forEach(c => {
-        const div = document.createElement("div");
-        div.textContent = c;
-        div.className = "suggestion";
-        div.onclick = () => {
-          input.value = c;
-          suggestions.innerHTML = "";
-        };
-        suggestions.appendChild(div);
-      });
+    if (!value) return;
+    clientsList.filter(c => c.toLowerCase().includes(value)).forEach(c => {
+      const div = document.createElement("div");
+      div.textContent = c; div.className = "suggestion";
+      div.onclick = () => { input.value = c; suggestions.innerHTML = ""; };
+      suggestions.appendChild(div);
+    });
   });
 }
+setupClientSearch("clientInput", "clientSuggestions");
+setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
 
-// 🔹 Activer pour DEVIS
-setupClientSearch("clientInput","clientSuggestions");
-
-// 🔹 Activer pour FACTURE
-setupClientSearch("clientInputFacture","clientSuggestionsFacture");
-// ================= SAVE CLIENT =================
-function saveClient(){
-fetch(WEBAPP_URL,{
-method:"POST",
-body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),
-mode:"no-cors"
-});
-alert("Client ajouté");
-}
-
-// ================= DEVIS =================
-let devis={lignes:[]};
+// ── DEVIS ──
+let devis = { lignes: [] };
 let documentActif = "devis";
-function render(){
-lines.innerHTML="";
-devis.lignes.forEach((l,i)=>{
-lines.innerHTML+=`
-<div class="line">
-<input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
-<input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
-<input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
-<button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
-</div>`;
-});
-calculate();
-}
 
-function addLine(){devis.lignes.push({designation:"",quantite:1,prix:0});render();}
-function deleteLine(i){devis.lignes.splice(i,1);render();}
-function clearAll(){devis={lignes:[]};render();}
-function setDateDevis(){
-  const d = new Date();
-  const jour = String(d.getDate()).padStart(2,"0");
-  const mois = String(d.getMonth()+1).padStart(2,"0");
-  const annee = d.getFullYear();
-
-  dateDevis.value = `${jour}/${mois}/${annee}`;
-}
-  function loadNumeroDevis(){
-
-  fetch(WEBAPP_URL + "?lastDevis=1")
-  .then(r => r.json())
-  .then(data => {
-
-    // data = numéro précédent (ex: 2026-1)
-    const annee = new Date().getFullYear();
-
-    let next = 1;
-
-    if(data && data.numero){
-      const parts = data.numero.split("-");
-      next = Number(parts[1]) + 1;
-    }
-
-    numeroDevis.value = `DEV-${annee}-${next}`;
-
-  })
-  .catch(()=> {
-    // si erreur → numéro 1
-    const annee = new Date().getFullYear();
-    numeroDevis.value = `DEV-${annee}-1`;
+function render() {
+  lines.innerHTML = "";
+  devis.lignes.forEach((l, i) => {
+    lines.innerHTML += `<div class="line">
+      <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
+      <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+      <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+      <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
+    </div>`;
   });
-
+  calculate();
 }
+
+function addLine()     { devis.lignes.push({ designation:"", quantite:1, prix:0 }); render(); }
+function deleteLine(i) { devis.lignes.splice(i,1); render(); }
+function clearAll()    { devis = { lignes:[] }; render(); }
+
+function setDateDevis() {
+  const d = new Date();
+  dateDevis.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+
+function loadNumeroDevis() {
+  fetch(WEBAPP_URL + "?lastDevis=1")
+    .then(r => r.json())
+    .then(data => {
+      const annee = new Date().getFullYear();
+      let next = 1;
+      if (data && data.numero) { const parts = data.numero.split("-"); next = Number(parts[1]) + 1; }
+      numeroDevis.value = `DEV-${annee}-${next}`;
+    })
+    .catch(() => { numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
+}
+
+function calculate() {
+  let ht = 0;
+  devis.lignes.forEach(l => ht += Number(l.quantite||0) * Number(l.prix||0));
+  const r = Number(remise.value)||0, remVal = ht*(r/100), htApres = ht-remVal;
+  const t = Number(tva.value)||0, tvaVal = htApres*(t/100), ttc = htApres+tvaVal;
+  totalHT.textContent = ht.toFixed(2)+" €";
+  montantRemise.textContent = remVal.toFixed(2)+" €";
+  totalApresRemise.textContent = htApres.toFixed(2)+" €";
+  montantTVA.textContent = tvaVal.toFixed(2)+" €";
+  totalTTC.textContent = ttc.toFixed(2)+" €";
+}
+
+function saveDevis() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }),
+    mode: "no-cors"
+  });
+  alert("Devis enregistré");
+}
+
 function telechargerPDFDevis() {
   fetch(WEBAPP_URL + "?pdfDevis=1")
-  .then(r => r.json())
-  .then(data => {
-    const nomFichier = `${data.numero} - ${data.client}.pdf`;
-    const byteChars = atob(data.base64);
-    const byteArray = new Uint8Array(byteChars.length);
-    for(let i = 0; i < byteChars.length; i++){
-      byteArray[i] = byteChars.charCodeAt(i);
-    }
-    const blob = new Blob([byteArray], { type: "application/pdf" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = nomFichier;
-    a.click();
-  })
-  .catch(err => {
-    console.error(err);
-    alert("❌ Erreur téléchargement PDF");
-  });
-}
-  function loadInfos(){
-
-fetch(WEBAPP_URL + "?infos=1")
-.then(r => r.json())
-.then(data => {
-
-  const tbody = infosTableBody;
-  tbody.innerHTML = "";
-
-  if(!data) return;
-
-  const tr = document.createElement("tr");
-
-  tr.innerHTML = `
-    <td>${data.nom || ""}</td>
-    <td>${data.adresse || ""}</td>
-    <td>${data.siret || ""}</td>
-    <td>${data.tva || ""}</td>
-  `;
-
-  // 👉 clic = remplir formulaire
-  tr.onclick = () => {
-    info_nom.value = data.nom || "";
-    info_adresse.value = data.adresse || "";
-    info_siret.value = data.siret || "";
-    info_tva.value = data.tva || "";
-  };
-
-  tbody.appendChild(tr);
-
-});
-}
-// ================= CALCUL =================
-function calculate(){
-let ht=0;
-devis.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
-
-let r=Number(remise.value)||0;
-let remVal=ht*(r/100);
-let htApres=ht-remVal;
-
-let t=Number(tva.value)||0;
-let tvaVal=htApres*(t/100);
-let ttc=htApres+tvaVal;
-
-totalHT.textContent=ht.toFixed(2)+" €";
-montantRemise.textContent=remVal.toFixed(2)+" €";
-totalApresRemise.textContent=htApres.toFixed(2)+" €";
-montantTVA.textContent=tvaVal.toFixed(2)+" €";
-totalTTC.textContent=ttc.toFixed(2)+" €";
+    .then(r => r.json())
+    .then(data => {
+      const nomFichier = `${data.numero} - ${data.client}.pdf`;
+      const byteChars = atob(data.base64);
+      const byteArray = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([byteArray], { type:"application/pdf" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = nomFichier; a.click();
+    })
+    .catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
 }
 
-// ================= SAVE DEVIS =================
-function saveDevis(){
-
-fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({
-    type:"devis",
-    numero: numeroDevis.value,
-    date: dateDevis.value,
-    client: clientInput.value,
-    lignes: devis.lignes,
-    remise: remise.value,
-    tva: tva.value
-  }),
-  mode:"no-cors"
-});
-
-alert("Devis enregistré");
-
-}
-function transformerEnFacture(){
-
-  // copier les lignes
+function transformerEnFacture() {
   devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
-
-  // copier client
   clientInputFacture.value = clientInput.value;
-
-  // copier remise et TVA
   remiseFacture.value = remise.value;
   tvaFacture.value = tva.value;
-
-  // recalculer
-  renderFacture();
-  calculateFacture();
-
-  // aller sur la page facture
+  renderFacture(); calculateFacture();
   showPage("facturePage");
 }
-// ================= FACTURE =================
 
+// ── FACTURE ──
 let devisFacture = { lignes: [] };
 
-function renderFacture(){
-linesFacture.innerHTML="";
-devisFacture.lignes.forEach((l,i)=>{
-linesFacture.innerHTML+=`
-<div class="line">
-<input value="${l.designation}" oninput="devisFacture.lignes[${i}].designation=this.value">
-<input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
-<input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
-<button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
-</div>`;
-});
-calculateFacture();
-}
-
-function addLineFacture(){
-devisFacture.lignes.push({designation:"",quantite:1,prix:0});
-renderFacture();
-}
-
-function deleteLineFacture(i){
-devisFacture.lignes.splice(i,1);
-renderFacture();
-}
-
-function clearAllFacture(){
-devisFacture={lignes:[]};
-renderFacture();
-}
-function setDateFacture(){
-  const d = new Date();
-  const j = String(d.getDate()).padStart(2,"0");
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const a = d.getFullYear();
-
-  dateFacture.value = `${j}/${m}/${a}`;
-}
-  function loadNumeroFacture(){
-
-  fetch(WEBAPP_URL + "?lastFacture=1")
-  .then(r => r.json())
-  .then(data => {
-
-    const annee = new Date().getFullYear();
-    let next = 1;
-
-    if(data && data.numero){
-      const parts = data.numero.split("-");
-      next = Number(parts[1]) + 1;
-    }
-
-    numeroFacture.value = `FAC-${annee}-${next}`;
-
-  })
-  .catch(()=>{
-    const annee = new Date().getFullYear();
-    numeroFacture.value = `FAC-${annee}-1`;
+function renderFacture() {
+  linesFacture.innerHTML = "";
+  devisFacture.lignes.forEach((l, i) => {
+    linesFacture.innerHTML += `<div class="line">
+      <input value="${l.designation}" oninput="devisFacture.lignes[${i}].designation=this.value">
+      <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
+      <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
+      <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
+    </div>`;
   });
-
-}
-// ================= CALCUL FACTURE =================
-function calculateFacture(){
-let ht=0;
-devisFacture.lignes.forEach(l=>ht+=Number(l.quantite||0)*Number(l.prix||0));
-
-let r=Number(remiseFacture.value)||0;
-let remVal=ht*(r/100);
-let htApres=ht-remVal;
-
-let t=Number(tvaFacture.value)||0;
-let tvaVal=htApres*(t/100);
-let ttc=htApres+tvaVal;
-
-totalHTFacture.textContent=ht.toFixed(2)+" €";
-montantRemiseFacture.textContent=remVal.toFixed(2)+" €";
-totalApresRemiseFacture.textContent=htApres.toFixed(2)+" €";
-montantTVAFacture.textContent=tvaVal.toFixed(2)+" €";
-totalTTCFacture.textContent=ttc.toFixed(2)+" €";
+  calculateFacture();
 }
 
-// ================= SAVE FACTURE =================
-function saveFacture(){
+function addLineFacture()     { devisFacture.lignes.push({ designation:"", quantite:1, prix:0 }); renderFacture(); }
+function deleteLineFacture(i) { devisFacture.lignes.splice(i,1); renderFacture(); }
+function clearAllFacture()    { devisFacture = { lignes:[] }; renderFacture(); }
 
-fetch(WEBAPP_URL,{
-  method:"POST",
-  body:JSON.stringify({
-    type:"facture",
-    numero: numeroFacture.value,
-    date: dateFacture.value,
-    client: clientInputFacture.value,
-    lignes: devisFacture.lignes,
-    remise: remiseFacture.value,
-    tva: tvaFacture.value
-  }),
-  mode:"no-cors"
-});
-
-alert("Facture enregistrée");
-
+function setDateFacture() {
+  const d = new Date();
+  dateFacture.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
-// ================= VOICE =================
+
+function loadNumeroFacture() {
+  fetch(WEBAPP_URL + "?lastFacture=1")
+    .then(r => r.json())
+    .then(data => {
+      const annee = new Date().getFullYear();
+      let next = 1;
+      if (data && data.numero) { const parts = data.numero.split("-"); next = Number(parts[1]) + 1; }
+      numeroFacture.value = `FAC-${annee}-${next}`;
+    })
+    .catch(() => { numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
+}
+
+function calculateFacture() {
+  let ht = 0;
+  devisFacture.lignes.forEach(l => ht += Number(l.quantite||0) * Number(l.prix||0));
+  const r = Number(remiseFacture.value)||0, remVal = ht*(r/100), htApres = ht-remVal;
+  const t = Number(tvaFacture.value)||0, tvaVal = htApres*(t/100), ttc = htApres+tvaVal;
+  totalHTFacture.textContent = ht.toFixed(2)+" €";
+  montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
+  totalApresRemiseFacture.textContent = htApres.toFixed(2)+" €";
+  montantTVAFacture.textContent = tvaVal.toFixed(2)+" €";
+  totalTTCFacture.textContent = ttc.toFixed(2)+" €";
+}
+
+function saveFacture() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }),
+    mode: "no-cors"
+  });
+  alert("Facture enregistrée");
+}
+
+// ── VOCAL ──
 let recognition;
 let lastProcessedText = "";
 
-// ===== CORRECTION TEXTE GENERIQUE =====
-function cleanSpeechText(text){
-return text
-.replace(/[€]/g,"")
-.replace(/\s+/g," ")
-.replace(/^\s+|\s+$/g,"")
-.replace(/\b(euh|heu|alors|donc|voilà)\b/g,"")
-.trim();
+function cleanSpeechText(text) {
+  return text.replace(/[€]/g,"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/\b(euh|heu|alors|donc|voilà)\b/g,"").trim();
+}
+function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+function startVocal() {
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "fr-FR"; recognition.continuous = true; recognition.interimResults = false;
+  recognition.start();
+
+  recognition.onresult = e => {
+    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
+    if (text === lastProcessedText) return;
+    lastProcessedText = text;
+    if (document.getElementById("status")) status.innerText = text;
+
+    const remMatch = text.match(/remise\s*(\d+)/);
+    if (remMatch) {
+      if (documentActif === "devis")   { remise.value = remMatch[1]; calculate(); }
+      if (documentActif === "facture") { remiseFacture.value = remMatch[1]; calculateFacture(); }
+    }
+
+    const tvaMatch = text.match(/tva\s*(\d+)/);
+    if (tvaMatch) {
+      if (documentActif === "devis")   { tva.value = tvaMatch[1]; calculate(); }
+      if (documentActif === "facture") { tvaFacture.value = tvaMatch[1]; calculateFacture(); }
+    }
+
+    let cleanText = cleanSpeechText(text.replace(/remise\s*\d+/g,"").replace(/tva\s*\d+/g,""));
+
+    cleanText.split("suivant").forEach(bloc => {
+      bloc = bloc.trim();
+      if (!bloc) return;
+      const numbers = bloc.match(/\d+/g);
+      let designation = capitalize(cleanSpeechText(bloc.replace(/\d+/g,"").trim()));
+      if (!designation) return;
+      let quantite = 1, prix = 0;
+      if (numbers) {
+        if (numbers.length === 1) prix = numbers[0];
+        if (numbers.length >= 2) { quantite = numbers[0]; prix = numbers[1]; }
+      }
+      if (documentActif === "devis")   { devis.lignes.push({ designation, quantite, prix }); render(); }
+      if (documentActif === "facture") { devisFacture.lignes.push({ designation, quantite, prix }); renderFacture(); }
+    });
+  };
+
+  document.getElementById("voiceDot")?.classList.add("active");
 }
 
-// ===== CAPITALISATION =====
-function capitalize(str){
-return str.charAt(0).toUpperCase() + str.slice(1);
+function stopVocal() {
+  if (recognition) recognition.stop();
+  lastProcessedText = "";
+  document.getElementById("voiceDot")?.classList.remove("active");
+  if (document.getElementById("status")) status.innerText = "Arrêté";
 }
-
-function startVocal(){
-
-recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = "fr-FR";
-recognition.continuous = true;
-recognition.interimResults = false;
-recognition.start();
-
-recognition.onresult = e => {
-
-let text = e.results[e.results.length-1][0].transcript.toLowerCase();
-
-if(text === lastProcessedText) return;
-lastProcessedText = text;
-
-status.innerText = text;
-
-// ===== REMISE =====
-const remMatch = text.match(/remise\s*(\d+)/);
-
-if(remMatch){
-  if(documentActif === "devis"){
-    remise.value = remMatch[1];
-    calculate();
-  }
-
-  if(documentActif === "facture"){
-    remiseFacture.value = remMatch[1];
-    calculateFacture();
-  }
-}
-
-// ===== TVA =====
-const tvaMatch = text.match(/tva\s*(\d+)/);
-
-if(tvaMatch){
-  if(documentActif === "devis"){
-    tva.value = tvaMatch[1];
-    calculate();
-  }
-
-  if(documentActif === "facture"){
-    tvaFacture.value = tvaMatch[1];
-    calculateFacture();
-  }
-}
-
-// ===== TEXTE NETTOYÉ =====
-let cleanText = text
-.replace(/remise\s*\d+/g,"")
-.replace(/tva\s*\d+/g,"");
-
-cleanText = cleanSpeechText(cleanText);
-
-// ===== SPLIT LIGNES =====
-const blocs = cleanText.split("suivant");
-
-blocs.forEach(bloc=>{
-bloc = bloc.trim();
-if(!bloc) return;
-
-const numbers = bloc.match(/\d+/g);
-
-let designation = bloc
-.replace(/\d+/g,"")
-.trim();
-
-designation = capitalize(cleanSpeechText(designation));
-
-if(!designation) return;
-
-let quantite = 1;
-let prix = 0;
-
-if(numbers){
-if(numbers.length === 1){
-prix = numbers[0];
-}
-if(numbers.length >= 2){
-quantite = numbers[0];
-prix = numbers[1];
-}
-}
-
-if(documentActif === "devis"){
-  devis.lignes.push({ designation, quantite, prix });
-  render();
-}
-
-if(documentActif === "facture"){
-  devisFacture.lignes.push({ designation, quantite, prix });
-  renderFacture();
-}
-
-});
-
-render();
-};
-
-}
-
-function stopVocal(){
-if(recognition){
-recognition.stop();
-lastProcessedText = "";
-}
-}
-
 </script>
 </body>
 </html>
