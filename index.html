@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <title>INVOICEO</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="INVOICEO">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -71,23 +78,40 @@
     backdrop-filter: blur(28px) saturate(1.8);
     border: 1px solid var(--border2);
     border-radius: 20px;
-    padding: 12px 20px;
+    padding: 10px 20px;
     display: flex; align-items: center;
     box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5);
   }
   .logo-pill {
-    display:flex; align-items:center;
+    display: flex; align-items: center; gap: 14px;
     background: linear-gradient(135deg, var(--accent-dim), rgba(52,211,153,0.04));
     border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 6px 10px;
+    border-radius: 16px;
+    padding: 8px 20px 8px 8px;
+    position: relative; overflow: hidden;
+  }
+  .logo-pill::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, transparent 40%, rgba(52,211,153,0.06));
+    pointer-events: none;
+  }
+  .logo-name {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: #e8f5ee;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #e8f5ee, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   /* MAIN */
   .main {
     position:relative; z-index:1;
     max-width:900px; margin:0 auto;
-    padding: 110px 16px 60px;
+    padding: 200px 16px 60px;
   }
 
   /* PAGES */
@@ -105,8 +129,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 28px;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
     transition: border-color var(--transition);
     margin-bottom: 16px;
   }
@@ -118,16 +141,6 @@
   .card:hover { border-color: var(--border2); }
 
   /* HOME */
-  .home-header { text-align:center; padding:20px 0 40px; }
-  .home-header h1 {
-    font-family: var(--font-head);
-    font-size: clamp(32px,5vw,52px);
-    font-weight: 800;
-    background: linear-gradient(135deg, #e8f5ee 0%, #34d399 60%, #6ee7b7 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
   .menu-grid {
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
@@ -189,8 +202,8 @@
 
   /* FORMS */
   label {
-    display:block; font-size:11px; font-weight:500;
-    color:var(--text-3); letter-spacing:0.08em;
+    display:block; font-size:13px; font-weight:600;
+    color:#a8d8b8; letter-spacing:0.06em;
     text-transform:uppercase; margin-bottom:6px; margin-top:16px;
   }
   label:first-child { margin-top:0; }
@@ -353,10 +366,12 @@
   <div class="orb orb-3"></div>
 </div>
 
+<!-- NAV FLOTTANTE -->
 <div class="nav-shell">
   <nav class="nav">
     <div class="logo-pill">
-      <img src="logo.png" alt="logo" style="height:32px;width:32px;object-fit:contain;border-radius:8px;">
+      <img src="logo.png" alt="logo" style="height:100px;width:100px;object-fit:contain;border-radius:12px;position:relative;z-index:1;">
+      <span class="logo-name">INVOICEO</span>
     </div>
   </nav>
 </div>
@@ -365,7 +380,6 @@
 
   <!-- HOME -->
   <div id="homePage" class="page active">
-    <div class="home-header"><h1>INVOICEO</h1></div>
     <div class="menu-grid">
       <div class="menu-card" onclick="showPage('devisPage')">
         <div class="mc-icon mc-green">📄</div>
@@ -563,7 +577,6 @@
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
-// ── NAVIGATION ──
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => {
     p.classList.remove("active");
@@ -577,7 +590,6 @@ function showPage(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ── INFOS ──
 function saveInfos() {
   fetch(WEBAPP_URL, {
     method: "POST",
@@ -590,19 +602,13 @@ function saveInfos() {
 function uploadLogo() {
   const file = document.getElementById("logoInput").files[0];
   if (!file) { alert("Sélectionne une image"); return; }
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  const img = new Image();
-  const reader = new FileReader();
+  const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d"), img = new Image(), reader = new FileReader();
   reader.onload = function(e) {
     img.onload = function() {
-      const maxW = 800;
-      const ratio = Math.min(1, maxW / img.width);
-      canvas.width = Math.floor(img.width * ratio);
-      canvas.height = Math.floor(img.height * ratio);
+      const ratio = Math.min(1, 800 / img.width);
+      canvas.width = Math.floor(img.width * ratio); canvas.height = Math.floor(img.height * ratio);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL("image/png");
-      fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logo", image:base64 }), mode:"no-cors" });
+      fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logo", image:canvas.toDataURL("image/png") }), mode:"no-cors" });
       alert("✅ Logo envoyé avec succès");
     };
     img.src = e.target.result;
@@ -611,39 +617,24 @@ function uploadLogo() {
 }
 
 function loadInfos() {
-  fetch(WEBAPP_URL + "?infos=1")
-    .then(r => r.json())
-    .then(data => {
-      const tbody = infosTableBody;
-      tbody.innerHTML = "";
-      if (!data) return;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
-      tr.onclick = () => {
-        info_nom.value = data.nom||""; info_adresse.value = data.adresse||"";
-        info_siret.value = data.siret||""; info_tva.value = data.tva||"";
-      };
-      tbody.appendChild(tr);
-    });
+  fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
+    const tbody = infosTableBody; tbody.innerHTML = "";
+    if (!data) return;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
+    tr.onclick = () => { info_nom.value=data.nom||""; info_adresse.value=data.adresse||""; info_siret.value=data.siret||""; info_tva.value=data.tva||""; };
+    tbody.appendChild(tr);
+  });
 }
 
-// ── CLIENTS ──
 let clientsList = [];
-
 function loadClients() {
-  fetch(WEBAPP_URL + "?clients=1")
-    .then(r => r.json())
-    .then(data => { clientsList = data || []; })
-    .catch(() => alert("Erreur chargement clients"));
+  fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => alert("Erreur chargement clients"));
 }
 loadClients();
 
 function saveClient() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
-    mode: "no-cors"
-  });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
   alert("Client ajouté");
 }
 
@@ -665,7 +656,6 @@ function setupClientSearch(inputId, suggestionsId) {
 setupClientSearch("clientInput", "clientSuggestions");
 setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
 
-// ── DEVIS ──
 let devis = { lignes: [] };
 let documentActif = "devis";
 
@@ -692,15 +682,11 @@ function setDateDevis() {
 }
 
 function loadNumeroDevis() {
-  fetch(WEBAPP_URL + "?lastDevis=1")
-    .then(r => r.json())
-    .then(data => {
-      const annee = new Date().getFullYear();
-      let next = 1;
-      if (data && data.numero) { const parts = data.numero.split("-"); next = Number(parts[1]) + 1; }
-      numeroDevis.value = `DEV-${annee}-${next}`;
-    })
-    .catch(() => { numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
+  fetch(WEBAPP_URL + "?lastDevis=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]) + 1; }
+    numeroDevis.value = `DEV-${annee}-${next}`;
+  }).catch(() => { numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
 }
 
 function calculate() {
@@ -716,39 +702,28 @@ function calculate() {
 }
 
 function saveDevis() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }),
-    mode: "no-cors"
-  });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }), mode:"no-cors" });
   alert("Devis enregistré");
 }
 
 function telechargerPDFDevis() {
-  fetch(WEBAPP_URL + "?pdfDevis=1")
-    .then(r => r.json())
-    .then(data => {
-      const nomFichier = `${data.numero} - ${data.client}.pdf`;
-      const byteChars = atob(data.base64);
-      const byteArray = new Uint8Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
-      const blob = new Blob([byteArray], { type:"application/pdf" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = nomFichier; a.click();
-    })
-    .catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
+  fetch(WEBAPP_URL + "?pdfDevis=1").then(r => r.json()).then(data => {
+    const b = atob(data.base64), arr = new Uint8Array(b.length);
+    for (let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
+    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
+  }).catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
 }
 
 function transformerEnFacture() {
   devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
   clientInputFacture.value = clientInput.value;
-  remiseFacture.value = remise.value;
-  tvaFacture.value = tva.value;
+  remiseFacture.value = remise.value; tvaFacture.value = tva.value;
   renderFacture(); calculateFacture();
   showPage("facturePage");
 }
 
-// ── FACTURE ──
 let devisFacture = { lignes: [] };
 
 function renderFacture() {
@@ -774,15 +749,11 @@ function setDateFacture() {
 }
 
 function loadNumeroFacture() {
-  fetch(WEBAPP_URL + "?lastFacture=1")
-    .then(r => r.json())
-    .then(data => {
-      const annee = new Date().getFullYear();
-      let next = 1;
-      if (data && data.numero) { const parts = data.numero.split("-"); next = Number(parts[1]) + 1; }
-      numeroFacture.value = `FAC-${annee}-${next}`;
-    })
-    .catch(() => { numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
+  fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]) + 1; }
+    numeroFacture.value = `FAC-${annee}-${next}`;
+  }).catch(() => { numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
 }
 
 function calculateFacture() {
@@ -798,15 +769,10 @@ function calculateFacture() {
 }
 
 function saveFacture() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }),
-    mode: "no-cors"
-  });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }), mode:"no-cors" });
   alert("Facture enregistrée");
 }
 
-// ── VOCAL ──
 let recognition;
 let lastProcessedText = "";
 
@@ -819,43 +785,27 @@ function startVocal() {
   recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "fr-FR"; recognition.continuous = true; recognition.interimResults = false;
   recognition.start();
-
   recognition.onresult = e => {
     let text = e.results[e.results.length-1][0].transcript.toLowerCase();
     if (text === lastProcessedText) return;
     lastProcessedText = text;
     if (document.getElementById("status")) status.innerText = text;
-
     const remMatch = text.match(/remise\s*(\d+)/);
-    if (remMatch) {
-      if (documentActif === "devis")   { remise.value = remMatch[1]; calculate(); }
-      if (documentActif === "facture") { remiseFacture.value = remMatch[1]; calculateFacture(); }
-    }
-
+    if (remMatch) { if (documentActif==="devis"){ remise.value=remMatch[1]; calculate(); } else { remiseFacture.value=remMatch[1]; calculateFacture(); } }
     const tvaMatch = text.match(/tva\s*(\d+)/);
-    if (tvaMatch) {
-      if (documentActif === "devis")   { tva.value = tvaMatch[1]; calculate(); }
-      if (documentActif === "facture") { tvaFacture.value = tvaMatch[1]; calculateFacture(); }
-    }
-
+    if (tvaMatch) { if (documentActif==="devis"){ tva.value=tvaMatch[1]; calculate(); } else { tvaFacture.value=tvaMatch[1]; calculateFacture(); } }
     let cleanText = cleanSpeechText(text.replace(/remise\s*\d+/g,"").replace(/tva\s*\d+/g,""));
-
     cleanText.split("suivant").forEach(bloc => {
-      bloc = bloc.trim();
-      if (!bloc) return;
+      bloc = bloc.trim(); if (!bloc) return;
       const numbers = bloc.match(/\d+/g);
       let designation = capitalize(cleanSpeechText(bloc.replace(/\d+/g,"").trim()));
       if (!designation) return;
       let quantite = 1, prix = 0;
-      if (numbers) {
-        if (numbers.length === 1) prix = numbers[0];
-        if (numbers.length >= 2) { quantite = numbers[0]; prix = numbers[1]; }
-      }
-      if (documentActif === "devis")   { devis.lignes.push({ designation, quantite, prix }); render(); }
-      if (documentActif === "facture") { devisFacture.lignes.push({ designation, quantite, prix }); renderFacture(); }
+      if (numbers) { if (numbers.length===1) prix=numbers[0]; else { quantite=numbers[0]; prix=numbers[1]; } }
+      if (documentActif==="devis") { devis.lignes.push({designation,quantite,prix}); render(); }
+      else { devisFacture.lignes.push({designation,quantite,prix}); renderFacture(); }
     });
   };
-
   document.getElementById("voiceDot")?.classList.add("active");
 }
 
@@ -865,6 +815,8 @@ function stopVocal() {
   document.getElementById("voiceDot")?.classList.remove("active");
   if (document.getElementById("status")) status.innerText = "Arrêté";
 }
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
