@@ -663,9 +663,15 @@ function render() {
   lines.innerHTML = "";
   devis.lignes.forEach((l, i) => {
     lines.innerHTML += `<div class="line">
-      <input value="${l.designation}" oninput="devis.lignes[${i}].designation=this.value">
-      <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
-      <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+      <input value="${l.designation}" placeholder="Description" oninput="devis.lignes[${i}].designation=this.value">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">QTT</span>
+        <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">PU HT</span>
+        <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+      </div>
       <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
     </div>`;
   });
@@ -730,9 +736,15 @@ function renderFacture() {
   linesFacture.innerHTML = "";
   devisFacture.lignes.forEach((l, i) => {
     linesFacture.innerHTML += `<div class="line">
-      <input value="${l.designation}" oninput="devisFacture.lignes[${i}].designation=this.value">
-      <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
-      <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
+      <input value="${l.designation}" placeholder="Description" oninput="devisFacture.lignes[${i}].designation=this.value">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">QTT</span>
+        <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">PU HT</span>
+        <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
+      </div>
       <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
     </div>`;
   });
