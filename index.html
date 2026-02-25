@@ -98,7 +98,7 @@
   .logo-name {
     font-family: var(--font-head);
     font-weight: 800;
-    font-size: 15px;
+    font-size: 22px;
     letter-spacing: 0.06em;
     color: #e8f5ee;
     text-transform: uppercase;
@@ -265,13 +265,12 @@
   .suggestion:last-child { border-bottom:none; }
   .suggestion:hover { background:var(--surface3); color:var(--accent); }
 
-  /* LINE ITEMS */
+  /* LINE ITEMS — mobile first */
   .line {
     background:var(--surface2); border:1px solid var(--border);
     border-radius:var(--radius-sm); padding:12px 14px;
     margin-bottom:10px;
-    display:grid; grid-template-columns:1fr 80px 90px 36px;
-    gap:10px; align-items:center;
+    display:flex; flex-direction:column; gap:8px;
     transition:border-color var(--transition);
     animation:line-in 0.2s ease;
   }
@@ -404,6 +403,11 @@
       <div class="menu-card" onclick="showPage('infosPage')">
         <div class="mc-icon mc-red">🏢</div>
         <h3>Mes Infos</h3><p>Configurez votre entreprise</p>
+        <span class="mc-arrow">↗</span>
+      </div>
+      <div class="menu-card" onclick="showPage('historiquePage')">
+        <div class="mc-icon mc-gold">🕓</div>
+        <h3>Historique</h3><p>Consultez vos documents passés</p>
         <span class="mc-arrow">↗</span>
       </div>
     </div>
@@ -559,6 +563,32 @@
     </div>
   </div>
 
+  <!-- HISTORIQUE -->
+  <div id="historiquePage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Histo<span>rique</span></div>
+    </div>
+    <div class="card" style="padding:20px 24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <label style="margin:0;font-size:12px;white-space:nowrap">Type :</label>
+        <select id="histoType" onchange="loadHistorique()" style="max-width:180px">
+          <option value="devis">Devis</option>
+          <option value="facture">Facture</option>
+          <option value="bl">Bon de Livraison</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadHistorique()" style="padding:8px 14px;font-size:12px;margin-left:auto">🔄 Actualiser</button>
+      </div>
+      <div id="histoLoading" class="hidden" style="text-align:center;padding:30px;color:var(--text-3)">Chargement...</div>
+      <div style="overflow-x:auto">
+        <table class="info-table" id="histoTable">
+          <thead id="histoHead"></thead>
+          <tbody id="histoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- BL -->
   <div id="blPage" class="page hidden">
     <div class="page-header">
@@ -584,9 +614,9 @@ function showPage(id) {
   });
   const target = document.getElementById(id);
   if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
-  if (id === "devisPage")   { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
-  if (id === "facturePage") { documentActif = "facture"; setDateFacture(); loadNumeroFacture(); }
-  if (id === "infosPage")   { loadInfos(); }
+  if (id === "devisPage")      { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
+  if (id === "facturePage")    { documentActif = "facture"; setDateFacture(); loadNumeroFacture(); }
+  if (id === "historiquePage") { loadHistorique(); }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -664,15 +694,17 @@ function render() {
   devis.lignes.forEach((l, i) => {
     lines.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devis.lignes[${i}].designation=this.value">
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">QTT</span>
-        <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+      <div style="display:grid;grid-template-columns:1fr 1fr 36px;gap:8px;align-items:end">
+        <div>
+          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
+          <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
+        </div>
+        <div>
+          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
+          <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
+        </div>
+        <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">PU HT</span>
-        <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
-      </div>
-      <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
     </div>`;
   });
   calculate();
@@ -708,8 +740,14 @@ function calculate() {
 }
 
 function saveDevis() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }), mode:"no-cors" });
+  fetch(WEBAPP_URL, {
+    method:"POST",
+    body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }),
+    mode:"no-cors"
+  });
   alert("Devis enregistré");
+  devis = { lignes:[] }; render();
+  clientInput.value = ""; remise.value = ""; tva.value = "";
 }
 
 function telechargerPDFDevis() {
@@ -737,15 +775,17 @@ function renderFacture() {
   devisFacture.lignes.forEach((l, i) => {
     linesFacture.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisFacture.lignes[${i}].designation=this.value">
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">QTT</span>
-        <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
+      <div style="display:grid;grid-template-columns:1fr 1fr 36px;gap:8px;align-items:end">
+        <div>
+          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
+          <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
+        </div>
+        <div>
+          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
+          <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
+        </div>
+        <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;">PU HT</span>
-        <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
-      </div>
-      <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
     </div>`;
   });
   calculateFacture();
@@ -826,6 +866,83 @@ function stopVocal() {
   lastProcessedText = "";
   document.getElementById("voiceDot")?.classList.remove("active");
   if (document.getElementById("status")) status.innerText = "Arrêté";
+}
+
+// ── HISTORIQUE ──
+const HISTO_CONFIG = {
+  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+};
+
+function loadHistorique() {
+  const type = document.getElementById("histoType").value;
+  const cfg  = HISTO_CONFIG[type];
+  const head = document.getElementById("histoHead");
+  const body = document.getElementById("histoBody");
+  const loading = document.getElementById("histoLoading");
+
+  head.innerHTML = "<tr>" + cfg.cols.map(c => `<th>${c}</th>`).join("") + "</tr>";
+  body.innerHTML = "";
+  loading.classList.remove("hidden");
+
+  fetch(WEBAPP_URL + "?" + cfg.param + "=1")
+    .then(r => r.json())
+    .then(rows => {
+      loading.classList.add("hidden");
+      if (!rows || rows.length === 0) {
+        body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`;
+        return;
+      }
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.innerHTML = row.map((cell, i) => {
+          if (i === 0 && cell) {
+            const d = new Date(cell);
+            return `<td>${d.toLocaleDateString("fr-FR")}</td>`;
+          }
+          return `<td>${cell || ""}</td>`;
+        }).join("");
+        tr.onclick = () => chargerDepuisHistorique(type, row);
+        body.appendChild(tr);
+      });
+    })
+    .catch(() => {
+      loading.classList.add("hidden");
+      body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
+    });
+}
+
+function chargerDepuisHistorique(type, row) {
+  const numero  = row[2];
+  const client  = row[1];
+  const remiseV = row[6];
+  const tvaV    = row[7];
+  const date    = row[0];
+
+  const allRows = [...document.querySelectorAll("#histoBody tr")];
+  const lignes = allRows
+    .filter(tr => tr.children[2]?.textContent === numero)
+    .map(tr => ({
+      designation: tr.children[3]?.textContent || "",
+      quantite:    tr.children[4]?.textContent || 1,
+      prix:        tr.children[5]?.textContent || 0
+    }));
+
+  const data = encodeURIComponent(JSON.stringify({ docType:type, numero, client, date, remise:remiseV, tva:tvaV, lignes }));
+  const url = `${WEBAPP_URL}?pdfHistorique=1&data=${data}`;
+
+  fetch(url)
+    .then(r => r.text())
+    .then(base64 => {
+      const b = atob(base64), arr = new Uint8Array(b.length);
+      for (let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
+      a.download = numero + ".pdf"; a.click();
+    })
+    .catch(err => { console.error(err); alert("Erreur PDF"); });
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
