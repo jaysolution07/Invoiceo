@@ -98,7 +98,7 @@
   .logo-name {
     font-family: var(--font-head);
     font-weight: 800;
-    font-size: 15px;
+    font-size: 22px;
     letter-spacing: 0.06em;
     color: #e8f5ee;
     text-transform: uppercase;
@@ -417,9 +417,13 @@
   <div id="clientPage" class="page hidden">
     <div class="page-header">
       <div class="back-btn" onclick="showPage('homePage')">←</div>
-      <div class="page-title">Ajouter un <span>Client</span></div>
+      <div class="page-title">Gestion <span>Clients</span></div>
     </div>
+
+    <!-- FORMULAIRE -->
     <div class="card">
+      <div id="clientFormTitle" style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:16px">Nouveau client</div>
+      <input type="hidden" id="c_row">
       <div class="grid-2">
         <div><label>Nom complet</label><input id="c_nom" placeholder="Jean Dupont"></div>
         <div><label>Email</label><input id="c_mail" placeholder="jean@example.com"></div>
@@ -429,8 +433,21 @@
         <div><label>Téléphone</label><input id="c_tel" placeholder="+33 6 12 34 56 78"></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveClient()">💾 Enregistrer le client</button>
-        <button class="btn btn-ghost" onclick="showPage('homePage')">Annuler</button>
+        <button id="btnSaveClient" class="btn btn-primary" onclick="saveClient()">💾 Enregistrer</button>
+        <button id="btnModifierClient" class="btn btn-ghost hidden" onclick="modifierClient()">✏️ Modifier</button>
+        <button class="btn btn-ghost" onclick="resetClientForm()">✖ Annuler</button>
+      </div>
+    </div>
+
+    <!-- RECHERCHE + TABLEAU -->
+    <div class="section-label">Tous les clients</div>
+    <div class="card" style="padding:20px 24px">
+      <input id="clientSearchInput" placeholder="🔍 Rechercher un client..." oninput="filterClients()" style="margin-bottom:16px">
+      <div style="overflow-x:auto">
+        <table class="info-table" id="clientsTable">
+          <thead id="clientsTableHead"></thead>
+          <tbody id="clientsTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -616,6 +633,8 @@ function showPage(id) {
   if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
   if (id === "devisPage")      { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
   if (id === "facturePage")    { documentActif = "facture"; setDateFacture(); loadNumeroFacture(); }
+  if (id === "infosPage")      { loadInfos(); }
+  if (id === "clientPage")     { loadClientsTable(); }
   if (id === "historiquePage") { loadHistorique(); }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -663,9 +682,91 @@ function loadClients() {
 }
 loadClients();
 
+let allClientsData = [];
+
+function loadClientsTable() {
+  fetch(WEBAPP_URL + "?clientsAll=1")
+    .then(r => r.json())
+    .then(data => {
+      allClientsData = data || [];
+      renderClientsTable(allClientsData);
+    })
+    .catch(() => {
+      document.getElementById("clientsTableBody").innerHTML =
+        `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`;
+    });
+}
+
+function renderClientsTable(rows) {
+  const head = document.getElementById("clientsTableHead");
+  const body = document.getElementById("clientsTableBody");
+  head.innerHTML = "<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
+  if (!rows || rows.length === 0) {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`;
+    return;
+  }
+  body.innerHTML = "";
+  rows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.style.cursor = "pointer";
+    tr.innerHTML = row.map(cell => `<td>${cell||""}</td>`).join("");
+    tr.onclick = () => chargerClientDansFormulaire(row, i);
+    body.appendChild(tr);
+  });
+}
+
+function filterClients() {
+  const q = document.getElementById("clientSearchInput").value.toLowerCase();
+  const filtered = allClientsData.filter(row =>
+    row.some(cell => String(cell).toLowerCase().includes(q))
+  );
+  renderClientsTable(filtered);
+}
+
+function chargerClientDansFormulaire(row, idx) {
+  document.getElementById("c_row").value = idx;
+  document.getElementById("c_nom").value = row[1] || "";
+  document.getElementById("c_mail").value = row[3] || "";
+  document.getElementById("c_adresse").value = row[2] || "";
+  document.getElementById("c_tel").value = row[4] || "";
+  document.getElementById("clientFormTitle").textContent = "Modifier le client";
+  document.getElementById("btnSaveClient").classList.add("hidden");
+  document.getElementById("btnModifierClient").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetClientForm() {
+  document.getElementById("c_row").value = "";
+  document.getElementById("c_nom").value = "";
+  document.getElementById("c_mail").value = "";
+  document.getElementById("c_adresse").value = "";
+  document.getElementById("c_tel").value = "";
+  document.getElementById("clientFormTitle").textContent = "Nouveau client";
+  document.getElementById("btnSaveClient").classList.remove("hidden");
+  document.getElementById("btnModifierClient").classList.add("hidden");
+}
+
 function saveClient() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
+  fetch(WEBAPP_URL, {
+    method:"POST",
+    body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
+    mode:"no-cors"
+  });
   alert("Client ajouté");
+  resetClientForm();
+  setTimeout(loadClientsTable, 1500);
+}
+
+function modifierClient() {
+  const idx = Number(document.getElementById("c_row").value);
+  fetch(WEBAPP_URL, {
+    method:"POST",
+    body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
+    mode:"no-cors"
+  });
+  alert("Client modifié");
+  resetClientForm();
+  setTimeout(loadClientsTable, 1500);
 }
 
 function setupClientSearch(inputId, suggestionsId) {
@@ -746,8 +847,6 @@ function saveDevis() {
     mode:"no-cors"
   });
   alert("Devis enregistré");
-  devis = { lignes:[] }; render();
-  clientInput.value = ""; remise.value = ""; tva.value = "";
 }
 
 function telechargerPDFDevis() {
@@ -870,9 +969,9 @@ function stopVocal() {
 
 // ── HISTORIQUE ──
 const HISTO_CONFIG = {
-  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
-  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
-  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL","Désignation","Quantité","PU HT","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
 };
 
 function loadHistorique() {
@@ -888,23 +987,26 @@ function loadHistorique() {
 
   fetch(WEBAPP_URL + "?" + cfg.param + "=1")
     .then(r => r.json())
-    .then(rows => {
+    .then(docs => {
       loading.classList.add("hidden");
-      if (!rows || rows.length === 0) {
+      if (!docs || docs.length === 0) {
         body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`;
         return;
       }
-      rows.forEach(row => {
+      docs.forEach(doc => {
         const tr = document.createElement("tr");
         tr.style.cursor = "pointer";
-        tr.innerHTML = row.map((cell, i) => {
-          if (i === 0 && cell) {
-            const d = new Date(cell);
-            return `<td>${d.toLocaleDateString("fr-FR")}</td>`;
-          }
-          return `<td>${cell || ""}</td>`;
-        }).join("");
-        tr.onclick = () => chargerDepuisHistorique(type, row);
+        tr.innerHTML = `
+          <td>${doc.date || ""}</td>
+          <td>${doc.client || ""}</td>
+          <td>${doc.numero || ""}</td>
+          <td>${doc.remise || ""}</td>
+          <td>${doc.tva || ""}</td>
+          <td>${doc.delai || ""}</td>
+          <td>${doc.totalHT || ""}</td>
+          <td>${doc.totalTTC || ""}</td>
+        `;
+        tr.onclick = () => chargerDepuisHistorique(type, doc);
         body.appendChild(tr);
       });
     })
@@ -914,23 +1016,16 @@ function loadHistorique() {
     });
 }
 
-function chargerDepuisHistorique(type, row) {
-  const numero  = row[2];
-  const client  = row[1];
-  const remiseV = row[6];
-  const tvaV    = row[7];
-  const date    = row[0];
-
-  const allRows = [...document.querySelectorAll("#histoBody tr")];
-  const lignes = allRows
-    .filter(tr => tr.children[2]?.textContent === numero)
-    .map(tr => ({
-      designation: tr.children[3]?.textContent || "",
-      quantite:    tr.children[4]?.textContent || 1,
-      prix:        tr.children[5]?.textContent || 0
-    }));
-
-  const data = encodeURIComponent(JSON.stringify({ docType:type, numero, client, date, remise:remiseV, tva:tvaV, lignes }));
+function chargerDepuisHistorique(type, doc) {
+  const data = encodeURIComponent(JSON.stringify({
+    docType: type,
+    numero:  doc.numero,
+    client:  doc.client,
+    date:    doc.date,
+    remise:  doc.remise,
+    tva:     doc.tva,
+    lignes:  doc.lignes || []
+  }));
   const url = `${WEBAPP_URL}?pdfHistorique=1&data=${data}`;
 
   fetch(url)
@@ -940,7 +1035,7 @@ function chargerDepuisHistorique(type, row) {
       for (let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-      a.download = numero + ".pdf"; a.click();
+      a.download = doc.numero + ".pdf"; a.click();
     })
     .catch(err => { console.error(err); alert("Erreur PDF"); });
 }
@@ -949,4 +1044,3 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
-
