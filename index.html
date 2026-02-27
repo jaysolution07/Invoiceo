@@ -355,6 +355,29 @@
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
   .hidden { display:none !important; }
+  /* ===== LOGO FULL MOD ===== */
+.logo-full{
+  width:100%;
+  height:140px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:transparent;
+}
+
+.logo-full img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+
+  /* bords fondus */
+  -webkit-mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+  mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+
+  filter:drop-shadow(0 0 25px rgba(52,211,153,.25));
+}
 </style>
 </head>
 <body>
@@ -368,9 +391,8 @@
 <!-- NAV FLOTTANTE -->
 <div class="nav-shell">
   <nav class="nav">
-    <div class="logo-pill">
-      <img src="logo.png" alt="logo" style="height:100px;width:100px;object-fit:contain;border-radius:12px;position:relative;z-index:1;">
-      <span class="logo-name">INVOICEO</span>
+    <div class="logo-pill logo-full">
+      <img src="logo.png" alt="logo">
     </div>
   </nav>
 </div>
@@ -1204,5 +1226,6 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
+
 
 
