@@ -392,7 +392,7 @@
       </div>
       <div class="menu-card" onclick="showPage('blPage')">
         <div class="mc-icon mc-gold">📦</div>
-        <h3>Bon de Livraison</h3><p>Suivez vos expéditions</p>
+        <h3>Bon de Livraison</h3><p>Editer un bon de livraison</p>
         <span class="mc-arrow">↗</span>
       </div>
       <div class="menu-card" onclick="showPage('clientPage')">
@@ -534,51 +534,53 @@
     </div>
   </div>
 
-  <!-- FACTURE -->
-  <div id="facturePage" class="page hidden">
-    <div class="page-header">
-      <div class="back-btn" onclick="showPage('homePage')">←</div>
-      <div class="page-title">Créer une <span>Facture</span></div>
+<!-- FACTURE -->
+<div id="facturePage" class="page hidden">
+  <div class="page-header">
+    <div class="back-btn" onclick="showPage('homePage')">←</div>
+    <div class="page-title">Créer une <span>Facture</span></div>
+  </div>
+  <div class="card">
+    <div class="grid-2">
+      <div><label>Date</label><input id="dateFacture" readonly></div>
+      <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
     </div>
-    <div class="card">
-      <div class="grid-2">
-        <div><label>Date</label><input id="dateFacture" readonly></div>
-        <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
+    <div class="divider"></div>
+    <div class="voice-card">
+      <div class="voice-dot"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
+        <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
       </div>
-      <div class="divider"></div>
-      <div class="voice-card">
-        <div class="voice-dot"></div>
-        <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
-          <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
-        </div>
-        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
-        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
-      </div>
-      <label>Client</label>
-      <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
-      <div id="clientSuggestionsFacture"></div>
-      <div class="section-label">Lignes de facturation</div>
-      <div id="linesFacture"></div>
-      <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
-      <div class="divider"></div>
-      <div class="grid-2">
-        <div><label>Remise (%)</label><input id="remiseFacture" placeholder="0" oninput="calculateFacture()"></div>
-        <div><label>TVA (%)</label><input id="tvaFacture" placeholder="20" oninput="calculateFacture()"></div>
-      </div>
-      <div class="totals-card">
-        <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
-        <div class="total-row"><span>Remise</span><b id="montantRemiseFacture">0.00 €</b></div>
-        <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseFacture">0.00 €</b></div>
-        <div class="total-row"><span>TVA</span><b id="montantTVAFacture">0.00 €</b></div>
-        <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
-        <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
-      </div>
+      <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
+      <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+    </div>
+    <label>Client</label>
+    <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
+    <div id="clientSuggestionsFacture"></div>
+    <div class="section-label">Lignes de facturation</div>
+    <div id="linesFacture"></div>
+    <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
+    <div class="divider"></div>
+    <div class="grid-2">
+      <div><label>Remise (%)</label><input id="remiseFacture" placeholder="0" oninput="calculateFacture()"></div>
+      <div><label>TVA (%)</label><input id="tvaFacture" placeholder="20" oninput="calculateFacture()"></div>
+    </div>
+    <div class="totals-card">
+      <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
+      <div class="total-row"><span>Remise</span><b id="montantRemiseFacture">0.00 €</b></div>
+      <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseFacture">0.00 €</b></div>
+      <div class="total-row"><span>TVA</span><b id="montantTVAFacture">0.00 €</b></div>
+      <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
+      <button class="btn btn-purple" onclick="telechargerPDFFacture()">📄 PDF</button>
+      <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
+      <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
     </div>
   </div>
+</div>
 
   <!-- HISTORIQUE -->
   <div id="historiquePage" class="page hidden">
@@ -606,19 +608,32 @@
     </div>
   </div>
 
-  <!-- BL -->
-  <div id="blPage" class="page hidden">
-    <div class="page-header">
-      <div class="back-btn" onclick="showPage('homePage')">←</div>
-      <div class="page-title">Bon de <span>Livraison</span></div>
+<!-- BL -->
+<div id="blPage" class="page hidden">
+  <div class="page-header">
+    <div class="back-btn" onclick="showPage('homePage')">←</div>
+    <div class="page-title">Bon de <span>Livraison</span></div>
+  </div>
+  <div class="card">
+    <div class="grid-2">
+      <div><label>Date</label><input id="dateBL" readonly></div>
+      <div><label>N° BL</label><input id="numeroBL" readonly></div>
     </div>
-    <div class="card" style="text-align:center;padding:60px 20px">
-      <div style="font-size:48px;margin-bottom:16px">📦</div>
-      <div style="font-family:var(--font-head);font-size:18px;color:var(--text-2)">Module en cours de développement</div>
-      <div style="color:var(--text-3);margin-top:8px;font-size:13px">Bientôt disponible</div>
+    <div class="divider"></div>
+    <label>Client</label>
+    <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
+    <div id="clientSuggestionsBL"></div>
+    <label style="margin-top:12px">Référence Facture associée</label>
+    <input id="refFactureBL" placeholder="FAC-2026-1">
+    <div class="section-label">Lignes de livraison</div>
+    <div id="linesBL"></div>
+    <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveBL()">💾 Enregistrer BL</button>
+      <button class="btn btn-purple" onclick="telechargerPDFBL()">📄 PDF</button>
+      <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -636,9 +651,11 @@ function showPage(id) {
   if (id === "infosPage")      { loadInfos(); }
   if (id === "clientPage")     { loadClientsTable(); }
   if (id === "historiquePage") { loadHistorique(); }
+  if (id === "blPage")         { setDateBL(); loadNumeroBL(); }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ── INFOS ──
 function saveInfos() {
   fetch(WEBAPP_URL, {
     method: "POST",
@@ -676,6 +693,7 @@ function loadInfos() {
   });
 }
 
+// ── CLIENTS ──
 let clientsList = [];
 function loadClients() {
   fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => alert("Erreur chargement clients"));
@@ -687,10 +705,7 @@ let allClientsData = [];
 function loadClientsTable() {
   fetch(WEBAPP_URL + "?clientsAll=1")
     .then(r => r.json())
-    .then(data => {
-      allClientsData = data || [];
-      renderClientsTable(allClientsData);
-    })
+    .then(data => { allClientsData = data || []; renderClientsTable(allClientsData); })
     .catch(() => {
       document.getElementById("clientsTableBody").innerHTML =
         `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`;
@@ -717,9 +732,7 @@ function renderClientsTable(rows) {
 
 function filterClients() {
   const q = document.getElementById("clientSearchInput").value.toLowerCase();
-  const filtered = allClientsData.filter(row =>
-    row.some(cell => String(cell).toLowerCase().includes(q))
-  );
+  const filtered = allClientsData.filter(row => row.some(cell => String(cell).toLowerCase().includes(q)));
   renderClientsTable(filtered);
 }
 
@@ -786,7 +799,9 @@ function setupClientSearch(inputId, suggestionsId) {
 }
 setupClientSearch("clientInput", "clientSuggestions");
 setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
+setupClientSearch("clientInputBL", "clientSuggestionsBL");
 
+// ── DEVIS ──
 let devis = { lignes: [] };
 let documentActif = "devis";
 
@@ -867,6 +882,7 @@ function transformerEnFacture() {
   showPage("facturePage");
 }
 
+// ── FACTURE ──
 let devisFacture = { lignes: [] };
 
 function renderFacture() {
@@ -920,10 +936,126 @@ function calculateFacture() {
 }
 
 function saveFacture() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }), mode:"no-cors" });
+  fetch(WEBAPP_URL, {
+    method:"POST",
+    body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }),
+    mode:"no-cors"
+  });
   alert("Facture enregistrée");
 }
 
+function telechargerPDFFacture() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "facture",
+      numero: numeroFacture.value,
+      date: dateFacture.value,
+      client: clientInputFacture.value,
+      lignes: devisFacture.lignes,
+      remise: remiseFacture.value,
+      tva: tvaFacture.value
+    })
+  })
+  .then(() => fetch(WEBAPP_URL + "?pdfFacture=1"))
+  .then(r => r.json())
+  .then(data => {
+    const b = atob(data.base64), arr = new Uint8Array(b.length);
+    for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`;
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("❌ Erreur PDF Facture"); });
+}
+
+function transformerEnBL() {
+  devisBL.lignes = devisFacture.lignes.map(l => ({ designation: l.designation, quantite: l.quantite }));
+  clientInputBL.value = clientInputFacture.value;
+  renderBL();
+  showPage("blPage");
+}
+
+// ── BL ──
+let devisBL = { lignes: [] };
+
+function renderBL() {
+  linesBL.innerHTML = "";
+  devisBL.lignes.forEach((l, i) => {
+    linesBL.innerHTML += `<div class="line">
+      <input value="${l.designation}" placeholder="Description" oninput="devisBL.lignes[${i}].designation=this.value">
+      <div style="display:grid;grid-template-columns:1fr 36px;gap:8px;align-items:end">
+        <div>
+          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTÉ</span>
+          <input type="number" value="${l.quantite}" oninput="devisBL.lignes[${i}].quantite=this.value">
+        </div>
+        <button class="deleteBtn" onclick="deleteLineBL(${i})">✖</button>
+      </div>
+    </div>`;
+  });
+}
+
+function addLineBL()     { devisBL.lignes.push({ designation: "", quantite: 1 }); renderBL(); }
+function deleteLineBL(i) { devisBL.lignes.splice(i, 1); renderBL(); }
+function clearAllBL()    { devisBL = { lignes: [] }; renderBL(); }
+
+function setDateBL() {
+  const d = new Date();
+  dateBL.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+
+function loadNumeroBL() {
+  fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]); }
+    numeroBL.value = `BL-${annee}-${next}`;
+    refFactureBL.value = `FAC-${annee}-${next}`;
+  }).catch(() => { numeroBL.value = `BL-${new Date().getFullYear()}-1`; });
+}
+
+function saveBL() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "bl",
+      numero: numeroBL.value,
+      date: dateBL.value,
+      client: clientInputBL.value,
+      refFacture: refFactureBL.value,
+      lignes: devisBL.lignes
+    }),
+    mode: "no-cors"
+  });
+  alert("BL enregistré ✅");
+}
+
+function telechargerPDFBL() {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "bl",
+      numero: numeroBL.value,
+      date: dateBL.value,
+      client: clientInputBL.value,
+      refFacture: refFactureBL.value,
+      lignes: devisBL.lignes
+    })
+  })
+  .then(() => fetch(WEBAPP_URL + "?pdfBL=1"))
+  .then(r => r.json())
+  .then(data => {
+    const b = atob(data.base64), arr = new Uint8Array(b.length);
+    for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`;
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("❌ Erreur PDF BL"); });
+}
+
+// ── VOCAL ──
 let recognition;
 let lastProcessedText = "";
 
@@ -1047,4 +1179,3 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
-
