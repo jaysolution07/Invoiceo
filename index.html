@@ -355,7 +355,7 @@
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
   .hidden { display:none !important; }
-  /* ===== LOGO FULL MOD RESPONSIVE ===== */
+/* ===== LOGO FULL MOD RESPONSIVE + SHIMMER ===== */
 
 .logo-full{
   width:100%;
@@ -366,6 +366,9 @@
   justify-content:center;
   overflow:hidden;
   background:transparent;
+
+  /* nécessaire pour la lumière */
+  position:relative;
 }
 
 /* MOBILE : plein cadre */
@@ -379,6 +382,32 @@
   mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
 
   filter:drop-shadow(0 0 25px rgba(52,211,153,.25));
+}
+
+/* LUMIÈRE QUI PASSE */
+.logo-full::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-150%;
+  width:50%;
+  height:100%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+  transform:skewX(-20deg);
+  pointer-events:none;
+  animation:logoShine 5s ease-in-out infinite;
+}
+
+@keyframes logoShine{
+  0%   { left:-150%; opacity:0; }
+  5%   { opacity:1; }
+  20%  { left:150%; opacity:0; }
+  100% { left:150%; opacity:0; }
 }
 
 /* DESKTOP : logo non étiré */
@@ -1241,6 +1270,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
+
 
 
 
