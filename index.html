@@ -98,7 +98,7 @@
   .logo-name {
     font-family: var(--font-head);
     font-weight: 800;
-    font-size: 15px;
+    font-size: 22px;
     letter-spacing: 0.06em;
     color: #e8f5ee;
     text-transform: uppercase;
@@ -369,7 +369,7 @@
 <div class="nav-shell">
   <nav class="nav">
     <div class="logo-pill">
-      <img src="logo.png" alt="logo" style="height:100px;width:100px;object-fit:contain;border-radius:12px;position:relative;z-index:1;">
+      <img src="logo.png" alt="logo" style="height:120px;width:120px;object-fit:contain;border-radius:12px;position:relative;z-index:1;">
       <span class="logo-name">INVOICEO</span>
     </div>
   </nav>
@@ -865,13 +865,30 @@ function saveDevis() {
 }
 
 function telechargerPDFDevis() {
-  fetch(WEBAPP_URL + "?pdfDevis=1").then(r => r.json()).then(data => {
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "pdfFromHistorique",
+      docType: "devis",
+      numero: numeroDevis.value,
+      date: dateDevis.value,
+      client: clientInput.value,
+      lignes: devis.lignes,
+      remise: remise.value,
+      tva: tva.value
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
-    for (let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
+    for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
+    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`;
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
 }
 
 function transformerEnFacture() {
@@ -948,7 +965,8 @@ function telechargerPDFFacture() {
   fetch(WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
-      type: "facture",
+      type: "pdfFromHistorique",
+      docType: "facture",
       numero: numeroFacture.value,
       date: dateFacture.value,
       client: clientInputFacture.value,
@@ -957,9 +975,9 @@ function telechargerPDFFacture() {
       tva: tvaFacture.value
     })
   })
-  .then(() => fetch(WEBAPP_URL + "?pdfFacture=1"))
   .then(r => r.json())
   .then(data => {
+    if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
@@ -1034,17 +1052,17 @@ function telechargerPDFBL() {
   fetch(WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
-      type: "bl",
+      type: "pdfFromHistorique",
+      docType: "bl",
       numero: numeroBL.value,
       date: dateBL.value,
       client: clientInputBL.value,
-      refFacture: refFactureBL.value,
       lignes: devisBL.lignes
     })
   })
-  .then(() => fetch(WEBAPP_URL + "?pdfBL=1"))
   .then(r => r.json())
   .then(data => {
+    if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
@@ -1103,8 +1121,10 @@ function stopVocal() {
 const HISTO_CONFIG = {
   devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
   facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
-  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL"] },
 };
+
+let histoAbortController = null;
 
 function loadHistorique() {
   const type = document.getElementById("histoType").value;
@@ -1113,11 +1133,15 @@ function loadHistorique() {
   const body = document.getElementById("histoBody");
   const loading = document.getElementById("histoLoading");
 
+  // Annuler la requête précédente si elle est encore en cours
+  if (histoAbortController) histoAbortController.abort();
+  histoAbortController = new AbortController();
+
   head.innerHTML = "<tr>" + cfg.cols.map(c => `<th>${c}</th>`).join("") + "</tr>";
   body.innerHTML = "";
   loading.classList.remove("hidden");
 
-  fetch(WEBAPP_URL + "?" + cfg.param + "=1")
+  fetch(WEBAPP_URL + "?" + cfg.param + "=1", { signal: histoAbortController.signal })
     .then(r => r.json())
     .then(docs => {
       loading.classList.add("hidden");
@@ -1142,7 +1166,8 @@ function loadHistorique() {
         body.appendChild(tr);
       });
     })
-    .catch(() => {
+    .catch(err => {
+      if (err.name === "AbortError") return; // Requête annulée, on ignore
       loading.classList.add("hidden");
       body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
     });
