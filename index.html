@@ -355,7 +355,8 @@
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
   .hidden { display:none !important; }
-  /* ===== LOGO FULL MOD ===== */
+  /* ===== LOGO FULL MOD RESPONSIVE ===== */
+
 .logo-full{
   width:100%;
   height:140px;
@@ -367,6 +368,7 @@
   background:transparent;
 }
 
+/* MOBILE : plein cadre */
 .logo-full img{
   width:100%;
   height:100%;
@@ -377,6 +379,19 @@
   mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
 
   filter:drop-shadow(0 0 25px rgba(52,211,153,.25));
+}
+
+/* DESKTOP : logo non étiré */
+@media (min-width:768px){
+  .logo-full{
+    height:160px;
+  }
+
+  .logo-full img{
+    width:auto;
+    height:100%;
+    object-fit:contain;
+  }
 }
 </style>
 </head>
@@ -1226,6 +1241,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
+
 
 
 
