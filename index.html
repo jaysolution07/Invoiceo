@@ -98,7 +98,7 @@
   .logo-name {
     font-family: var(--font-head);
     font-weight: 800;
-    font-size: 15px;
+    font-size: 22px;
     letter-spacing: 0.06em;
     color: #e8f5ee;
     text-transform: uppercase;
@@ -1017,31 +1017,33 @@ function loadHistorique() {
 }
 
 function chargerDepuisHistorique(type, doc) {
-  const data = encodeURIComponent(JSON.stringify({
-    docType: type,
-    numero:  doc.numero,
-    client:  doc.client,
-    date:    doc.date,
-    remise:  doc.remise,
-    tva:     doc.tva,
-    lignes:  doc.lignes || []
-  }));
-  const url = `${WEBAPP_URL}?pdfHistorique=1&data=${data}`;
-
-  fetch(url)
-    .then(r => r.text())
-    .then(base64 => {
-      const b = atob(base64), arr = new Uint8Array(b.length);
-      for (let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-      a.download = doc.numero + ".pdf"; a.click();
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type:    "pdfFromHistorique",
+      docType: type,
+      numero:  doc.numero,
+      client:  doc.client,
+      date:    doc.date,
+      remise:  doc.remise,
+      tva:     doc.tva,
+      lignes:  doc.lignes || []
     })
-    .catch(err => { console.error(err); alert("Erreur PDF"); });
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.success) throw new Error(data.error);
+    const b = atob(data.base64), arr = new Uint8Array(b.length);
+    for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+    a.download = doc.numero + ".pdf";
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("Erreur PDF"); });
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
-
