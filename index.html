@@ -384,30 +384,33 @@
   filter:drop-shadow(0 0 25px rgba(52,211,153,.25));
 }
 
-/* LUMIÈRE QUI PASSE */
+/* LUMIÈRE SUBTILE QUI PASSE */
+
 .logo-full::after{
   content:"";
   position:absolute;
   top:0;
-  left:-150%;
-  width:50%;
+  left:-200%;
+  width:60%;
   height:100%;
   background:linear-gradient(
     120deg,
-    transparent,
-    rgba(255,255,255,0.25),
-    transparent
+    transparent 0%,
+    rgba(255,255,255,0.12) 50%,
+    transparent 100%
   );
-  transform:skewX(-20deg);
+  transform:skewX(-18deg);
   pointer-events:none;
-  animation:logoShine 5s ease-in-out infinite;
+
+  /* plus lent */
+  animation:logoShine 10s ease-in-out infinite;
 }
 
 @keyframes logoShine{
-  0%   { left:-150%; opacity:0; }
-  5%   { opacity:1; }
-  20%  { left:150%; opacity:0; }
-  100% { left:150%; opacity:0; }
+  0%   { left:-200%; opacity:0; }
+  8%   { opacity:.6; }
+  25%  { left:200%; opacity:0; }
+  100% { left:200%; opacity:0; }
 }
 
 /* DESKTOP : logo non étiré */
@@ -1270,6 +1273,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
+
 
 
 
