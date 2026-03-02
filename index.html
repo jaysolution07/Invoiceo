@@ -14,165 +14,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080d0a;
-    --surface: #0e1812;
-    --surface2: #13201a;
-    --surface3: #182a20;
-    --border: rgba(52,211,153,0.12);
-    --border2: rgba(52,211,153,0.22);
-    --accent: #34d399;
-    --accent2: #6ee7b7;
-    --accent-dim: rgba(52,211,153,0.08);
-    --text: #e8f5ee;
-    --text-2: #8fbfa0;
-    --text-3: #4d7a5e;
-    --danger: #f43f5e;
-    --radius: 16px;
-    --radius-sm: 10px;
-    --font-head: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --bg: #080d0a; --surface: #0e1812; --surface2: #13201a; --surface3: #182a20;
+    --border: rgba(52,211,153,0.12); --border2: rgba(52,211,153,0.22);
+    --accent: #34d399; --accent2: #6ee7b7; --accent-dim: rgba(52,211,153,0.08);
+    --text: #e8f5ee; --text-2: #8fbfa0; --text-3: #4d7a5e;
+    --danger: #f43f5e; --radius: 16px; --radius-sm: 10px;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
     --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-    font-size: 14px;
-  }
-
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; font-size: 14px; }
   .bg-orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  .orb {
-    position: absolute; border-radius: 50%;
-    filter: blur(90px); opacity: 0.18;
-    animation: orb-drift 12s ease-in-out infinite alternate;
-  }
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.18; animation: orb-drift 12s ease-in-out infinite alternate; }
   .orb-1 { width:600px;height:600px;background:#34d399;top:-200px;left:-150px; }
   .orb-2 { width:400px;height:400px;background:#059669;bottom:-100px;right:-100px;animation-delay:-4s; }
   .orb-3 { width:300px;height:300px;background:#6ee7b7;top:40%;left:55%;animation-delay:-8s;opacity:0.1; }
-  @keyframes orb-drift {
-    from { transform: translate(0,0) scale(1); }
-    to   { transform: translate(40px,30px) scale(1.08); }
-  }
-
-  body::before {
-    content:''; position:fixed; inset:0; z-index:0;
-    background-image:
-      linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-  }
-
-  /* NAV */
-  .nav-shell {
-    position:fixed; top:20px; left:50%; transform:translateX(-50%);
-    z-index:100; width:min(900px, calc(100vw - 32px));
-  }
-  .nav {
-    background: rgba(14,24,18,0.78);
-    backdrop-filter: blur(28px) saturate(1.8);
-    border: 1px solid var(--border2);
-    border-radius: 20px;
-    padding: 10px 20px;
-    display: flex; align-items: center;
-    box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5);
-  }
-  .logo-pill {
-    display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(135deg, var(--accent-dim), rgba(52,211,153,0.04));
-    border: 1px solid var(--border2);
-    border-radius: 16px;
-    padding: 8px 20px 8px 8px;
-    position: relative; overflow: hidden;
-  }
-  .logo-pill::before {
-    content:''; position:absolute; inset:0;
-    background: linear-gradient(135deg, transparent 40%, rgba(52,211,153,0.06));
-    pointer-events: none;
-  }
-  .logo-name {
-    font-family: var(--font-head);
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 0.06em;
-    color: #e8f5ee;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #e8f5ee, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* MAIN */
-  .main {
-    position:relative; z-index:1;
-    max-width:900px; margin:0 auto;
-    padding: 225px 16px 60px;
-  }
-
-  /* PAGES */
+  @keyframes orb-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.08); } }
+  body::before { content:''; position:fixed; inset:0; z-index:0; background-image: linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; }
+  .nav-shell { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:100; width:min(900px, calc(100vw - 32px)); }
+  .nav { background: rgba(14,24,18,0.78); backdrop-filter: blur(28px) saturate(1.8); border: 1px solid var(--border2); border-radius: 20px; padding: 10px 20px; display: flex; align-items: center; box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5); }
+  .logo-full { width:100%; height:140px; padding:0; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; position:relative; }
+  .logo-full img { width:100%; height:100%; object-fit:cover; -webkit-mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); filter:drop-shadow(0 0 25px rgba(52,211,153,.25)); }
+  .logo-full::after { content:""; position:absolute; top:0; left:-200%; width:60%; height:100%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%); transform:skewX(-18deg); pointer-events:none; animation:logoShine 10s ease-in-out infinite; }
+  @keyframes logoShine { 0% { left:-200%; opacity:0; } 8% { opacity:.6; } 25% { left:200%; opacity:0; } 100% { left:200%; opacity:0; } }
+  @media (min-width:768px) { .logo-full { height:160px; } .logo-full img { width:auto; height:100%; object-fit:contain; } }
+  .main { position:relative; z-index:1; max-width:900px; margin:0 auto; padding: 225px 16px 60px; }
   .page { display:none; animation: page-in 0.35s cubic-bezier(0.4,0,0.2,1); }
   .page.active { display:block; }
-  @keyframes page-in {
-    from { opacity:0; transform:translateY(14px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-
-  /* CARD */
-  .card {
-    background: rgba(14,24,18,0.7);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px;
-    position: relative; overflow: hidden;
-    transition: border-color var(--transition);
-    margin-bottom: 16px;
-  }
-  .card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:1px;
-    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-    opacity:0.3;
-  }
+  @keyframes page-in { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .card { background: rgba(14,24,18,0.7); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; position: relative; overflow: hidden; transition: border-color var(--transition); margin-bottom: 16px; }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, var(--accent2), transparent); opacity:0.3; }
   .card:hover { border-color: var(--border2); }
-
-  /* HOME */
-  .menu-grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
-    gap:14px;
-  }
-  .menu-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px 22px;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-    position: relative; overflow:hidden;
-  }
-  .menu-card::after {
-    content:''; position:absolute;
-    bottom:0; left:0; right:0; height:2px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-    opacity:0; transition: opacity var(--transition);
-  }
-  .menu-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(52,211,153,0.1);
-    background: var(--surface3);
-  }
+  .menu-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:14px; }
+  .menu-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow:hidden; }
+  .menu-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background: linear-gradient(90deg, var(--accent), transparent); opacity:0; transition: opacity var(--transition); }
+  .menu-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(52,211,153,0.1); background: var(--surface3); }
   .menu-card:hover::after { opacity:1; }
-  .mc-icon {
-    width:44px; height:44px; border-radius:12px;
-    display:grid; place-items:center;
-    font-size:20px; margin-bottom:14px;
-  }
+  .mc-icon { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:20px; margin-bottom:14px; }
   .mc-green  { background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.2); }
   .mc-purple { background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.2); }
   .mc-gold   { background:rgba(251,191,36,0.12);  border:1px solid rgba(251,191,36,0.2); }
@@ -180,251 +58,57 @@
   .mc-red    { background:rgba(244,63,94,0.12);   border:1px solid rgba(244,63,94,0.2); }
   .menu-card h3 { font-family:var(--font-head); font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px; }
   .menu-card p  { font-size:12px; color:var(--text-3); font-weight:300; }
-  .mc-arrow {
-    position:absolute; top:22px; right:20px;
-    color:var(--text-3); font-size:18px;
-    transition: transform var(--transition), color var(--transition);
-  }
+  .mc-arrow { position:absolute; top:22px; right:20px; color:var(--text-3); font-size:18px; transition: transform var(--transition), color var(--transition); }
   .menu-card:hover .mc-arrow { transform:translate(3px,-3px); color:var(--accent); }
-
-  /* PAGE HEADER */
   .page-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
-  .back-btn {
-    width:36px; height:36px;
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:10px; display:grid; place-items:center;
-    cursor:pointer; transition:all var(--transition);
-    font-size:14px; flex-shrink:0; color:var(--text);
-  }
+  .back-btn { width:36px; height:36px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; display:grid; place-items:center; cursor:pointer; transition:all var(--transition); font-size:14px; flex-shrink:0; color:var(--text); }
   .back-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
   .page-title { font-family:var(--font-head); font-size:22px; font-weight:800; color:var(--text); }
   .page-title span { color:var(--accent); }
-
-  /* FORMS */
-  label {
-    display:block; font-size:13px; font-weight:600;
-    color:#a8d8b8; letter-spacing:0.06em;
-    text-transform:uppercase; margin-bottom:6px; margin-top:16px;
-  }
+  label { display:block; font-size:13px; font-weight:600; color:#a8d8b8; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px; margin-top:16px; }
   label:first-child { margin-top:0; }
-
-  input, select, textarea {
-    width:100%; background:var(--surface2);
-    border:1px solid var(--border); border-radius:var(--radius-sm);
-    padding:10px 14px; color:var(--text);
-    font-family:var(--font-body); font-size:14px;
-    outline:none; transition:all var(--transition); appearance:none;
-  }
+  input, select, textarea { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; color:var(--text); font-family:var(--font-body); font-size:14px; outline:none; transition:all var(--transition); appearance:none; }
   input::placeholder { color:var(--text-3); }
-  input:focus, select:focus {
-    border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(52,211,153,0.12);
-    background:var(--surface3);
-  }
-
-  /* BUTTONS */
-  .btn {
-    display:inline-flex; align-items:center; gap:8px;
-    padding:10px 18px; border-radius:var(--radius-sm);
-    font-family:var(--font-body); font-size:13px; font-weight:500;
-    cursor:pointer; border:none; transition:all var(--transition);
-    white-space:nowrap;
-  }
-  .btn-primary {
-    background:linear-gradient(135deg,#34d399,#059669);
-    color:#052e16; box-shadow:0 4px 16px rgba(52,211,153,0.3);
-  }
+  input:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(52,211,153,0.12); background:var(--surface3); }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:var(--radius-sm); font-family:var(--font-body); font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all var(--transition); white-space:nowrap; }
+  .btn-primary { background:linear-gradient(135deg,#34d399,#059669); color:#052e16; box-shadow:0 4px 16px rgba(52,211,153,0.3); }
   .btn-primary:hover { box-shadow:0 8px 28px rgba(52,211,153,0.5); transform:translateY(-1px); }
-  .btn-ghost {
-    background:var(--surface2); color:var(--text-2);
-    border:1px solid var(--border);
-  }
+  .btn-ghost { background:var(--surface2); color:var(--text-2); border:1px solid var(--border); }
   .btn-ghost:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-  .btn-danger {
-    background:rgba(244,63,94,0.1); color:var(--danger);
-    border:1px solid rgba(244,63,94,0.2);
-  }
+  .btn-danger { background:rgba(244,63,94,0.1); color:var(--danger); border:1px solid rgba(244,63,94,0.2); }
   .btn-danger:hover { background:rgba(244,63,94,0.18); }
-  .btn-purple {
-    background:linear-gradient(135deg,#7c3aed,#6d28d9);
-    color:white; box-shadow:0 4px 16px rgba(124,58,237,0.3);
-  }
+  .btn-purple { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; box-shadow:0 4px 16px rgba(124,58,237,0.3); }
   .btn-purple:hover { box-shadow:0 8px 24px rgba(124,58,237,0.45); transform:translateY(-1px); }
   .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
-
-  /* SUGGESTIONS */
-  #clientSuggestions, #clientSuggestionsFacture {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:var(--radius-sm); margin-top:4px; overflow:hidden;
-  }
-  .suggestion {
-    padding:10px 14px; cursor:pointer; font-size:13px;
-    color:var(--text-2); transition:all var(--transition);
-    border-bottom:1px solid var(--border);
-  }
+  #clientSuggestions, #clientSuggestionsFacture, #clientSuggestionsBL { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); margin-top:4px; overflow:hidden; }
+  .suggestion { padding:10px 14px; cursor:pointer; font-size:13px; color:var(--text-2); transition:all var(--transition); border-bottom:1px solid var(--border); }
   .suggestion:last-child { border-bottom:none; }
   .suggestion:hover { background:var(--surface3); color:var(--accent); }
-
-  /* LINE ITEMS — mobile first */
-  .line {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:var(--radius-sm); padding:12px 14px;
-    margin-bottom:10px;
-    display:flex; flex-direction:column; gap:8px;
-    transition:border-color var(--transition);
-    animation:line-in 0.2s ease;
-  }
-  @keyframes line-in {
-    from { opacity:0; transform:translateX(-8px); }
-    to   { opacity:1; transform:translateX(0); }
-  }
+  .line { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; transition:border-color var(--transition); animation:line-in 0.2s ease; }
+  @keyframes line-in { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
   .line:hover { border-color:var(--border2); }
   .line input { margin-top:0; padding:8px 10px; }
-
-  .deleteBtn {
-    width:32px; height:32px; background:transparent;
-    border:1px solid rgba(244,63,94,0.2); color:var(--danger);
-    border-radius:8px; cursor:pointer;
-    display:grid; place-items:center;
-    font-size:13px; transition:all var(--transition); padding:0;
-  }
+  .deleteBtn { width:32px; height:32px; background:transparent; border:1px solid rgba(244,63,94,0.2); color:var(--danger); border-radius:8px; cursor:pointer; display:grid; place-items:center; font-size:13px; transition:all var(--transition); padding:0; }
   .deleteBtn:hover { background:rgba(244,63,94,0.12); border-color:var(--danger); }
-
-  /* TOTALS */
-  .totals-card {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:var(--radius); padding:20px 24px; margin-top:20px;
-  }
-  .total-row {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:6px 0; font-size:13px; color:var(--text-2);
-    border-bottom:1px solid rgba(52,211,153,0.06);
-  }
+  .totals-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; margin-top:20px; }
+  .total-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; color:var(--text-2); border-bottom:1px solid rgba(52,211,153,0.06); }
   .total-row:last-child { border-bottom:none; }
-  .total-row.highlight {
-    color:var(--text); font-size:16px;
-    font-family:var(--font-head); font-weight:700;
-    padding-top:12px; margin-top:4px;
-    border-top:1px solid var(--border2);
-  }
+  .total-row.highlight { color:var(--text); font-size:16px; font-family:var(--font-head); font-weight:700; padding-top:12px; margin-top:4px; border-top:1px solid var(--border2); }
   .total-row b { color:var(--accent); }
-
-  /* VOICE */
-  .voice-card {
-    background:linear-gradient(135deg,rgba(52,211,153,0.06),rgba(5,150,105,0.04));
-    border:1px solid var(--border); border-radius:var(--radius-sm);
-    padding:14px 18px; display:flex; align-items:center; gap:12px;
-    margin-bottom:20px;
-  }
-  .voice-dot {
-    width:10px; height:10px; border-radius:50%;
-    background:var(--text-3); transition:all 0.3s; flex-shrink:0;
-  }
+  .voice-card { background:linear-gradient(135deg,rgba(52,211,153,0.06),rgba(5,150,105,0.04)); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 18px; display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .voice-dot { width:10px; height:10px; border-radius:50%; background:var(--text-3); transition:all 0.3s; flex-shrink:0; }
   .voice-dot.active { background:var(--danger); box-shadow:0 0 10px var(--danger); animation:vpulse 1s infinite; }
   @keyframes vpulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.3);} }
-
-  /* INFO TABLE */
   .info-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .info-table th {
-    background:var(--surface2); padding:10px 14px; text-align:left;
-    font-size:11px; font-weight:600; color:var(--text-3);
-    letter-spacing:0.08em; text-transform:uppercase;
-    border-bottom:1px solid var(--border);
-  }
+  .info-table th { background:var(--surface2); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid var(--border); }
   .info-table td { padding:10px 14px; color:var(--text-2); border-bottom:1px solid rgba(52,211,153,0.04); cursor:pointer; }
   .info-table tr:hover td { color:var(--text); background:var(--surface2); }
-
-  /* DIVIDER */
-  .divider {
-    height:1px;
-    background:linear-gradient(90deg,transparent,var(--border2),transparent);
-    margin:24px 0;
-  }
-
-  /* GRID 2 */
+  .divider { height:1px; background:linear-gradient(90deg,transparent,var(--border2),transparent); margin:24px 0; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   @media(max-width:520px) { .grid-2 { grid-template-columns:1fr; } }
-
-  /* SECTION LABEL */
-  .section-label {
-    font-family:var(--font-head); font-size:13px; font-weight:700;
-    color:var(--text-2); letter-spacing:0.05em; text-transform:uppercase;
-    margin-bottom:12px; margin-top:24px;
-    display:flex; align-items:center; gap:8px;
-  }
+  .section-label { font-family:var(--font-head); font-size:13px; font-weight:700; color:var(--text-2); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:12px; margin-top:24px; display:flex; align-items:center; gap:8px; }
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
-
   .hidden { display:none !important; }
-/* ===== LOGO FULL MOD RESPONSIVE + SHIMMER ===== */
-
-.logo-full{
-  width:100%;
-  height:140px;
-  padding:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  background:transparent;
-
-  /* nécessaire pour la lumière */
-  position:relative;
-}
-
-/* MOBILE : plein cadre */
-.logo-full img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-
-  /* bords fondus */
-  -webkit-mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
-  mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
-
-  filter:drop-shadow(0 0 25px rgba(52,211,153,.25));
-}
-
-/* LUMIÈRE SUBTILE QUI PASSE */
-
-.logo-full::after{
-  content:"";
-  position:absolute;
-  top:0;
-  left:-200%;
-  width:60%;
-  height:100%;
-  background:linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255,255,255,0.12) 50%,
-    transparent 100%
-  );
-  transform:skewX(-18deg);
-  pointer-events:none;
-
-  /* plus lent */
-  animation:logoShine 10s ease-in-out infinite;
-}
-
-@keyframes logoShine{
-  0%   { left:-200%; opacity:0; }
-  8%   { opacity:.6; }
-  25%  { left:200%; opacity:0; }
-  100% { left:200%; opacity:0; }
-}
-
-/* DESKTOP : logo non étiré */
-@media (min-width:768px){
-  .logo-full{
-    height:160px;
-  }
-
-  .logo-full img{
-    width:auto;
-    height:100%;
-    object-fit:contain;
-  }
-}
 </style>
 </head>
 <body>
@@ -435,10 +119,9 @@
   <div class="orb orb-3"></div>
 </div>
 
-<!-- NAV FLOTTANTE -->
 <div class="nav-shell">
   <nav class="nav">
-    <div class="logo-pill logo-full">
+    <div class="logo-full">
       <img src="logo.png" alt="logo">
     </div>
   </nav>
@@ -488,8 +171,6 @@
       <div class="back-btn" onclick="showPage('homePage')">←</div>
       <div class="page-title">Gestion <span>Clients</span></div>
     </div>
-
-    <!-- FORMULAIRE -->
     <div class="card">
       <div id="clientFormTitle" style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:16px">Nouveau client</div>
       <input type="hidden" id="c_row">
@@ -507,8 +188,6 @@
         <button class="btn btn-ghost" onclick="resetClientForm()">✖ Annuler</button>
       </div>
     </div>
-
-    <!-- RECHERCHE + TABLEAU -->
     <div class="section-label">Tous les clients</div>
     <div class="card" style="padding:20px 24px">
       <input id="clientSearchInput" placeholder="🔍 Rechercher un client..." oninput="filterClients()" style="margin-bottom:16px">
@@ -583,9 +262,9 @@
       <div id="lines"></div>
       <button class="btn btn-ghost" onclick="addLine()">➕ Ajouter une ligne</button>
       <div class="divider"></div>
-      <div class="grid-2">
-        <div><label>Remise (%)</label><input id="remise" placeholder="0" oninput="calculate()"></div>
-        <div><label>TVA (%)</label><input id="tva" placeholder="20" oninput="calculate()"></div>
+      <div style="max-width:200px">
+        <label>Remise (%)</label>
+        <input id="remise" placeholder="0" oninput="calculate()">
       </div>
       <div class="totals-card">
         <div class="total-row"><span>Total HT</span><b id="totalHT">0.00 €</b></div>
@@ -603,53 +282,53 @@
     </div>
   </div>
 
-<!-- FACTURE -->
-<div id="facturePage" class="page hidden">
-  <div class="page-header">
-    <div class="back-btn" onclick="showPage('homePage')">←</div>
-    <div class="page-title">Créer une <span>Facture</span></div>
-  </div>
-  <div class="card">
-    <div class="grid-2">
-      <div><label>Date</label><input id="dateFacture" readonly></div>
-      <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
+  <!-- FACTURE -->
+  <div id="facturePage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Créer une <span>Facture</span></div>
     </div>
-    <div class="divider"></div>
-    <div class="voice-card">
-      <div class="voice-dot"></div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
-        <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Date</label><input id="dateFacture" readonly></div>
+        <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
       </div>
-      <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
-      <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
-    </div>
-    <label>Client</label>
-    <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
-    <div id="clientSuggestionsFacture"></div>
-    <div class="section-label">Lignes de facturation</div>
-    <div id="linesFacture"></div>
-    <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
-    <div class="divider"></div>
-    <div class="grid-2">
-      <div><label>Remise (%)</label><input id="remiseFacture" placeholder="0" oninput="calculateFacture()"></div>
-      <div><label>TVA (%)</label><input id="tvaFacture" placeholder="20" oninput="calculateFacture()"></div>
-    </div>
-    <div class="totals-card">
-      <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
-      <div class="total-row"><span>Remise</span><b id="montantRemiseFacture">0.00 €</b></div>
-      <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseFacture">0.00 €</b></div>
-      <div class="total-row"><span>TVA</span><b id="montantTVAFacture">0.00 €</b></div>
-      <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
-      <button class="btn btn-purple" onclick="telechargerPDFFacture()">📄 PDF</button>
-      <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
-      <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
+      <div class="divider"></div>
+      <div class="voice-card">
+        <div class="voice-dot"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
+          <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
+        </div>
+        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
+        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+      </div>
+      <label>Client</label>
+      <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
+      <div id="clientSuggestionsFacture"></div>
+      <div class="section-label">Lignes de facturation</div>
+      <div id="linesFacture"></div>
+      <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
+      <div class="divider"></div>
+      <div style="max-width:200px">
+        <label>Remise (%)</label>
+        <input id="remiseFacture" placeholder="0" oninput="calculateFacture()">
+      </div>
+      <div class="totals-card">
+        <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
+        <div class="total-row"><span>Remise</span><b id="montantRemiseFacture">0.00 €</b></div>
+        <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseFacture">0.00 €</b></div>
+        <div class="total-row"><span>TVA</span><b id="montantTVAFacture">0.00 €</b></div>
+        <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
+        <button class="btn btn-purple" onclick="telechargerPDFFacture()">📄 PDF</button>
+        <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
+        <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- HISTORIQUE -->
   <div id="historiquePage" class="page hidden">
@@ -677,42 +356,41 @@
     </div>
   </div>
 
-<!-- BL -->
-<div id="blPage" class="page hidden">
-  <div class="page-header">
-    <div class="back-btn" onclick="showPage('homePage')">←</div>
-    <div class="page-title">Bon de <span>Livraison</span></div>
-  </div>
-  <div class="card">
-    <div class="grid-2">
-      <div><label>Date</label><input id="dateBL" readonly></div>
-      <div><label>N° BL</label><input id="numeroBL" readonly></div>
+  <!-- BL -->
+  <div id="blPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Bon de <span>Livraison</span></div>
     </div>
-    <div class="divider"></div>
-    <label>Client</label>
-    <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
-    <div id="clientSuggestionsBL"></div>
-    <label style="margin-top:12px">Référence Facture associée</label>
-    <input id="refFactureBL" placeholder="FAC-2026-1">
-    <div class="section-label">Lignes de livraison</div>
-    <div id="linesBL"></div>
-    <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="saveBL()">💾 Enregistrer BL</button>
-      <button class="btn btn-purple" onclick="telechargerPDFBL()">📄 PDF</button>
-      <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Date</label><input id="dateBL" readonly></div>
+        <div><label>N° BL</label><input id="numeroBL" readonly></div>
+      </div>
+      <div class="divider"></div>
+      <label>Client</label>
+      <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
+      <div id="clientSuggestionsBL"></div>
+      <label style="margin-top:12px">Référence Facture associée</label>
+      <input id="refFactureBL" placeholder="FAC-2026-1">
+      <div class="section-label">Lignes de livraison</div>
+      <div id="linesBL"></div>
+      <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveBL()">💾 Enregistrer BL</button>
+        <button class="btn btn-purple" onclick="telechargerPDFBL()">📄 PDF</button>
+        <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
 function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => {
-    p.classList.remove("active");
-    p.classList.add("hidden");
-  });
+  document.querySelectorAll(".page").forEach(p => { p.classList.remove("active"); p.classList.add("hidden"); });
   const target = document.getElementById(id);
   if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
   if (id === "devisPage")      { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
@@ -724,16 +402,10 @@ function showPage(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ── INFOS ──
 function saveInfos() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }),
-    mode: "no-cors"
-  });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }), mode:"no-cors" });
   alert("Infos enregistrées");
 }
-
 function uploadLogo() {
   const file = document.getElementById("logoInput").files[0];
   if (!file) { alert("Sélectionne une image"); return; }
@@ -750,7 +422,6 @@ function uploadLogo() {
   };
   reader.readAsDataURL(file);
 }
-
 function loadInfos() {
   fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
     const tbody = infosTableBody; tbody.innerHTML = "";
@@ -762,33 +433,22 @@ function loadInfos() {
   });
 }
 
-// ── CLIENTS ──
 let clientsList = [];
 function loadClients() {
   fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => alert("Erreur chargement clients"));
 }
 loadClients();
-
 let allClientsData = [];
-
 function loadClientsTable() {
-  fetch(WEBAPP_URL + "?clientsAll=1")
-    .then(r => r.json())
+  fetch(WEBAPP_URL + "?clientsAll=1").then(r => r.json())
     .then(data => { allClientsData = data || []; renderClientsTable(allClientsData); })
-    .catch(() => {
-      document.getElementById("clientsTableBody").innerHTML =
-        `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`;
-    });
+    .catch(() => { document.getElementById("clientsTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`; });
 }
-
 function renderClientsTable(rows) {
   const head = document.getElementById("clientsTableHead");
   const body = document.getElementById("clientsTableBody");
   head.innerHTML = "<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
-  if (!rows || rows.length === 0) {
-    body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`;
-    return;
-  }
+  if (!rows || rows.length === 0) { body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`; return; }
   body.innerHTML = "";
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
@@ -798,13 +458,10 @@ function renderClientsTable(rows) {
     body.appendChild(tr);
   });
 }
-
 function filterClients() {
   const q = document.getElementById("clientSearchInput").value.toLowerCase();
-  const filtered = allClientsData.filter(row => row.some(cell => String(cell).toLowerCase().includes(q)));
-  renderClientsTable(filtered);
+  renderClientsTable(allClientsData.filter(row => row.some(cell => String(cell).toLowerCase().includes(q))));
 }
-
 function chargerClientDansFormulaire(row, idx) {
   document.getElementById("c_row").value = idx;
   document.getElementById("c_nom").value = row[1] || "";
@@ -816,7 +473,6 @@ function chargerClientDansFormulaire(row, idx) {
   document.getElementById("btnModifierClient").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 function resetClientForm() {
   document.getElementById("c_row").value = "";
   document.getElementById("c_nom").value = "";
@@ -827,30 +483,15 @@ function resetClientForm() {
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
 }
-
 function saveClient() {
-  fetch(WEBAPP_URL, {
-    method:"POST",
-    body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
-    mode:"no-cors"
-  });
-  alert("Client ajouté");
-  resetClientForm();
-  setTimeout(loadClientsTable, 1500);
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
+  alert("Client ajouté"); resetClientForm(); setTimeout(loadClientsTable, 1500);
 }
-
 function modifierClient() {
   const idx = Number(document.getElementById("c_row").value);
-  fetch(WEBAPP_URL, {
-    method:"POST",
-    body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }),
-    mode:"no-cors"
-  });
-  alert("Client modifié");
-  resetClientForm();
-  setTimeout(loadClientsTable, 1500);
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
+  alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable, 1500);
 }
-
 function setupClientSearch(inputId, suggestionsId) {
   const input = document.getElementById(inputId);
   const suggestions = document.getElementById(suggestionsId);
@@ -879,31 +520,27 @@ function render() {
   devis.lignes.forEach((l, i) => {
     lines.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devis.lignes[${i}].designation=this.value">
-      <div style="display:grid;grid-template-columns:1fr 1fr 36px;gap:8px;align-items:end">
-        <div>
-          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
-          <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()">
-        </div>
-        <div>
-          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
-          <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()">
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
+          <input type="number" value="${l.quantite}" oninput="devis.lignes[${i}].quantite=this.value;calculate()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
+          <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">TVA %</span>
+          <input type="number" value="${l.tva ?? ''}" placeholder="%" oninput="devis.lignes[${i}].tva=this.value;calculate()"></div>
         <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
       </div>
     </div>`;
   });
   calculate();
 }
-
-function addLine()     { devis.lignes.push({ designation:"", quantite:1, prix:0 }); render(); }
-function deleteLine(i) { devis.lignes.splice(i,1); render(); }
-function clearAll()    { devis = { lignes:[] }; render(); }
+function addLine()     { devis.lignes.push({ designation:"", quantite:1, prix:0, tva:"" }); render(); }
+function deleteLine(i) { devis.lignes.splice(i, 1); render(); }
+function clearAll()    { devis = { lignes:[] }; clientInput.value = ""; remise.value = ""; render(); }
 
 function setDateDevis() {
   const d = new Date();
   dateDevis.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
-
 function loadNumeroDevis() {
   fetch(WEBAPP_URL + "?lastDevis=1").then(r => r.json()).then(data => {
     const annee = new Date().getFullYear(); let next = 1;
@@ -911,61 +548,36 @@ function loadNumeroDevis() {
     numeroDevis.value = `DEV-${annee}-${next}`;
   }).catch(() => { numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
 }
-
 function calculate() {
-  let ht = 0;
-  devis.lignes.forEach(l => ht += Number(l.quantite||0) * Number(l.prix||0));
-  const r = Number(remise.value)||0, remVal = ht*(r/100), htApres = ht-remVal;
-  const t = Number(tva.value)||0, tvaVal = htApres*(t/100), ttc = htApres+tvaVal;
-  totalHT.textContent = ht.toFixed(2)+" €";
-  montantRemise.textContent = remVal.toFixed(2)+" €";
-  totalApresRemise.textContent = htApres.toFixed(2)+" €";
-  montantTVA.textContent = tvaVal.toFixed(2)+" €";
-  totalTTC.textContent = ttc.toFixed(2)+" €";
-}
-
-function saveDevis() {
-  fetch(WEBAPP_URL, {
-    method:"POST",
-    body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, tva:tva.value }),
-    mode:"no-cors"
+  let ht = 0, totalTVA = 0;
+  devis.lignes.forEach(l => {
+    const ligneHT = Number(l.quantite||0) * Number(l.prix||0);
+    ht += ligneHT;
+    totalTVA += ligneHT * (Number(l.tva||0) / 100);
   });
-  alert("Devis enregistré");
+  const r = Number(remise.value)||0, remVal = ht*(r/100), htApres = ht-remVal, ttc = htApres + totalTVA;
+  totalHT.textContent = ht.toFixed(2)+" €"; montantRemise.textContent = remVal.toFixed(2)+" €";
+  totalApresRemise.textContent = htApres.toFixed(2)+" €"; montantTVA.textContent = totalTVA.toFixed(2)+" €"; totalTTC.textContent = ttc.toFixed(2)+" €";
 }
-
+function saveDevis() {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value }), mode:"no-cors" });
+  alert("Devis enregistré ✅");
+}
 function telechargerPDFDevis() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "pdfFromHistorique",
-      docType: "devis",
-      numero: numeroDevis.value,
-      date: dateDevis.value,
-      client: clientInput.value,
-      lignes: devis.lignes,
-      remise: remise.value,
-      tva: tva.value
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value }) })
+  .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
-    a.download = `${data.numero} - ${data.client}.pdf`;
-    a.click();
-  })
-  .catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
+    a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
+  }).catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
 }
-
 function transformerEnFacture() {
   devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
-  clientInputFacture.value = clientInput.value;
-  remiseFacture.value = remise.value; tvaFacture.value = tva.value;
-  renderFacture(); calculateFacture();
-  showPage("facturePage");
+  clientInputFacture.value = clientInput.value; remiseFacture.value = remise.value;
+  renderFacture(); calculateFacture(); showPage("facturePage");
 }
 
 // ── FACTURE ──
@@ -976,31 +588,27 @@ function renderFacture() {
   devisFacture.lignes.forEach((l, i) => {
     linesFacture.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisFacture.lignes[${i}].designation=this.value">
-      <div style="display:grid;grid-template-columns:1fr 1fr 36px;gap:8px;align-items:end">
-        <div>
-          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
-          <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()">
-        </div>
-        <div>
-          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
-          <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()">
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
+          <input type="number" value="${l.quantite}" oninput="devisFacture.lignes[${i}].quantite=this.value;calculateFacture()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
+          <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">TVA %</span>
+          <input type="number" value="${l.tva ?? ''}" placeholder="%" oninput="devisFacture.lignes[${i}].tva=this.value;calculateFacture()"></div>
         <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
       </div>
     </div>`;
   });
   calculateFacture();
 }
-
-function addLineFacture()     { devisFacture.lignes.push({ designation:"", quantite:1, prix:0 }); renderFacture(); }
-function deleteLineFacture(i) { devisFacture.lignes.splice(i,1); renderFacture(); }
-function clearAllFacture()    { devisFacture = { lignes:[] }; renderFacture(); }
+function addLineFacture()     { devisFacture.lignes.push({ designation:"", quantite:1, prix:0, tva:"" }); renderFacture(); }
+function deleteLineFacture(i) { devisFacture.lignes.splice(i, 1); renderFacture(); }
+function clearAllFacture()    { devisFacture = { lignes:[] }; clientInputFacture.value = ""; remiseFacture.value = ""; renderFacture(); }
 
 function setDateFacture() {
   const d = new Date();
   dateFacture.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
-
 function loadNumeroFacture() {
   fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
     const annee = new Date().getFullYear(); let next = 1;
@@ -1008,144 +616,85 @@ function loadNumeroFacture() {
     numeroFacture.value = `FAC-${annee}-${next}`;
   }).catch(() => { numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
 }
-
 function calculateFacture() {
-  let ht = 0;
-  devisFacture.lignes.forEach(l => ht += Number(l.quantite||0) * Number(l.prix||0));
-  const r = Number(remiseFacture.value)||0, remVal = ht*(r/100), htApres = ht-remVal;
-  const t = Number(tvaFacture.value)||0, tvaVal = htApres*(t/100), ttc = htApres+tvaVal;
-  totalHTFacture.textContent = ht.toFixed(2)+" €";
-  montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
-  totalApresRemiseFacture.textContent = htApres.toFixed(2)+" €";
-  montantTVAFacture.textContent = tvaVal.toFixed(2)+" €";
-  totalTTCFacture.textContent = ttc.toFixed(2)+" €";
-}
-
-function saveFacture() {
-  fetch(WEBAPP_URL, {
-    method:"POST",
-    body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, tva:tvaFacture.value }),
-    mode:"no-cors"
+  let ht = 0, totalTVA = 0;
+  devisFacture.lignes.forEach(l => {
+    const ligneHT = Number(l.quantite||0) * Number(l.prix||0);
+    ht += ligneHT; totalTVA += ligneHT * (Number(l.tva||0) / 100);
   });
-  alert("Facture enregistrée");
+  const r = Number(remiseFacture.value)||0, remVal = ht*(r/100), htApres = ht-remVal, ttc = htApres + totalTVA;
+  totalHTFacture.textContent = ht.toFixed(2)+" €"; montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
+  totalApresRemiseFacture.textContent = htApres.toFixed(2)+" €"; montantTVAFacture.textContent = totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent = ttc.toFixed(2)+" €";
 }
-
+function saveFacture() {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value }), mode:"no-cors" });
+  alert("Facture enregistrée ✅");
+}
 function telechargerPDFFacture() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "pdfFromHistorique",
-      docType: "facture",
-      numero: numeroFacture.value,
-      date: dateFacture.value,
-      client: clientInputFacture.value,
-      lignes: devisFacture.lignes,
-      remise: remiseFacture.value,
-      tva: tvaFacture.value
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value }) })
+  .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
-    a.download = `${data.numero} - ${data.client}.pdf`;
-    a.click();
-  })
-  .catch(err => { console.error(err); alert("❌ Erreur PDF Facture"); });
+    a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
+  }).catch(err => { console.error(err); alert("❌ Erreur PDF Facture"); });
 }
-
 function transformerEnBL() {
   devisBL.lignes = devisFacture.lignes.map(l => ({ designation: l.designation, quantite: l.quantite }));
-  clientInputBL.value = clientInputFacture.value;
-  renderBL();
-  showPage("blPage");
+  clientInputBL.value = clientInputFacture.value; renderBL(); showPage("blPage");
 }
 
 // ── BL ──
 let devisBL = { lignes: [] };
-
 function renderBL() {
   linesBL.innerHTML = "";
   devisBL.lignes.forEach((l, i) => {
     linesBL.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisBL.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 36px;gap:8px;align-items:end">
-        <div>
-          <span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTÉ</span>
-          <input type="number" value="${l.quantite}" oninput="devisBL.lignes[${i}].quantite=this.value">
-        </div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTÉ</span>
+          <input type="number" value="${l.quantite}" oninput="devisBL.lignes[${i}].quantite=this.value"></div>
         <button class="deleteBtn" onclick="deleteLineBL(${i})">✖</button>
       </div>
     </div>`;
   });
 }
-
-function addLineBL()     { devisBL.lignes.push({ designation: "", quantite: 1 }); renderBL(); }
+function addLineBL()     { devisBL.lignes.push({ designation:"", quantite:1 }); renderBL(); }
 function deleteLineBL(i) { devisBL.lignes.splice(i, 1); renderBL(); }
-function clearAllBL()    { devisBL = { lignes: [] }; renderBL(); }
+function clearAllBL()    { devisBL = { lignes:[] }; clientInputBL.value = ""; refFactureBL.value = ""; renderBL(); }
 
 function setDateBL() {
   const d = new Date();
   dateBL.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
-
 function loadNumeroBL() {
   fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
     const annee = new Date().getFullYear(); let next = 1;
     if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]); }
-    numeroBL.value = `BL-${annee}-${next}`;
-    refFactureBL.value = `FAC-${annee}-${next}`;
+    numeroBL.value = `BL-${annee}-${next}`; refFactureBL.value = `FAC-${annee}-${next}`;
   }).catch(() => { numeroBL.value = `BL-${new Date().getFullYear()}-1`; });
 }
-
 function saveBL() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "bl",
-      numero: numeroBL.value,
-      date: dateBL.value,
-      client: clientInputBL.value,
-      refFacture: refFactureBL.value,
-      lignes: devisBL.lignes
-    }),
-    mode: "no-cors"
-  });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value, refFacture:refFactureBL.value, lignes:devisBL.lignes }), mode:"no-cors" });
   alert("BL enregistré ✅");
 }
-
 function telechargerPDFBL() {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "pdfFromHistorique",
-      docType: "bl",
-      numero: numeroBL.value,
-      date: dateBL.value,
-      client: clientInputBL.value,
-      lignes: devisBL.lignes
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value, lignes:devisBL.lignes }) })
+  .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
-    a.download = `${data.numero} - ${data.client}.pdf`;
-    a.click();
-  })
-  .catch(err => { console.error(err); alert("❌ Erreur PDF BL"); });
+    a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
+    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
+  }).catch(err => { console.error(err); alert("❌ Erreur PDF BL"); });
 }
 
 // ── VOCAL ──
 let recognition;
 let lastProcessedText = "";
-
 function cleanSpeechText(text) {
   return text.replace(/[€]/g,"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/\b(euh|heu|alors|donc|voilà)\b/g,"").trim();
 }
@@ -1156,29 +705,45 @@ function startVocal() {
   recognition.lang = "fr-FR"; recognition.continuous = true; recognition.interimResults = false;
   recognition.start();
   recognition.onresult = e => {
-    let text = e.results[e.results.length-1][0].transcript.toLowerCase();
+    let text = e.results[e.results.length-1][0].transcript.toLowerCase().trim();
     if (text === lastProcessedText) return;
     lastProcessedText = text;
     if (document.getElementById("status")) status.innerText = text;
+
     const remMatch = text.match(/remise\s*(\d+)/);
-    if (remMatch) { if (documentActif==="devis"){ remise.value=remMatch[1]; calculate(); } else { remiseFacture.value=remMatch[1]; calculateFacture(); } }
-    const tvaMatch = text.match(/tva\s*(\d+)/);
-    if (tvaMatch) { if (documentActif==="devis"){ tva.value=tvaMatch[1]; calculate(); } else { tvaFacture.value=tvaMatch[1]; calculateFacture(); } }
-    let cleanText = cleanSpeechText(text.replace(/remise\s*\d+/g,"").replace(/tva\s*\d+/g,""));
-    cleanText.split("suivant").forEach(bloc => {
+    if (remMatch) {
+      if (documentActif==="devis") { remise.value=remMatch[1]; calculate(); }
+      else { remiseFacture.value=remMatch[1]; calculateFacture(); }
+    }
+
+    const tvaGlobalMatch = text.match(/tva\s+(?:globale\s+)?(?:à\s+)?(\d+)\s*(?:%|pour\s*cent)?/);
+    if (tvaGlobalMatch) {
+      const tvaVal = tvaGlobalMatch[1];
+      if (documentActif==="devis") { devis.lignes.forEach(l => l.tva = tvaVal); render(); }
+      else { devisFacture.lignes.forEach(l => l.tva = tvaVal); renderFacture(); }
+    }
+
+    let cleanText = cleanSpeechText(
+      text.replace(/remise\s*\d+/g, "").replace(/tva\s+(?:globale\s+)?(?:à\s+)?\d+\s*(?:%|pour\s*cent)?/g, "")
+    );
+
+    cleanText.split(/\b(?:suivant|puis|et ensuite)\b/).forEach(bloc => {
       bloc = bloc.trim(); if (!bloc) return;
-      const numbers = bloc.match(/\d+/g);
-      let designation = capitalize(cleanSpeechText(bloc.replace(/\d+/g,"").trim()));
+      let ligneTVA = "";
+      const tvaBlocMatch = bloc.match(/(?:tva|à)\s*(\d+)\s*(?:%|pour\s*cent)?/);
+      if (tvaBlocMatch) { ligneTVA = tvaBlocMatch[1]; bloc = bloc.replace(tvaBlocMatch[0], "").trim(); }
+      const numbers = bloc.match(/\d+(?:[.,]\d+)?/g);
+      let designation = capitalize(cleanSpeechText(bloc.replace(/\d+(?:[.,]\d+)?/g,"").trim()));
       if (!designation) return;
       let quantite = 1, prix = 0;
-      if (numbers) { if (numbers.length===1) prix=numbers[0]; else { quantite=numbers[0]; prix=numbers[1]; } }
-      if (documentActif==="devis") { devis.lignes.push({designation,quantite,prix}); render(); }
-      else { devisFacture.lignes.push({designation,quantite,prix}); renderFacture(); }
+      if (numbers) { if (numbers.length === 1) prix = numbers[0].replace(",","."); else { quantite = numbers[0]; prix = numbers[1].replace(",","."); } }
+      const ligne = { designation, quantite, prix, tva: ligneTVA };
+      if (documentActif==="devis") { devis.lignes.push(ligne); render(); }
+      else { devisFacture.lignes.push(ligne); renderFacture(); }
     });
   };
   document.getElementById("voiceDot")?.classList.add("active");
 }
-
 function stopVocal() {
   if (recognition) recognition.stop();
   lastProcessedText = "";
@@ -1192,92 +757,46 @@ const HISTO_CONFIG = {
   facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
   bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL"] },
 };
-
 let histoAbortController = null;
-
 function loadHistorique() {
   const type = document.getElementById("histoType").value;
-  const cfg  = HISTO_CONFIG[type];
+  const cfg = HISTO_CONFIG[type];
   const head = document.getElementById("histoHead");
   const body = document.getElementById("histoBody");
   const loading = document.getElementById("histoLoading");
-
-  // Annuler la requête précédente si elle est encore en cours
   if (histoAbortController) histoAbortController.abort();
   histoAbortController = new AbortController();
-
   head.innerHTML = "<tr>" + cfg.cols.map(c => `<th>${c}</th>`).join("") + "</tr>";
-  body.innerHTML = "";
-  loading.classList.remove("hidden");
-
+  body.innerHTML = ""; loading.classList.remove("hidden");
   fetch(WEBAPP_URL + "?" + cfg.param + "=1", { signal: histoAbortController.signal })
-    .then(r => r.json())
-    .then(docs => {
+    .then(r => r.json()).then(docs => {
       loading.classList.add("hidden");
-      if (!docs || docs.length === 0) {
-        body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`;
-        return;
-      }
+      if (!docs || docs.length === 0) { body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`; return; }
       docs.forEach(doc => {
-        const tr = document.createElement("tr");
-        tr.style.cursor = "pointer";
-        tr.innerHTML = `
-          <td>${doc.date || ""}</td>
-          <td>${doc.client || ""}</td>
-          <td>${doc.numero || ""}</td>
-          <td>${doc.remise || ""}</td>
-          <td>${doc.tva || ""}</td>
-          <td>${doc.delai || ""}</td>
-          <td>${doc.totalHT || ""}</td>
-          <td>${doc.totalTTC || ""}</td>
-        `;
+        const tr = document.createElement("tr"); tr.style.cursor = "pointer";
+        tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${doc.delai||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         tr.onclick = () => chargerDepuisHistorique(type, doc);
         body.appendChild(tr);
       });
-    })
-    .catch(err => {
-      if (err.name === "AbortError") return; // Requête annulée, on ignore
+    }).catch(err => {
+      if (err.name === "AbortError") return;
       loading.classList.add("hidden");
       body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
     });
 }
-
 function chargerDepuisHistorique(type, doc) {
-  fetch(WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type:    "pdfFromHistorique",
-      docType: type,
-      numero:  doc.numero,
-      client:  doc.client,
-      date:    doc.date,
-      remise:  doc.remise,
-      tva:     doc.tva,
-      lignes:  doc.lignes || []
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:type, numero:doc.numero, client:doc.client, date:doc.date, remise:doc.remise, tva:doc.tva, lignes:doc.lignes||[] }) })
+  .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
-    a.download = doc.numero + ".pdf";
-    a.click();
-  })
-  .catch(err => { console.error(err); alert("Erreur PDF"); });
+    a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
+    a.download = doc.numero + ".pdf"; a.click();
+  }).catch(err => { console.error(err); alert("Erreur PDF"); });
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
