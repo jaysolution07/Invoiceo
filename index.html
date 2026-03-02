@@ -753,8 +753,8 @@ function stopVocal() {
 
 // ── HISTORIQUE ──
 const HISTO_CONFIG = {
-  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
-  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","Délai paiement","Total HT","Total TTC"] },
+  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","Délai paiement","Total HT","Total TTC"] },
   bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL"] },
 };
 let histoAbortController = null;
@@ -800,3 +800,4 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
+
