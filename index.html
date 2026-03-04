@@ -262,9 +262,15 @@
       <div id="lines"></div>
       <button class="btn btn-ghost" onclick="addLine()">➕ Ajouter une ligne</button>
       <div class="divider"></div>
-      <div style="max-width:200px">
-        <label>Remise (%)</label>
-        <input id="remise" placeholder="0" oninput="calculate()">
+      <div class="grid-2">
+        <div>
+          <label>Remise (%)</label>
+          <input id="remise" placeholder="0" oninput="calculate()">
+        </div>
+        <div>
+          <label>Devis valable jusqu'au</label>
+          <input id="validiteDevis" placeholder="jj/mm/aaaa">
+        </div>
       </div>
       <div class="totals-card">
         <div class="total-row"><span>Total HT</span><b id="totalHT">0.00 €</b></div>
@@ -310,9 +316,15 @@
       <div id="linesFacture"></div>
       <button class="btn btn-ghost" onclick="addLineFacture()">➕ Ajouter une ligne</button>
       <div class="divider"></div>
-      <div style="max-width:200px">
-        <label>Remise (%)</label>
-        <input id="remiseFacture" placeholder="0" oninput="calculateFacture()">
+      <div class="grid-2">
+        <div>
+          <label>Remise (%)</label>
+          <input id="remiseFacture" placeholder="0" oninput="calculateFacture()">
+        </div>
+        <div>
+          <label>Délai de paiement (jours)</label>
+          <input id="delaiPaiementFacture" type="number" placeholder="30">
+        </div>
       </div>
       <div class="totals-card">
         <div class="total-row"><span>Total HT</span><b id="totalHTFacture">0.00 €</b></div>
@@ -511,10 +523,12 @@ setupClientSearch("clientInput", "clientSuggestions");
 setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
 setupClientSearch("clientInputBL", "clientSuggestionsBL");
 
-// ── DEVIS ──
+// ── VARIABLES GLOBALES ──
 let devis = { lignes: [] };
+let devisFacture = { lignes: [] };
 let documentActif = "devis";
 
+// ── DEVIS ──
 function render() {
   lines.innerHTML = "";
   devis.lignes.forEach((l, i) => {
@@ -533,14 +547,23 @@ function render() {
   });
   calculate();
 }
+
 function addLine()     { devis.lignes.push({ designation:"", quantite:1, prix:0, tva:"" }); render(); }
 function deleteLine(i) { devis.lignes.splice(i, 1); render(); }
-function clearAll()    { devis = { lignes:[] }; clientInput.value = ""; remise.value = ""; render(); }
+
+function clearAll() {
+  devis = { lignes:[] };
+  clientInput.value = "";
+  remise.value = "";
+  validiteDevis.value = "";
+  render();
+}
 
 function setDateDevis() {
   const d = new Date();
   dateDevis.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
+
 function loadNumeroDevis() {
   fetch(WEBAPP_URL + "?lastDevis=1").then(r => r.json()).then(data => {
     const annee = new Date().getFullYear(); let next = 1;
@@ -548,6 +571,7 @@ function loadNumeroDevis() {
     numeroDevis.value = `DEV-${annee}-${next}`;
   }).catch(() => { numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
 }
+
 function calculate() {
   let ht = 0, totalTVA = 0;
   devis.lignes.forEach(l => {
@@ -556,33 +580,62 @@ function calculate() {
     totalTVA += ligneHT * (Number(l.tva||0) / 100);
   });
   const r = Number(remise.value)||0, remVal = ht*(r/100), htApres = ht-remVal, ttc = htApres + totalTVA;
-  totalHT.textContent = ht.toFixed(2)+" €"; montantRemise.textContent = remVal.toFixed(2)+" €";
-  totalApresRemise.textContent = htApres.toFixed(2)+" €"; montantTVA.textContent = totalTVA.toFixed(2)+" €"; totalTTC.textContent = ttc.toFixed(2)+" €";
+  totalHT.textContent = ht.toFixed(2)+" €";
+  montantRemise.textContent = remVal.toFixed(2)+" €";
+  totalApresRemise.textContent = htApres.toFixed(2)+" €";
+  montantTVA.textContent = totalTVA.toFixed(2)+" €";
+  totalTTC.textContent = ttc.toFixed(2)+" €";
 }
+
 function saveDevis() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value }), mode:"no-cors" });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({
+    type:"devis",
+    numero:numeroDevis.value,
+    date:dateDevis.value,
+    client:clientInput.value,
+    lignes:devis.lignes,
+    remise:remise.value,
+    validite:validiteDevis.value
+  }), mode:"no-cors" });
   alert("Devis enregistré ✅");
 }
+
 function telechargerPDFDevis() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value }) })
+  const btn = event.currentTarget;
+  const oldText = btn.innerHTML;
+  btn.innerHTML = "⏳ Génération...";
+  btn.disabled = true;
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({
+    type:"pdfFromHistorique",
+    docType:"devis",
+    numero:numeroDevis.value,
+    date:dateDevis.value,
+    client:clientInput.value,
+    lignes:devis.lignes,
+    remise:remise.value,
+    validite:validiteDevis.value
+  }) })
   .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
-    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); });
+    a.download = `${data.numero} - ${data.client}.pdf`;
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("❌ Erreur téléchargement PDF"); })
+  .finally(() => { btn.innerHTML = oldText; btn.disabled = false; });
 }
+
 function transformerEnFacture() {
   devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
-  clientInputFacture.value = clientInput.value; remiseFacture.value = remise.value;
+  clientInputFacture.value = clientInput.value;
+  remiseFacture.value = remise.value;
   renderFacture(); calculateFacture(); showPage("facturePage");
 }
 
 // ── FACTURE ──
-let devisFacture = { lignes: [] };
-
 function renderFacture() {
   linesFacture.innerHTML = "";
   devisFacture.lignes.forEach((l, i) => {
@@ -601,14 +654,23 @@ function renderFacture() {
   });
   calculateFacture();
 }
+
 function addLineFacture()     { devisFacture.lignes.push({ designation:"", quantite:1, prix:0, tva:"" }); renderFacture(); }
 function deleteLineFacture(i) { devisFacture.lignes.splice(i, 1); renderFacture(); }
-function clearAllFacture()    { devisFacture = { lignes:[] }; clientInputFacture.value = ""; remiseFacture.value = ""; renderFacture(); }
+
+function clearAllFacture() {
+  devisFacture = { lignes:[] };
+  clientInputFacture.value = "";
+  remiseFacture.value = "";
+  delaiPaiementFacture.value = "";
+  renderFacture();
+}
 
 function setDateFacture() {
   const d = new Date();
   dateFacture.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
+
 function loadNumeroFacture() {
   fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
     const annee = new Date().getFullYear(); let next = 1;
@@ -616,34 +678,68 @@ function loadNumeroFacture() {
     numeroFacture.value = `FAC-${annee}-${next}`;
   }).catch(() => { numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
 }
+
 function calculateFacture() {
   let ht = 0, totalTVA = 0;
   devisFacture.lignes.forEach(l => {
     const ligneHT = Number(l.quantite||0) * Number(l.prix||0);
-    ht += ligneHT; totalTVA += ligneHT * (Number(l.tva||0) / 100);
+    ht += ligneHT;
+    totalTVA += ligneHT * (Number(l.tva||0) / 100);
   });
   const r = Number(remiseFacture.value)||0, remVal = ht*(r/100), htApres = ht-remVal, ttc = htApres + totalTVA;
-  totalHTFacture.textContent = ht.toFixed(2)+" €"; montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
-  totalApresRemiseFacture.textContent = htApres.toFixed(2)+" €"; montantTVAFacture.textContent = totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent = ttc.toFixed(2)+" €";
+  totalHTFacture.textContent = ht.toFixed(2)+" €";
+  montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
+  totalApresRemiseFacture.textContent = htApres.toFixed(2)+" €";
+  montantTVAFacture.textContent = totalTVA.toFixed(2)+" €";
+  totalTTCFacture.textContent = ttc.toFixed(2)+" €";
 }
+
 function saveFacture() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value }), mode:"no-cors" });
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({
+    type:"facture",
+    numero:numeroFacture.value,
+    date:dateFacture.value,
+    client:clientInputFacture.value,
+    lignes:devisFacture.lignes,
+    remise:remiseFacture.value,
+    delaiPaiement:delaiPaiementFacture.value
+  }), mode:"no-cors" });
   alert("Facture enregistrée ✅");
 }
+
 function telechargerPDFFacture() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value }) })
+  const btn = event.currentTarget;
+  const oldText = btn.innerHTML;
+  btn.innerHTML = "⏳ Génération...";
+  btn.disabled = true;
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({
+    type:"pdfFromHistorique",
+    docType:"facture",
+    numero:numeroFacture.value,
+    date:dateFacture.value,
+    client:clientInputFacture.value,
+    lignes:devisFacture.lignes,
+    remise:remiseFacture.value,
+    delaiPaiement:delaiPaiementFacture.value
+  }) })
   .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
     for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([arr], { type:"application/pdf" }));
-    a.download = `${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err => { console.error(err); alert("❌ Erreur PDF Facture"); });
+    a.download = `${data.numero} - ${data.client}.pdf`;
+    a.click();
+  })
+  .catch(err => { console.error(err); alert("❌ Erreur PDF Facture"); })
+  .finally(() => { btn.innerHTML = oldText; btn.disabled = false; });
 }
+
 function transformerEnBL() {
   devisBL.lignes = devisFacture.lignes.map(l => ({ designation: l.designation, quantite: l.quantite }));
-  clientInputBL.value = clientInputFacture.value; renderBL(); showPage("blPage");
+  clientInputBL.value = clientInputFacture.value;
+  renderBL();
+  showPage("blPage");
 }
 
 // ── BL ──
@@ -753,8 +849,8 @@ function stopVocal() {
 
 // ── HISTORIQUE ──
 const HISTO_CONFIG = {
-  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","Délai paiement","Total HT","Total TTC"] },
-  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","Délai paiement","Total HT","Total TTC"] },
+  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
   bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL"] },
 };
 let histoAbortController = null;
@@ -784,8 +880,20 @@ function loadHistorique() {
       body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
     });
 }
+
 function chargerDepuisHistorique(type, doc) {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"pdfFromHistorique", docType:type, numero:doc.numero, client:doc.client, date:doc.date, remise:doc.remise, tva:doc.tva, lignes:doc.lignes||[] }) })
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({
+    type:"pdfFromHistorique",
+    docType:type,
+    numero:doc.numero,
+    client:doc.client,
+    date:doc.date,
+    remise:doc.remise,
+    tva:doc.tva,
+    lignes:doc.lignes||[],
+    validite:doc.validite||"",
+    delaiPaiement:doc.delaiPaiement||""
+  }) })
   .then(r => r.json()).then(data => {
     if (!data.success) throw new Error(data.error);
     const b = atob(data.base64), arr = new Uint8Array(b.length);
@@ -800,4 +908,3 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 </script>
 </body>
 </html>
-
