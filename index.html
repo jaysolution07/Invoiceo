@@ -418,12 +418,36 @@ function uploadLogo() {
   if (!file) { alert("Sélectionne une image"); return; }
   const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d"), img = new Image(), reader = new FileReader();
   reader.onload = function(e) {
-    img.onload = function() {
-      const ratio = Math.min(1, 800 / img.width);
-      canvas.width = Math.floor(img.width * ratio); canvas.height = Math.floor(img.height * ratio);
+    img.onload = async function() {
+      const ratio = Math.min(1, 400 / img.width);
+      canvas.width = Math.floor(img.width * ratio);
+      canvas.height = Math.floor(img.height * ratio);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logo", image:canvas.toDataURL("image/png") }), mode:"no-cors" });
-      alert("✅ Logo envoyé avec succès");
+      const base64 = canvas.toDataURL("image/jpeg", 0.6);
+
+      // Envoyer en chunks de 50 000 caractères
+      const chunkSize = 50000;
+      const chunks = [];
+      for (let i = 0; i < base64.length; i += chunkSize) {
+        chunks.push(base64.slice(i, i + chunkSize));
+      }
+
+      for (let i = 0; i < chunks.length; i++) {
+        await fetch(WEBAPP_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "logoChunk",
+            chunk: chunks[i],
+            index: i,
+            last: i === chunks.length - 1
+          }),
+          mode: "no-cors"
+        });
+        // Petite pause entre chaque chunk
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      alert("✅ Logo enregistré !");
     };
     img.src = e.target.result;
   };
@@ -769,7 +793,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 </script>
 </body>
 </html>
-
 
 
 
