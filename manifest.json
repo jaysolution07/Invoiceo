@@ -1,0 +1,14 @@
+{
+  "name": "INVOICEO",
+  "short_name": "INVOICEO",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#080d0a",
+  "theme_color": "#080d0a",
+  "icons": [{
+    "src": "logo2.png",
+    "sizes": "512x512",
+    "type": "image/png",
+    "purpose": "any maskable"
+  }]
+}
