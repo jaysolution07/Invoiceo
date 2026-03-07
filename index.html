@@ -13,6 +13,8 @@
 <link rel="icon" type="image/png" href="logo2.png">
 <link rel="apple-touch-icon" href="logo2.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --bg: #080d0a; --surface: #0e1812; --surface2: #13201a; --surface3: #182a20;
@@ -32,8 +34,6 @@
   .orb-3 { width:300px;height:300px;background:#6ee7b7;top:40%;left:55%;animation-delay:-8s;opacity:0.1; }
   @keyframes orb-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.08); } }
   body::before { content:''; position:fixed; inset:0; z-index:0; background-image: linear-gradient(rgba(52,211,153,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(52,211,153,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; }
-
-  /* ── NAV / LOGO ─────────────────────────────────────────── */
   .nav-shell { position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:100; width:min(900px, calc(100vw - 32px)); }
   .nav { background: rgba(14,24,18,0.78); backdrop-filter: blur(28px) saturate(1.8); border: 1px solid var(--border2); border-radius: 20px; padding: 6px 20px; display: flex; align-items: center; box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5); }
   .logo-full { width:100%; height:70px; padding:0; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; position:relative; }
@@ -41,11 +41,8 @@
   .logo-full::after { content:""; position:absolute; top:0; left:-200%; width:60%; height:100%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%); transform:skewX(-18deg); pointer-events:none; animation:logoShine 10s ease-in-out infinite; }
   @keyframes logoShine { 0% { left:-200%; opacity:0; } 8% { opacity:.6; } 25% { left:200%; opacity:0; } 100% { left:200%; opacity:0; } }
   @media (min-width:768px) { .logo-full { height:88px; } }
-
-  /* ── MAIN ───────────────────────────────────────────────── */
   .main { position:relative; z-index:1; max-width:900px; margin:0 auto; padding: 130px 16px 60px; }
   @media (min-width:768px) { .main { padding-top:148px; } }
-
   .page { display:none; animation: page-in 0.35s cubic-bezier(0.4,0,0.2,1); }
   .page.active { display:block; }
   @keyframes page-in { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
@@ -283,7 +280,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveDevis()">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="transformerEnFacture()">🔁 En facture</button>
-        <button class="btn btn-purple" onclick="telechargerPDFDevis()">📄 PDF</button>
+        <button class="btn btn-purple" onclick="telechargerPDFDevis(event)">📄 PDF</button>
         <button class="btn btn-danger" onclick="clearAll()">🧹 Effacer</button>
       </div>
     </div>
@@ -330,7 +327,7 @@
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
-        <button class="btn btn-purple" onclick="telechargerPDFFacture()">📄 PDF</button>
+        <button class="btn btn-purple" onclick="telechargerPDFFacture(event)">📄 PDF</button>
         <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
         <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
       </div>
@@ -385,7 +382,7 @@
       <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveBL()">💾 Enregistrer BL</button>
-        <button class="btn btn-purple" onclick="telechargerPDFBL()">📄 PDF</button>
+        <button class="btn btn-purple" onclick="telechargerPDFBL(event)">📄 PDF</button>
         <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
       </div>
     </div>
@@ -396,6 +393,361 @@
 <script>
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
 
+// ══════════════════════════════════════════════
+// GÉNÉRATION PDF CÔTÉ NAVIGATEUR (jsPDF)
+// ══════════════════════════════════════════════
+async function genererPDF(docData) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const pageW = 210, pageH = 297;
+  const marginL = 15, marginR = 15, marginT = 15, marginB = 20;
+  const contentW = pageW - marginL - marginR;
+
+  // Couleurs
+  const noir = [26, 26, 26];
+  const gris = [100, 100, 100];
+  const grisClair = [220, 220, 220];
+  const grisUltra = [248, 248, 248];
+  const vert = [52, 211, 153];
+
+  // Récupérer logo depuis GS + précalculer dimensions
+  let logoBase64 = null;
+  let logoW = 0, logoH = 0;
+  try {
+    const res = await fetch(WEBAPP_URL + "?logoBase64=1");
+    const d = await res.json();
+    if (d && d.logo) {
+      logoBase64 = d.logo;
+      // Charger l'image pour obtenir ses dimensions réelles
+      await new Promise((resolve) => {
+        const tmpImg = new Image();
+        tmpImg.onload = () => {
+          const maxW = 35, maxH = 20;
+          const ratio = tmpImg.naturalWidth / tmpImg.naturalHeight;
+          if (ratio >= 1) { logoW = Math.min(maxW, maxH * ratio); logoH = logoW / ratio; }
+          else            { logoH = Math.min(maxH, maxW / ratio); logoW = logoH * ratio; }
+          resolve();
+        };
+        tmpImg.onerror = () => resolve();
+        tmpImg.src = logoBase64;
+      });
+    }
+  } catch(e) {}
+
+  // Récupérer infos entreprise
+  let entreprise = { nom: "", adresse: "", siret: "", tva: "" };
+  try {
+    const res = await fetch(WEBAPP_URL + "?infos=1");
+    entreprise = await res.json();
+  } catch(e) {}
+
+  // Récupérer infos client
+  let clientInfos = { adresse: "", email: "", tel: "" };
+  try {
+    const res = await fetch(WEBAPP_URL + "?clientsAll=1");
+    const clients = await res.json();
+    const found = clients.find(r => r[1] === docData.client);
+    if (found) { clientInfos.adresse = found[2] || ""; clientInfos.email = found[3] || ""; clientInfos.tel = found[4] || ""; }
+  } catch(e) {}
+
+  // Filtrer lignes vides
+  const lignes = (docData.lignes || []).filter(l => l.designation && l.designation.toString().trim() !== "");
+  const remise = Number(docData.remise) || 0;
+  const totalHT = lignes.reduce((s, l) => s + Number(l.quantite||0) * Number(l.prix||0), 0);
+  const remiseVal = totalHT * (remise / 100);
+  const htApres = totalHT - remiseVal;
+  const totalTVA = lignes.reduce((s, l) => { const ht = Number(l.quantite||0)*Number(l.prix||0); return s + ht*(Number(l.tva||0)/100); }, 0);
+  const totalTTC = htApres + totalTVA;
+  const hasTVA = totalTVA > 0;
+
+  const titres = { devis: "DEVIS", facture: "FACTURE", bl: "BON DE LIVRAISON" };
+  const titre = titres[docData.docType] || "DOCUMENT";
+
+  let currentPage = 1;
+  let totalPages = 1; // on calculera après
+
+  const drawPage = (pageNum) => {
+    // ── HEADER ──
+    let y = marginT;
+
+    // Logo ou nom entreprise (dimensions précalculées en async avant drawPage)
+    let headerLogoH = 0;
+    if (logoBase64 && logoW > 0) {
+      try {
+        const ext = logoBase64.startsWith("data:image/png") ? "PNG" : "JPEG";
+        doc.addImage(logoBase64, ext, marginL, y, logoW, logoH, undefined, 'FAST');
+        headerLogoH = logoH;
+      } catch(e) {
+        doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...noir);
+        doc.text(entreprise.nom || "", marginL, y + 12);
+        headerLogoH = 12;
+      }
+    } else {
+      doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...noir);
+      doc.text(entreprise.nom || "", marginL, y + 12);
+      headerLogoH = 12;
+    }
+
+    // Titre document à droite
+    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(...noir);
+    doc.text(titre, pageW - marginR, y + 8, { align: "right" });
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...gris);
+    doc.text(`N° ${docData.numero || ""}`, pageW - marginR, y + 14, { align: "right" });
+    doc.text(`Date : ${docData.date || ""}`, pageW - marginR, y + 19, { align: "right" });
+
+    y += Math.max(headerLogoH, 22) + 4;
+
+    // ── PARTIES (Émetteur / Client) ──
+    const boxH = 28;
+    const halfW = (contentW - 6) / 2;
+
+    // Box Émetteur
+    doc.setFillColor(248, 248, 248).setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.roundedRect(marginL, y, halfW, boxH, 2, 2, 'FD');
+    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(...gris);
+    doc.text("ÉMETTEUR", marginL + 4, y + 5);
+    doc.setDrawColor(...grisClair).setLineWidth(0.2);
+    doc.line(marginL + 4, y + 6.5, marginL + halfW - 4, y + 6.5);
+    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(...noir);
+    doc.text(entreprise.nom || "", marginL + 4, y + 11);
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
+    doc.text(entreprise.adresse || "", marginL + 4, y + 16, { maxWidth: halfW - 8 });
+    doc.text(`SIRET : ${entreprise.siret || ""}`, marginL + 4, y + 22);
+    if (entreprise.tva) doc.text(`N° TVA : ${entreprise.tva}`, marginL + 4, y + 26);
+
+    // Box Client
+    const cx = marginL + halfW + 6;
+    doc.setFillColor(248, 248, 248).setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.roundedRect(cx, y, halfW, boxH, 2, 2, 'FD');
+    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(...gris);
+    doc.text("CLIENT", cx + 4, y + 5);
+    doc.setDrawColor(...grisClair).setLineWidth(0.2);
+    doc.line(cx + 4, y + 6.5, cx + halfW - 4, y + 6.5);
+    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(...noir);
+    doc.text(docData.client || "", cx + 4, y + 11);
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
+    let cy2 = y + 16;
+    if (clientInfos.adresse) { doc.text(clientInfos.adresse, cx + 4, cy2, { maxWidth: halfW - 8 }); cy2 += 5; }
+    if (clientInfos.email)   { doc.text(`Email : ${clientInfos.email}`, cx + 4, cy2, { maxWidth: halfW - 8 }); cy2 += 4; }
+    if (clientInfos.tel)     { doc.text(`Tél : ${clientInfos.tel}`, cx + 4, cy2); }
+
+    y += boxH + 6;
+
+    // Mention devis
+    if (docData.docType === "devis") {
+      doc.setFont("helvetica", "italic").setFontSize(8).setTextColor(...gris);
+      doc.text("Ce document n'est pas une facture.", marginL, y);
+      y += 5;
+    }
+
+    return y;
+  };
+
+  // ── TABLEAU ──
+  const drawTableHeader = (y, hasTVA, docType) => {
+    doc.setFillColor(...noir).setDrawColor(...noir);
+    doc.rect(marginL, y, contentW, 7, 'F');
+    doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(255, 255, 255);
+    if (docType === "bl") {
+      doc.text("Désignation", marginL + 3, y + 5);
+      doc.text("Qté", marginL + contentW - 20, y + 5, { align: "center" });
+    } else if (hasTVA) {
+      doc.text("Désignation", marginL + 3, y + 5);
+      doc.text("Qté", marginL + 80, y + 5, { align: "center" });
+      doc.text("PU HT", marginL + 115, y + 5, { align: "right" });
+      doc.text("TVA", marginL + 140, y + 5, { align: "center" });
+      doc.text("Total HT", marginL + contentW - 2, y + 5, { align: "right" });
+    } else {
+      doc.text("Désignation", marginL + 3, y + 5);
+      doc.text("Qté", marginL + 85, y + 5, { align: "center" });
+      doc.text("PU HT", marginL + 130, y + 5, { align: "right" });
+      doc.text("Total HT", marginL + contentW - 2, y + 5, { align: "right" });
+    }
+    return y + 7;
+  };
+
+  const drawLine = (y, ligne, idx, hasTVA, docType) => {
+    const rowH = 7;
+    const ht = Number(ligne.quantite||0) * Number(ligne.prix||0);
+    if (idx % 2 === 1) { doc.setFillColor(...grisUltra); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...noir);
+
+    if (docType === "bl") {
+      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 130 });
+      doc.text(String(Number(ligne.quantite||0)), marginL + contentW - 20, y + 5, { align: "center" });
+    } else if (hasTVA) {
+      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 72 });
+      doc.text(String(Number(ligne.quantite||0)), marginL + 80, y + 5, { align: "center" });
+      doc.text(Number(ligne.prix||0).toFixed(2) + " €", marginL + 115, y + 5, { align: "right" });
+      doc.text((Number(ligne.tva||0)) + " %", marginL + 140, y + 5, { align: "center" });
+      doc.text(ht.toFixed(2) + " €", marginL + contentW - 2, y + 5, { align: "right" });
+    } else {
+      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 77 });
+      doc.text(String(Number(ligne.quantite||0)), marginL + 85, y + 5, { align: "center" });
+      doc.text(Number(ligne.prix||0).toFixed(2) + " €", marginL + 130, y + 5, { align: "right" });
+      doc.text(ht.toFixed(2) + " €", marginL + contentW - 2, y + 5, { align: "right" });
+    }
+
+    // Ligne séparatrice
+    doc.setDrawColor(...grisClair).setLineWidth(0.1);
+    doc.line(marginL, y + rowH, marginL + contentW, y + rowH);
+
+    return y + rowH;
+  };
+
+  // ── TOTAUX ──
+  const drawTotaux = (y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA) => {
+    if (docData.docType === "bl") return y;
+    const boxW = 75;
+    const bx = pageW - marginR - boxW;
+    let by = y + 4;
+
+    doc.setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.roundedRect(bx, by, boxW, hasTVA ? (remise > 0 ? 32 : 22) : (remise > 0 ? 28 : 18), 2, 2, 'S');
+
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
+    doc.text("Total HT", bx + 4, by + 6);
+    doc.setTextColor(...noir);
+    doc.text(totalHT.toFixed(2) + " €", bx + boxW - 4, by + 6, { align: "right" });
+
+    let ty = by + 6;
+    if (remise > 0) {
+      ty += 6;
+      doc.setTextColor(...gris).text(`Remise (${remise} %)`, bx + 4, ty);
+      doc.setTextColor(...noir).text("- " + remiseVal.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
+      ty += 6;
+      doc.setTextColor(...gris).text("HT après remise", bx + 4, ty);
+      doc.setTextColor(...noir).text(htApres.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
+    }
+
+    if (hasTVA) {
+      ty += 6;
+      doc.setTextColor(...gris).text("TVA", bx + 4, ty);
+      doc.setTextColor(...noir).text(totalTVA.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
+    }
+
+    // TTC
+    ty += 4;
+    doc.setFillColor(...noir);
+    doc.roundedRect(bx, ty, boxW, 10, 2, 2, 'F');
+    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(255, 255, 255);
+    doc.text("Total TTC", bx + 4, ty + 6.5);
+    doc.text(totalTTC.toFixed(2) + " €", bx + boxW - 4, ty + 6.5, { align: "right" });
+
+    return ty + 14;
+  };
+
+  // ── PIED ──
+  const drawPied = (y, docData, entreprise, pageNum, totalPages) => {
+    // Info délai/validité
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
+    if (docData.docType === "facture" && docData.delaiPaiement)
+      doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`, marginL, y);
+    else if (docData.docType === "devis" && docData.validite)
+      doc.text(`Devis valable jusqu'au : ${docData.validite}`, marginL, y);
+    else if (docData.docType === "bl" && docData.refFacture)
+      doc.text(`Référence facture : ${docData.refFacture}`, marginL, y);
+
+    y += 6;
+
+    // Ligne séparatrice
+    doc.setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.line(marginL, y, marginL + contentW, y);
+    y += 5;
+
+    // Mentions légales
+    doc.setFont("helvetica", "normal").setFontSize(7).setTextColor(170, 170, 170);
+    if (docData.docType === "facture") {
+      doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur", marginL, y, { maxWidth: 130 });
+      doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).", marginL, y + 4, { maxWidth: 130 });
+    }
+    if ((docData.docType === "devis" || docData.docType === "facture") && !entreprise.tva) {
+      doc.text("TVA non applicable, article 293 B du CGI.", marginL, y + (docData.docType === "facture" ? 9 : 0));
+    }
+
+    // Signature
+    doc.setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.roundedRect(marginL + contentW - 55, y - 2, 55, 18, 2, 2, 'S');
+    doc.setFont("helvetica", "normal").setFontSize(7).setTextColor(...gris);
+    doc.text(docData.docType === "devis" ? "Signature client — bon pour accord :" : "Signature :", marginL + contentW - 53, y + 3);
+
+    // ✅ PAGINATION en bas de page
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
+    doc.text(`Page ${pageNum} / ${totalPages}`, pageW / 2, pageH - 8, { align: "center" });
+  };
+
+  // ── CALCUL NOMBRE DE PAGES ──
+  // On simule le rendu pour compter les pages
+  let simY = drawPage(1);
+  simY = drawTableHeader(simY, hasTVA, docData.docType) + 1;
+  let simPages = 1;
+  lignes.forEach((l) => {
+    if (simY + 7 > pageH - marginB - 60) { simPages++; simY = marginT + 10; }
+    simY += 7;
+  });
+  totalPages = simPages;
+
+  // ── RENDU RÉEL ──
+  let y = drawPage(1);
+  y = drawTableHeader(y, hasTVA, docData.docType) + 1;
+
+  lignes.forEach((l, i) => {
+    if (y + 7 > pageH - marginB - 60) {
+      drawPied(y + 4, docData, entreprise, currentPage, totalPages);
+      doc.addPage();
+      currentPage++;
+      y = marginT + 10;
+      y = drawTableHeader(y, hasTVA, docData.docType) + 1;
+    }
+    y = drawLine(y, l, i, hasTVA, docData.docType);
+  });
+
+  y += 4;
+  y = drawTotaux(y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA);
+  drawPied(y, docData, entreprise, currentPage, totalPages);
+
+  return doc;
+}// ══════════════════════════════════════════════
+// FONCTIONS TÉLÉCHARGEMENT PDF
+// ══════════════════════════════════════════════
+async function telechargerPDFDevis(e) {
+  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
+  try {
+    const doc = await genererPDF({ docType:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, validite:validiteDevis.value });
+    doc.save(`${clientInput.value} - ${numeroDevis.value}.pdf`);
+  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML = old; btn.disabled = false; }
+}
+
+async function telechargerPDFFacture(e) {
+  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
+  try {
+    const doc = await genererPDF({ docType:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, delaiPaiement:delaiPaiementFacture.value });
+    doc.save(`${clientInputFacture.value} - ${numeroFacture.value}.pdf`);
+  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML = old; btn.disabled = false; }
+}
+
+async function telechargerPDFBL(e) {
+  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
+  try {
+    const doc = await genererPDF({ docType:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value, lignes:devisBL.lignes, refFacture:refFactureBL.value });
+    doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`);
+  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML = old; btn.disabled = false; }
+}
+
+async function chargerDepuisHistorique(type, doc) {
+  try {
+    const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
+    pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
+  } catch(err) { console.error(err); alert("Erreur PDF"); }
+}
+
+// ══════════════════════════════════════════════
+// RESTE DU CODE (inchangé)
+// ══════════════════════════════════════════════
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => { p.classList.remove("active"); p.classList.add("hidden"); });
   const target = document.getElementById(id);
@@ -413,46 +765,33 @@ function saveInfos() {
   fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }), mode:"no-cors" });
   alert("Infos enregistrées");
 }
+
 function uploadLogo() {
   const file = document.getElementById("logoInput").files[0];
   if (!file) { alert("Sélectionne une image"); return; }
   const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d"), img = new Image(), reader = new FileReader();
   reader.onload = function(e) {
     img.onload = async function() {
-      const ratio = Math.min(1, 400 / img.width);
+      const ratio = Math.min(1, 200 / img.width);
       canvas.width = Math.floor(img.width * ratio);
       canvas.height = Math.floor(img.height * ratio);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL("image/jpeg", 0.6);
-
-      // Envoyer en chunks de 50 000 caractères
+      const base64 = canvas.toDataURL("image/png");
       const chunkSize = 50000;
       const chunks = [];
-      for (let i = 0; i < base64.length; i += chunkSize) {
-        chunks.push(base64.slice(i, i + chunkSize));
-      }
-
+      for (let i = 0; i < base64.length; i += chunkSize) chunks.push(base64.slice(i, i + chunkSize));
       for (let i = 0; i < chunks.length; i++) {
-        await fetch(WEBAPP_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            type: "logoChunk",
-            chunk: chunks[i],
-            index: i,
-            last: i === chunks.length - 1
-          }),
-          mode: "no-cors"
-        });
-        // Petite pause entre chaque chunk
+        await fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logoChunk", chunk:chunks[i], index:i, last:i===chunks.length-1 }), mode:"no-cors" });
         await new Promise(r => setTimeout(r, 300));
       }
-
       alert("✅ Logo enregistré !");
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
+
 function loadInfos() {
   fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
     const tbody = infosTableBody; tbody.innerHTML = "";
@@ -466,9 +805,10 @@ function loadInfos() {
 
 let clientsList = [];
 function loadClients() {
-  fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => alert("Erreur chargement clients"));
+  fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => {});
 }
 loadClients();
+
 let allClientsData = [];
 function loadClientsTable() {
   fetch(WEBAPP_URL + "?clientsAll=1").then(r => r.json())
@@ -540,12 +880,10 @@ setupClientSearch("clientInput", "clientSuggestions");
 setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
 setupClientSearch("clientInputBL", "clientSuggestionsBL");
 
-// ── VARIABLES GLOBALES ──
 let devis = { lignes: [] };
 let devisFacture = { lignes: [] };
 let documentActif = "devis";
 
-// ── DEVIS ──
 function render() {
   lines.innerHTML = "";
   devis.lignes.forEach((l, i) => {
@@ -589,25 +927,12 @@ function saveDevis() {
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}),mode:"no-cors"});
   alert("Devis enregistré ✅");
 }
-function telechargerPDFDevis() {
-  const btn=event.currentTarget,oldText=btn.innerHTML; btn.innerHTML="⏳ Génération..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"pdfFromHistorique",docType:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value})})
-  .then(r=>r.json()).then(data=>{
-    if(!data.success) throw new Error(data.error);
-    const b=atob(data.base64),arr=new Uint8Array(b.length);
-    for(let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
-    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-    a.download=`${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err=>{console.error(err);alert("❌ Erreur PDF devis");})
-  .finally(()=>{btn.innerHTML=oldText;btn.disabled=false;});
-}
 function transformerEnFacture() {
   devisFacture.lignes=JSON.parse(JSON.stringify(devis.lignes));
   clientInputFacture.value=clientInput.value; remiseFacture.value=remise.value;
   renderFacture(); calculateFacture(); showPage("facturePage");
 }
 
-// ── FACTURE ──
 function renderFacture() {
   linesFacture.innerHTML = "";
   devisFacture.lignes.forEach((l, i) => {
@@ -651,24 +976,11 @@ function saveFacture() {
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}),mode:"no-cors"});
   alert("Facture enregistrée ✅");
 }
-function telechargerPDFFacture() {
-  const btn=event.currentTarget,oldText=btn.innerHTML; btn.innerHTML="⏳ Génération..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"pdfFromHistorique",docType:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value})})
-  .then(r=>r.json()).then(data=>{
-    if(!data.success) throw new Error(data.error);
-    const b=atob(data.base64),arr=new Uint8Array(b.length);
-    for(let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
-    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-    a.download=`${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err=>{console.error(err);alert("❌ Erreur PDF facture");})
-  .finally(()=>{btn.innerHTML=oldText;btn.disabled=false;});
-}
 function transformerEnBL() {
   devisBL.lignes=devisFacture.lignes.map(l=>({designation:l.designation,quantite:l.quantite}));
   clientInputBL.value=clientInputFacture.value; renderBL(); showPage("blPage");
 }
 
-// ── BL ──
 let devisBL = { lignes: [] };
 function renderBL() {
   linesBL.innerHTML="";
@@ -701,18 +1013,7 @@ function saveBL() {
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}),mode:"no-cors"});
   alert("BL enregistré ✅");
 }
-function telechargerPDFBL() {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"pdfFromHistorique",docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes})})
-  .then(r=>r.json()).then(data=>{
-    if(!data.success) throw new Error(data.error);
-    const b=atob(data.base64),arr=new Uint8Array(b.length);
-    for(let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
-    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-    a.download=`${data.numero} - ${data.client}.pdf`; a.click();
-  }).catch(err=>{console.error(err);alert("❌ Erreur PDF BL");});
-}
 
-// ── VOCAL ──
 let recognition, lastProcessedText="";
 function cleanSpeechText(text) { return text.replace(/[€]/g,"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/\b(euh|heu|alors|donc|voilà)\b/g,"").trim(); }
 function capitalize(str) { return str.charAt(0).toUpperCase()+str.slice(1); }
@@ -749,7 +1050,6 @@ function stopVocal() {
   if(document.getElementById("status")) status.innerText="Arrêté";
 }
 
-// ── HISTORIQUE ──
 const HISTO_CONFIG = {
   devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
   facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
@@ -769,7 +1069,11 @@ function loadHistorique() {
       if(!docs||docs.length===0){body.innerHTML=`<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`;return;}
       docs.forEach(doc=>{
         const tr=document.createElement("tr"); tr.style.cursor="pointer";
-        tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${doc.delai||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+        if(type==="bl"){
+          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
+        } else {
+          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${doc.delai||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+        }
         tr.onclick=()=>chargerDepuisHistorique(type,doc); body.appendChild(tr);
       });
     }).catch(err=>{
@@ -778,22 +1082,8 @@ function loadHistorique() {
       body.innerHTML=`<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
     });
 }
-function chargerDepuisHistorique(type,doc) {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"pdfFromHistorique",docType:type,numero:doc.numero,client:doc.client,date:doc.date,remise:doc.remise,tva:doc.tva,lignes:doc.lignes||[],validite:doc.validite||"",delaiPaiement:doc.delaiPaiement||""})})
-  .then(r=>r.json()).then(data=>{
-    if(!data.success) throw new Error(data.error);
-    const b=atob(data.base64),arr=new Uint8Array(b.length);
-    for(let i=0;i<b.length;i++) arr[i]=b.charCodeAt(i);
-    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([arr],{type:"application/pdf"}));
-    a.download=doc.numero+".pdf"; a.click();
-  }).catch(err=>{console.error(err);alert("Erreur PDF");});
-}
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
-
-
-
-
