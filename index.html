@@ -113,9 +113,71 @@
   .section-label { font-family:var(--font-head); font-size:13px; font-weight:700; color:var(--text-2); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:12px; margin-top:24px; display:flex; align-items:center; gap:8px; }
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
   .hidden { display:none !important; }
+
+  /* ── LOGIN PAGE ── */
+  .login-shell { position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-shell.hidden { display:none !important; }
+  .login-box { width:100%; max-width:400px; }
+  .login-logo { display:flex; justify-content:center; margin-bottom:32px; }
+  .login-logo img { height:72px; object-fit:contain; filter:drop-shadow(0 0 30px rgba(52,211,153,0.3)); }
+  .login-title { font-family:var(--font-head); font-size:28px; font-weight:800; text-align:center; margin-bottom:6px; }
+  .login-title span { color:var(--accent); }
+  .login-sub { text-align:center; color:var(--text-3); font-size:13px; margin-bottom:32px; }
+  .login-card { background:rgba(14,24,18,0.85); backdrop-filter:blur(24px); border:1px solid var(--border2); border-radius:var(--radius); padding:32px; box-shadow:0 0 0 1px rgba(52,211,153,0.06), 0 24px 60px rgba(0,0,0,0.6); }
+  .login-card label { color:var(--text-2); font-size:11px; letter-spacing:0.08em; margin-top:20px; }
+  .login-card label:first-of-type { margin-top:0; }
+  .login-error { background:rgba(244,63,94,0.1); border:1px solid rgba(244,63,94,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:#f87171; margin-top:16px; display:none; }
+  .login-error.visible { display:block; }
+  .btn-login { width:100%; justify-content:center; padding:13px; font-size:15px; font-weight:600; margin-top:24px; border-radius:12px; }
+  .login-version { text-align:center; font-size:11px; color:var(--text-3); margin-top:20px; }
+
+  /* ── USER BADGE dans nav ── */
+  .nav-user { display:flex; align-items:center; gap:10px; margin-left:auto; }
+  .user-badge { background:var(--surface2); border:1px solid var(--border2); border-radius:20px; padding:5px 14px 5px 10px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-2); cursor:default; }
+  .user-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); flex-shrink:0; }
+  .btn-logout { background:transparent; border:1px solid rgba(244,63,94,0.25); color:#f87171; border-radius:8px; padding:5px 10px; font-size:11px; cursor:pointer; font-family:var(--font-body); transition:all var(--transition); }
+  .btn-logout:hover { background:rgba(244,63,94,0.1); border-color:var(--danger); }
 </style>
 </head>
 <body>
+
+
+
+<!-- ══ BANNER PWA INSTALL ══ -->
+<div id="pwaBanner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;width:min(460px,calc(100vw - 32px))">
+  <div style="background:rgba(14,24,18,0.96);backdrop-filter:blur(24px);border:1px solid rgba(52,211,153,0.35);border-radius:18px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
+    <img src="logo2.png" style="width:44px;height:44px;border-radius:12px;object-fit:contain;flex-shrink:0">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:var(--text)">Installer INVOICEO</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="pwaBannerSub">Accès rapide depuis votre écran d'accueil</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button onclick="dismissPWA()" style="background:transparent;border:1px solid var(--border2);color:var(--text-3);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body)">Plus tard</button>
+      <button id="pwaBannerBtn" onclick="installPWA()" style="background:linear-gradient(135deg,#34d399,#059669);color:#052e16;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📲 Installer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div id="loginShell" class="login-shell">
+  <div class="login-box">
+    <div class="login-logo"><img src="logo.png" alt="INVOICEO"></div>
+    <div class="login-title">Invoice<span>O</span></div>
+    <div class="login-sub">Connectez-vous à votre espace</div>
+    <div class="login-card">
+      <label>Adresse email</label>
+      <input id="loginEmail" type="email" placeholder="vous@exemple.com" autocomplete="email">
+      <label>Mot de passe</label>
+      <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin(document.getElementById('btnLogin'))">
+      <div id="loginError" class="login-error">Email ou mot de passe incorrect</div>
+      <button id="btnLogin" class="btn btn-primary btn-login" onclick="doLogin(this)">
+        🔐 Se connecter
+      </button>
+    </div>
+    <div class="login-version">INVOICEO v2.0 — Multi-tenant</div>
+  </div>
+</div>
 
 <div class="bg-orbs">
   <div class="orb orb-1"></div>
@@ -127,6 +189,13 @@
   <nav class="nav">
     <div class="logo-full">
       <img src="logo.png" alt="logo">
+    </div>
+    <div class="nav-user" id="navUser" style="display:none">
+      <div class="user-badge">
+        <div class="user-dot"></div>
+        <span id="navUserEmail"></span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⏻ Déco</button>
     </div>
   </nav>
 </div>
@@ -189,6 +258,7 @@
       <div class="btn-row">
         <button id="btnSaveClient" class="btn btn-primary" onclick="saveClient()">💾 Enregistrer</button>
         <button id="btnModifierClient" class="btn btn-ghost hidden" onclick="modifierClient()">✏️ Modifier</button>
+        <button id="btnSupprimerClient" class="btn btn-danger hidden" onclick="supprimerClient()">🗑 Supprimer</button>
         <button class="btn btn-ghost" onclick="resetClientForm()">✖ Annuler</button>
       </div>
     </div>
@@ -223,10 +293,10 @@
       <label>Logo entreprise</label>
       <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
         <input type="file" id="logoInput" accept="image/*" style="flex:1">
-        <button class="btn btn-ghost" onclick="uploadLogo()" style="white-space:nowrap">📤 Upload</button>
+        <button id="btnUploadLogo" class="btn btn-ghost" onclick="uploadLogo(this)" style="white-space:nowrap">📤 Upload</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveInfos()">💾 Enregistrer</button>
+        <button id="btnSaveInfos" class="btn btn-primary" onclick="saveInfos(this)">💾 Enregistrer</button>
       </div>
     </div>
     <div class="section-label" style="margin-top:28px">Données enregistrées</div>
@@ -278,7 +348,7 @@
         <div class="total-row highlight"><span>Total TTC</span><b id="totalTTC">0.00 €</b></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveDevis()">💾 Enregistrer</button>
+        <button class="btn btn-primary" onclick="saveDevis(this)">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="transformerEnFacture()">🔁 En facture</button>
         <button class="btn btn-purple" onclick="telechargerPDFDevis(event)">📄 PDF</button>
         <button class="btn btn-danger" onclick="clearAll()">🧹 Effacer</button>
@@ -326,7 +396,7 @@
         <div class="total-row highlight"><span>Total TTC</span><b id="totalTTCFacture">0.00 €</b></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveFacture()">💾 Enregistrer facture</button>
+        <button class="btn btn-primary" onclick="saveFacture(this)">💾 Enregistrer facture</button>
         <button class="btn btn-purple" onclick="telechargerPDFFacture(event)">📄 PDF</button>
         <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
         <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
@@ -381,7 +451,7 @@
       <div id="linesBL"></div>
       <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveBL()">💾 Enregistrer BL</button>
+        <button class="btn btn-primary" onclick="saveBL(this)">💾 Enregistrer BL</button>
         <button class="btn btn-purple" onclick="telechargerPDFBL(event)">📄 PDF</button>
         <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
       </div>
@@ -391,7 +461,92 @@
 </div>
 
 <script>
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyy763BTRzWHbYDzuDJev1j8G4taqviqYqAcj8Q15vYR7USmiMGhpqAhq_fuv97P3qq/exec";
+// ══════════════════════════════════════════════
+// CONFIG MASTER — URL du Google Sheet central qui gère les comptes
+// ══════════════════════════════════════════════
+const MASTER_URL = "REMPLACE_PAR_URL_MASTER_SHEET";
+
+// WEBAPP_URL est dynamique — défini après login
+let WEBAPP_URL = "";
+
+// ══════════════════════════════════════════════
+// SYSTÈME D'AUTHENTIFICATION
+// ══════════════════════════════════════════════
+async function doLogin(btn) {
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value.trim();
+  const errEl = document.getElementById("loginError");
+  errEl.classList.remove("visible");
+
+  if (!email || !password) {
+    errEl.textContent = "Veuillez remplir tous les champs";
+    errEl.classList.add("visible"); return;
+  }
+
+  const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
+
+  // JSONP pour contourner CORS avec Google Apps Script
+  const cbName = "cb_" + Date.now();
+  const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
+
+  new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+    script.onerror = () => { cleanup(); reject(new Error("Script error")); };
+    script.src = url;
+    document.head.appendChild(script);
+  }).then(data => {
+    if (data.success && data.webapp_url) {
+      WEBAPP_URL = data.webapp_url;
+      sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
+      sessionStorage.setItem("invoiceo_email", email);
+      sessionStorage.setItem("invoiceo_name", data.name || email);
+      onLoginSuccess(data.name || email);
+    } else {
+      errEl.textContent = "Email ou mot de passe incorrect";
+      errEl.classList.add("visible");
+      btn.innerHTML = old; btn.disabled = false;
+    }
+  }).catch(err => {
+    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
+    errEl.classList.add("visible");
+    btn.innerHTML = old; btn.disabled = false;
+  });
+}
+
+function onLoginSuccess(name) {
+  document.getElementById("loginShell").classList.add("hidden");
+  document.getElementById("navUser").style.display = "flex";
+  document.getElementById("navUserEmail").textContent = name;
+  loadClients();
+  showPage("homePage");
+}
+
+function doLogout() {
+  if (!confirm("Se déconnecter ?")) return;
+  sessionStorage.removeItem("invoiceo_url");
+  sessionStorage.removeItem("invoiceo_email");
+  sessionStorage.removeItem("invoiceo_name");
+  WEBAPP_URL = "";
+  document.getElementById("navUser").style.display = "none";
+  document.getElementById("loginShell").classList.remove("hidden");
+  document.getElementById("loginPassword").value = "";
+  document.getElementById("loginError").classList.remove("visible");
+}
+
+// Vérifier session existante au chargement
+(function checkSession() {
+  const savedUrl = sessionStorage.getItem("invoiceo_url");
+  const savedName = sessionStorage.getItem("invoiceo_name");
+  if (savedUrl) {
+    WEBAPP_URL = savedUrl;
+    onLoginSuccess(savedName || "");
+  }
+})();
+
+
 
 // ══════════════════════════════════════════════
 // GÉNÉRATION PDF CÔTÉ NAVIGATEUR (jsPDF)
@@ -708,7 +863,9 @@ async function genererPDF(docData) {
   drawPied(y, docData, entreprise, currentPage, totalPages);
 
   return doc;
-}// ══════════════════════════════════════════════
+}
+
+// ══════════════════════════════════════════════
 // FONCTIONS TÉLÉCHARGEMENT PDF
 // ══════════════════════════════════════════════
 async function telechargerPDFDevis(e) {
@@ -738,11 +895,26 @@ async function telechargerPDFBL(e) {
   finally { btn.innerHTML = old; btn.disabled = false; }
 }
 
-async function chargerDepuisHistorique(type, doc) {
-  try {
-    const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
-    pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
-  } catch(err) { console.error(err); alert("Erreur PDF"); }
+async function chargerDepuisHistorique(type, doc, tr) {
+  if (tr) {
+    tr.style.opacity = "0.5";
+    tr.style.pointerEvents = "none";
+    const orig = tr.innerHTML;
+    const cols = tr.querySelectorAll("td").length;
+    tr.innerHTML = `<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;
+    try {
+      const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
+      pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
+    } catch(err) { console.error(err); alert("Erreur PDF"); }
+    tr.innerHTML = orig;
+    tr.style.opacity = "";
+    tr.style.pointerEvents = "";
+  } else {
+    try {
+      const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
+      pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
+    } catch(err) { console.error(err); alert("Erreur PDF"); }
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -761,36 +933,81 @@ function showPage(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function saveInfos() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }), mode:"no-cors" });
-  alert("Infos enregistrées");
+function saveInfos(btn) {
+  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }), mode:"no-cors" })
+    .finally(() => { btn.innerHTML = old; btn.disabled = false; alert("✅ Infos enregistrées"); });
 }
 
-function uploadLogo() {
+
+function uploadLogo(btn) {
   const file = document.getElementById("logoInput").files[0];
   if (!file) { alert("Sélectionne une image"); return; }
-  const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d"), img = new Image(), reader = new FileReader();
-  reader.onload = function(e) {
+  const old = btn.innerHTML; btn.disabled = true;
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
     img.onload = async function() {
-      const ratio = Math.min(1, 200 / img.width);
-      canvas.width = Math.floor(img.width * ratio);
-      canvas.height = Math.floor(img.height * ratio);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL("image/png");
-      const chunkSize = 50000;
-      const chunks = [];
-      for (let i = 0; i < base64.length; i += chunkSize) chunks.push(base64.slice(i, i + chunkSize));
-      for (let i = 0; i < chunks.length; i++) {
-        await fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logoChunk", chunk:chunks[i], index:i, last:i===chunks.length-1 }), mode:"no-cors" });
-        await new Promise(r => setTimeout(r, 300));
+      try {
+        const LIMIT = 38000; // marge sous la limite 50 000 chars de Sheets
+        let w = img.naturalWidth  || img.width;
+        let h = img.naturalHeight || img.height;
+        if (w === 0 || h === 0) throw new Error("Dimensions image invalides");
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        let base64 = "";
+        let maxDim = 300;
+
+        // Réduire jusqu'à ce que ça rentre dans la limite
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const ratio = Math.min(1, maxDim / w, maxDim / h);
+          const cw = Math.max(1, Math.floor(w * ratio));
+          const ch = Math.max(1, Math.floor(h * ratio));
+          canvas.width = cw; canvas.height = ch;
+          ctx.clearRect(0, 0, cw, ch);
+          ctx.drawImage(img, 0, 0, cw, ch);
+
+          const isTransparent = file.type === "image/png" || file.type === "image/webp";
+          // Pour PNG transparent on essaie en JPEG si trop lourd
+          if (isTransparent && attempt === 0) {
+            base64 = canvas.toDataURL("image/png");
+          } else {
+            const quality = Math.max(0.3, 0.85 - attempt * 0.1);
+            base64 = canvas.toDataURL("image/jpeg", quality);
+          }
+
+          btn.innerHTML = `⏳ Compression… (${base64.length} chars)`;
+          if (base64.length <= LIMIT) break;
+          maxDim = Math.floor(maxDim * 0.7); // réduire de 30% à chaque tentative
+        }
+
+        if (base64.length > LIMIT) {
+          throw new Error(`Image trop lourde même après compression (${base64.length} chars). Essaie une image plus petite.`);
+        }
+
+        // Envoyer en un seul chunk (on est sous 38 000 chars)
+        btn.innerHTML = `⏳ Upload…`;
+        await fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logoChunk", chunk:base64, index:0, last:true }), mode:"no-cors" });
+        await new Promise(r => setTimeout(r, 500));
+
+        btn.innerHTML = "✅ Uploadé !";
+        setTimeout(() => { btn.innerHTML = old; btn.disabled = false; }, 2000);
+      } catch(err) {
+        console.error(err);
+        alert("❌ " + err.message);
+        btn.innerHTML = old; btn.disabled = false;
       }
-      alert("✅ Logo enregistré !");
     };
-    img.src = e.target.result;
+    img.onerror = () => { alert("❌ Image illisible"); btn.innerHTML = old; btn.disabled = false; };
+    img.src = ev.target.result;
   };
+  reader.onerror = () => { alert("❌ Lecture fichier impossible"); btn.innerHTML = old; btn.disabled = false; };
+  btn.innerHTML = "⏳ Lecture…";
   reader.readAsDataURL(file);
 }
+
 
 function loadInfos() {
   fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
@@ -841,6 +1058,7 @@ function chargerClientDansFormulaire(row, idx) {
   document.getElementById("clientFormTitle").textContent = "Modifier le client";
   document.getElementById("btnSaveClient").classList.add("hidden");
   document.getElementById("btnModifierClient").classList.remove("hidden");
+  document.getElementById("btnSupprimerClient").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function resetClientForm() {
@@ -852,6 +1070,7 @@ function resetClientForm() {
   document.getElementById("clientFormTitle").textContent = "Nouveau client";
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
+  document.getElementById("btnSupprimerClient").classList.add("hidden");
 }
 function saveClient() {
   fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
@@ -861,6 +1080,13 @@ function modifierClient() {
   const idx = Number(document.getElementById("c_row").value);
   fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
   alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable, 1500);
+}
+function supprimerClient() {
+  const idx = Number(document.getElementById("c_row").value);
+  const nom = document.getElementById("c_nom").value;
+  if (!confirm(`Supprimer le client "${nom}" ? Cette action est irréversible.`)) return;
+  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"supprimerClient", rowIndex: idx + 2 }), mode:"no-cors" });
+  alert("Client supprimé"); resetClientForm(); setTimeout(loadClientsTable, 1500);
 }
 function setupClientSearch(inputId, suggestionsId) {
   const input = document.getElementById(inputId);
@@ -923,9 +1149,10 @@ function calculate() {
   totalHT.textContent=ht.toFixed(2)+" €"; montantRemise.textContent=remVal.toFixed(2)+" €";
   totalApresRemise.textContent=htA.toFixed(2)+" €"; montantTVA.textContent=totalTVA.toFixed(2)+" €"; totalTTC.textContent=ttc.toFixed(2)+" €";
 }
-function saveDevis() {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}),mode:"no-cors"});
-  alert("Devis enregistré ✅");
+function saveDevis(btn) {
+  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}),mode:"no-cors"})
+    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Devis enregistré ✅"); });
 }
 function transformerEnFacture() {
   devisFacture.lignes=JSON.parse(JSON.stringify(devis.lignes));
@@ -972,9 +1199,10 @@ function calculateFacture() {
   totalHTFacture.textContent=ht.toFixed(2)+" €"; montantRemiseFacture.textContent=remVal.toFixed(2)+" €";
   totalApresRemiseFacture.textContent=htA.toFixed(2)+" €"; montantTVAFacture.textContent=totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent=ttc.toFixed(2)+" €";
 }
-function saveFacture() {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}),mode:"no-cors"});
-  alert("Facture enregistrée ✅");
+function saveFacture(btn) {
+  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}),mode:"no-cors"})
+    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Facture enregistrée ✅"); });
 }
 function transformerEnBL() {
   devisBL.lignes=devisFacture.lignes.map(l=>({designation:l.designation,quantite:l.quantite}));
@@ -1009,9 +1237,10 @@ function loadNumeroBL() {
     numeroBL.value=`BL-${annee}-${next}`; refFactureBL.value=`FAC-${annee}-${next}`;
   }).catch(()=>{numeroBL.value=`BL-${new Date().getFullYear()}-1`;});
 }
-function saveBL() {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}),mode:"no-cors"});
-  alert("BL enregistré ✅");
+function saveBL(btn) {
+  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}),mode:"no-cors"})
+    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("BL enregistré ✅"); });
 }
 
 let recognition, lastProcessedText="";
@@ -1072,9 +1301,10 @@ function loadHistorique() {
         if(type==="bl"){
           tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
         } else {
-          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${doc.delai||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+          const fmtDate = v => { if(!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
+          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         }
-        tr.onclick=()=>chargerDepuisHistorique(type,doc); body.appendChild(tr);
+        tr.onclick=()=>chargerDepuisHistorique(type,doc,tr); body.appendChild(tr);
       });
     }).catch(err=>{
       if(err.name==="AbortError") return;
@@ -1084,6 +1314,57 @@ function loadHistorique() {
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ══════════════════════════════════════════════
+// PWA INSTALL BANNER
+// ══════════════════════════════════════════════
+let deferredPrompt = null;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isAndroid = /android/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) {
+    setTimeout(() => showPWABanner("desktop"), 3000);
+  }
+});
+
+function showPWABanner(type) {
+  const sub = document.getElementById("pwaBannerSub");
+  if (isIOS) sub.textContent = "Appuyez sur Partager puis "Sur l'écran d'accueil"";
+  else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
+  else sub.textContent = "Installez l'app sur votre bureau";
+  document.getElementById("pwaBanner").style.display = "block";
+}
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById("pwaBanner").style.display = "none";
+    });
+  } else if (isIOS) {
+    alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter");
+    document.getElementById("pwaBanner").style.display = "none";
+  }
+}
+
+function dismissPWA() {
+  sessionStorage.setItem("pwaDismissed", "1");
+  document.getElementById("pwaBanner").style.display = "none";
+}
+
+// Sur iOS afficher quand même si pas standalone
+if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
+  setTimeout(() => {
+    document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment";
+    showPWABanner("ios");
+  }, 3000);
+}
+
 </script>
 </body>
 </html>
