@@ -485,19 +485,10 @@ async function doLogin(btn) {
 
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
-  // JSONP pour contourner CORS avec Google Apps Script
-  const cbName = "cb_" + Date.now();
-  const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
-
-  new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
-    window[cbName] = (data) => { cleanup(); resolve(data); };
-    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
-    script.onerror = () => { cleanup(); reject(new Error("Script error")); };
-    script.src = url;
-    document.head.appendChild(script);
-  }).then(data => {
+  try {
+    const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}`;
+    const res = await fetch(url);
+    const data = await res.json();
     if (data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
@@ -509,11 +500,11 @@ async function doLogin(btn) {
       errEl.classList.add("visible");
       btn.innerHTML = old; btn.disabled = false;
     }
-  }).catch(err => {
+  } catch(err) {
     errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
-  });
+  }
 }
 
 function onLoginSuccess(name) {
@@ -1022,9 +1013,9 @@ function loadInfos() {
 
 let clientsList = [];
 function loadClients() {
+  if (!WEBAPP_URL) return;
   fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => {});
 }
-loadClients();
 
 let allClientsData = [];
 function loadClientsTable() {
@@ -1333,7 +1324,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 
 function showPWABanner(type) {
   const sub = document.getElementById("pwaBannerSub");
-  if (isIOS) sub.textContent = "Appuyez sur Partager puis "Sur l'écran d'accueil"";
+  if (isIOS) sub.textContent = "Appuyez sur Partager puis 'Sur l'écran d'accueil'";
   else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
   else sub.textContent = "Installez l'app sur votre bureau";
   document.getElementById("pwaBanner").style.display = "block";
@@ -1368,4 +1359,3 @@ if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
 </script>
 </body>
 </html>
-
