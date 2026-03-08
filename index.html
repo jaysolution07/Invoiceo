@@ -142,22 +142,6 @@
 <body>
 
 
-
-<!-- ══ BANNER PWA INSTALL ══ -->
-<div id="pwaBanner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;width:min(460px,calc(100vw - 32px))">
-  <div style="background:rgba(14,24,18,0.96);backdrop-filter:blur(24px);border:1px solid rgba(52,211,153,0.35);border-radius:18px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
-    <img src="logo2.png" style="width:44px;height:44px;border-radius:12px;object-fit:contain;flex-shrink:0">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:var(--text)">Installer INVOICEO</div>
-      <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="pwaBannerSub">Accès rapide depuis votre écran d'accueil</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-shrink:0">
-      <button onclick="dismissPWA()" style="background:transparent;border:1px solid var(--border2);color:var(--text-3);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body)">Plus tard</button>
-      <button id="pwaBannerBtn" onclick="installPWA()" style="background:linear-gradient(135deg,#34d399,#059669);color:#052e16;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📲 Installer</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ LOGIN PAGE ══ -->
 <div id="loginShell" class="login-shell">
   <div class="login-box">
@@ -258,7 +242,6 @@
       <div class="btn-row">
         <button id="btnSaveClient" class="btn btn-primary" onclick="saveClient()">💾 Enregistrer</button>
         <button id="btnModifierClient" class="btn btn-ghost hidden" onclick="modifierClient()">✏️ Modifier</button>
-        <button id="btnSupprimerClient" class="btn btn-danger hidden" onclick="supprimerClient()">🗑 Supprimer</button>
         <button class="btn btn-ghost" onclick="resetClientForm()">✖ Annuler</button>
       </div>
     </div>
@@ -485,11 +468,19 @@ async function doLogin(btn) {
 
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
-  try {
-    const target = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password);
-    const proxy = "https://corsproxy.io/?" + encodeURIComponent(target);
-    const res = await fetch(proxy);
-    const data = await res.json();
+  // JSONP pour contourner CORS avec Google Apps Script
+  const cbName = "cb_" + Date.now();
+  const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
+
+  new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+    script.onerror = () => { cleanup(); reject(new Error("Script error")); };
+    script.src = url;
+    document.head.appendChild(script);
+  }).then(data => {
     if (data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
@@ -501,11 +492,11 @@ async function doLogin(btn) {
       errEl.classList.add("visible");
       btn.innerHTML = old; btn.disabled = false;
     }
-  } catch(err) {
-    errEl.textContent = "Erreur de connexion — verifiez votre reseau";
+  }).catch(err => {
+    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
-  }
+  });
 }
 
 function onLoginSuccess(name) {
@@ -1014,9 +1005,9 @@ function loadInfos() {
 
 let clientsList = [];
 function loadClients() {
-  if (!WEBAPP_URL) return;
   fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => {});
 }
+loadClients();
 
 let allClientsData = [];
 function loadClientsTable() {
@@ -1050,7 +1041,6 @@ function chargerClientDansFormulaire(row, idx) {
   document.getElementById("clientFormTitle").textContent = "Modifier le client";
   document.getElementById("btnSaveClient").classList.add("hidden");
   document.getElementById("btnModifierClient").classList.remove("hidden");
-  document.getElementById("btnSupprimerClient").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function resetClientForm() {
@@ -1062,7 +1052,6 @@ function resetClientForm() {
   document.getElementById("clientFormTitle").textContent = "Nouveau client";
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
-  document.getElementById("btnSupprimerClient").classList.add("hidden");
 }
 function saveClient() {
   fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
@@ -1072,13 +1061,6 @@ function modifierClient() {
   const idx = Number(document.getElementById("c_row").value);
   fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
   alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable, 1500);
-}
-function supprimerClient() {
-  const idx = Number(document.getElementById("c_row").value);
-  const nom = document.getElementById("c_nom").value;
-  if (!confirm(`Supprimer le client "${nom}" ? Cette action est irréversible.`)) return;
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"supprimerClient", rowIndex: idx + 2 }), mode:"no-cors" });
-  alert("Client supprimé"); resetClientForm(); setTimeout(loadClientsTable, 1500);
 }
 function setupClientSearch(inputId, suggestionsId) {
   const input = document.getElementById(inputId);
@@ -1306,57 +1288,6 @@ function loadHistorique() {
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-
-// ══════════════════════════════════════════════
-// PWA INSTALL BANNER
-// ══════════════════════════════════════════════
-let deferredPrompt = null;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isAndroid = /android/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-    setTimeout(() => showPWABanner("desktop"), 3000);
-  }
-});
-
-function showPWABanner(type) {
-  const sub = document.getElementById("pwaBannerSub");
-  if (isIOS) sub.textContent = "Appuyez sur Partager puis 'Sur l'écran d'accueil'";
-  else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
-  else sub.textContent = "Installez l'app sur votre bureau";
-  document.getElementById("pwaBanner").style.display = "block";
-}
-
-function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      document.getElementById("pwaBanner").style.display = "none";
-    });
-  } else if (isIOS) {
-    alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter");
-    document.getElementById("pwaBanner").style.display = "none";
-  }
-}
-
-function dismissPWA() {
-  sessionStorage.setItem("pwaDismissed", "1");
-  document.getElementById("pwaBanner").style.display = "none";
-}
-
-// Sur iOS afficher quand même si pas standalone
-if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-  setTimeout(() => {
-    document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment";
-    showPWABanner("ios");
-  }, 3000);
-}
-
 </script>
 </body>
 </html>
