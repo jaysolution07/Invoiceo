@@ -485,10 +485,17 @@ async function doLogin(btn) {
 
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
+  const cbName = "cb_" + Date.now();
+  const url = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password) + "&callback=" + cbName;
   try {
-    const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
+      window[cbName] = (d) => { cleanup(); resolve(d); };
+      function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+      script.src = url;
+      document.head.appendChild(script);
+    });
     if (data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
@@ -501,7 +508,7 @@ async function doLogin(btn) {
       btn.innerHTML = old; btn.disabled = false;
     }
   } catch(err) {
-    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
+    errEl.textContent = "Erreur de connexion — verifiez votre reseau";
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
   }
