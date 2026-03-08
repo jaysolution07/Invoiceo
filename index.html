@@ -487,10 +487,9 @@ async function doLogin(btn) {
 
   try {
     const target = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password);
-    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(target);
+    const proxy = "https://corsproxy.io/?" + encodeURIComponent(target);
     const res = await fetch(proxy);
-    const wrapper = await res.json();
-    const data = JSON.parse(wrapper.contents);
+    const data = await res.json();
     if (data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
