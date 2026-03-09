@@ -13,7 +13,6 @@
 <link rel="icon" type="image/png" href="logo2.png">
 <link rel="apple-touch-icon" href="logo2.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
@@ -113,8 +112,6 @@
   .section-label { font-family:var(--font-head); font-size:13px; font-weight:700; color:var(--text-2); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:12px; margin-top:24px; display:flex; align-items:center; gap:8px; }
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
   .hidden { display:none !important; }
-
-  /* ── LOGIN PAGE ── */
   .login-shell { position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-shell.hidden { display:none !important; }
   .login-box { width:100%; max-width:400px; }
@@ -130,15 +127,11 @@
   .login-error.visible { display:block; }
   .btn-login { width:100%; justify-content:center; padding:13px; font-size:15px; font-weight:600; margin-top:24px; border-radius:12px; }
   .login-version { text-align:center; font-size:11px; color:var(--text-3); margin-top:20px; }
-
-  /* ── USER BADGE dans nav ── */
   .nav-user { display:flex; align-items:center; gap:10px; margin-left:auto; }
   .user-badge { background:var(--surface2); border:1px solid var(--border2); border-radius:20px; padding:5px 14px 5px 10px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-2); cursor:default; }
   .user-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); flex-shrink:0; }
   .btn-logout { background:transparent; border:1px solid rgba(244,63,94,0.25); color:#f87171; border-radius:8px; padding:5px 10px; font-size:11px; cursor:pointer; font-family:var(--font-body); transition:all var(--transition); }
   .btn-logout:hover { background:rgba(244,63,94,0.1); border-color:var(--danger); }
-
-  /* ── PWA BANNER ── */
   #pwaBanner { position:fixed; bottom:0; left:0; right:0; z-index:300; background:rgba(14,24,18,0.97); backdrop-filter:blur(20px); border-top:1px solid var(--border2); padding:14px 20px; display:flex; align-items:center; gap:14px; box-shadow:0 -8px 30px rgba(0,0,0,0.4); transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.4,0,0.2,1); }
   #pwaBanner.visible { transform:translateY(0); }
   #pwaBanner .pwa-icon { font-size:28px; flex-shrink:0; }
@@ -149,23 +142,6 @@
 </style>
 </head>
 <body>
-
-
-
-<!-- ══ BANNER PWA INSTALL ══ -->
-<div id="pwaBanner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;width:min(460px,calc(100vw - 32px))">
-  <div style="background:rgba(14,24,18,0.96);backdrop-filter:blur(24px);border:1px solid rgba(52,211,153,0.35);border-radius:18px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
-    <img src="logo2.png" style="width:44px;height:44px;border-radius:12px;object-fit:contain;flex-shrink:0">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:var(--text)">Installer INVOICEO</div>
-      <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="pwaBannerSub">Accès rapide depuis votre écran d'accueil</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-shrink:0">
-      <button onclick="dismissPWA()" style="background:transparent;border:1px solid var(--border2);color:var(--text-3);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body)">Plus tard</button>
-      <button id="pwaBannerBtn" onclick="installPWA()" style="background:linear-gradient(135deg,#34d399,#059669);color:#052e16;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📲 Installer</button>
-    </div>
-  </div>
-</div>
 
 <!-- ══ LOGIN PAGE ══ -->
 <div id="loginShell" class="login-shell">
@@ -180,9 +156,7 @@
       <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"
         onkeydown="if(event.key==='Enter') doLogin(document.getElementById('btnLogin'))">
       <div id="loginError" class="login-error">Email ou mot de passe incorrect</div>
-      <button id="btnLogin" class="btn btn-primary btn-login" onclick="doLogin(this)">
-        🔐 Se connecter
-      </button>
+      <button id="btnLogin" class="btn btn-primary btn-login" onclick="doLogin(this)">🔐 Se connecter</button>
     </div>
     <div class="login-version">INVOICEO v2.0 — Multi-tenant</div>
   </div>
@@ -196,9 +170,7 @@
 
 <div class="nav-shell">
   <nav class="nav">
-    <div class="logo-full">
-      <img src="logo.png" alt="logo">
-    </div>
+    <div class="logo-full"><img src="logo.png" alt="logo"></div>
     <div class="nav-user" id="navUser" style="display:none">
       <div class="user-badge">
         <div class="user-dot"></div>
@@ -329,14 +301,14 @@
         <div><label>N° Devis</label><input id="numeroDevis" readonly></div>
       </div>
       <div class="divider"></div>
+      <!-- ══ GEMINI AI CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDot"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
-          <div style="font-size:12px;color:var(--text-3)" id="status">Prêt — appuyez sur le micro</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;color:var(--text-3)" id="status">Appuyez sur le micro et décrivez votre document</div>
         </div>
-        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
-        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+        <button class="btn btn-primary" id="btnMicro" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
       <input id="clientInput" placeholder="Tapez pour rechercher un client...">
@@ -377,14 +349,14 @@
         <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
       </div>
       <div class="divider"></div>
+      <!-- ══ GEMINI AI CARD ══ -->
       <div class="voice-card">
-        <div class="voice-dot"></div>
+        <div class="voice-dot" id="voiceDotFacture"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">Saisie vocale</div>
-          <div style="font-size:12px;color:var(--text-3)">Prêt — appuyez sur le micro</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;color:var(--text-3)" id="statusFacture">Appuyez sur le micro et décrivez votre document</div>
         </div>
-        <button class="btn btn-ghost" onclick="startVocal()" style="padding:8px 12px;font-size:12px">🎤 Micro</button>
-        <button class="btn btn-danger" onclick="stopVocal()" style="padding:8px 12px;font-size:12px">⏹ Stop</button>
+        <button class="btn btn-primary" id="btnMicroFacture" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
       <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
@@ -451,6 +423,15 @@
         <div><label>N° BL</label><input id="numeroBL" readonly></div>
       </div>
       <div class="divider"></div>
+      <!-- ══ GEMINI AI CARD ══ -->
+      <div class="voice-card">
+        <div class="voice-dot" id="voiceDotBL"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;color:var(--text-3)" id="statusBL">Appuyez sur le micro et décrivez votre livraison</div>
+        </div>
+        <button class="btn btn-primary" id="btnMicroBL" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
+      </div>
       <label>Client</label>
       <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
       <div id="clientSuggestionsBL"></div>
@@ -470,33 +451,24 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG MASTER — URL du Google Sheet central qui gère les comptes
-// ══════════════════════════════════════════════
 const MASTER_URL = "https://script.google.com/macros/s/AKfycbxjdreF1iCdeRu2IiCgsAlXjEBIRHZQbh_QRFLQTkokT8_Sl8fmgjbxIZLoDtceR0HY/exec";
-
-// WEBAPP_URL est dynamique — défini après login
 let WEBAPP_URL = "";
 
+// ══ GEMINI KEY — remplace ici par ta vraie clé ══
+const GEMINI_KEY = "METS_TA_CLE_ICI";
+
 // ══════════════════════════════════════════════
-// SYSTÈME D'AUTHENTIFICATION
+// AUTH
 // ══════════════════════════════════════════════
 async function doLogin(btn) {
   const email = document.getElementById("loginEmail").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value.trim();
   const errEl = document.getElementById("loginError");
   errEl.classList.remove("visible");
-
-  if (!email || !password) {
-    errEl.textContent = "Veuillez remplir tous les champs";
-    errEl.classList.add("visible"); return;
-  }
-
+  if (!email || !password) { errEl.textContent = "Veuillez remplir tous les champs"; errEl.classList.add("visible"); return; }
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
-
   const cbName = "cb_" + Date.now();
   const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
-
   new Promise((resolve, reject) => {
     const script = document.createElement("script");
     const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 12000);
@@ -523,6 +495,7 @@ async function doLogin(btn) {
     btn.innerHTML = old; btn.disabled = false;
   });
 }
+
 function onLoginSuccess(name) {
   document.getElementById("loginShell").classList.add("hidden");
   document.getElementById("navUser").style.display = "flex";
@@ -543,52 +516,196 @@ function doLogout() {
   document.getElementById("loginError").classList.remove("visible");
 }
 
-// Vérifier session existante au chargement
 (function checkSession() {
   const savedUrl = sessionStorage.getItem("invoiceo_url");
   const savedName = sessionStorage.getItem("invoiceo_name");
-  if (savedUrl) {
-    WEBAPP_URL = savedUrl;
-    onLoginSuccess(savedName || "");
-  }
+  if (savedUrl) { WEBAPP_URL = savedUrl; onLoginSuccess(savedName || ""); }
 })();
 
+// ══════════════════════════════════════════════
+// GEMINI AI — REMPLISSAGE AUTOMATIQUE
+// ══════════════════════════════════════════════
+let geminiRecognition = null;
+let isRecording = false;
 
+function getActiveDotId() {
+  if (documentActif === "devis") return "voiceDot";
+  if (documentActif === "facture") return "voiceDotFacture";
+  return "voiceDotBL";
+}
+function getActiveStatusId() {
+  if (documentActif === "devis") return "status";
+  if (documentActif === "facture") return "statusFacture";
+  return "statusBL";
+}
+function getActiveBtnId() {
+  if (documentActif === "devis") return "btnMicro";
+  if (documentActif === "facture") return "btnMicroFacture";
+  return "btnMicroBL";
+}
+
+function startGemini() {
+  if (isRecording) { stopGemini(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Reconnaissance vocale non supportée sur ce navigateur"); return; }
+  geminiRecognition = new SR();
+  geminiRecognition.lang = "fr-FR";
+  geminiRecognition.continuous = false;
+  geminiRecognition.interimResults = false;
+  geminiRecognition.onstart = () => {
+    isRecording = true;
+    document.getElementById(getActiveDotId()).classList.add("active");
+    document.getElementById(getActiveBtnId()).innerHTML = "⏹ Stop";
+    document.getElementById(getActiveStatusId()).textContent = "Écoute en cours...";
+  };
+  geminiRecognition.onresult = async (e) => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById(getActiveStatusId()).textContent = "\"" + transcript + "\"";
+    stopGemini();
+    await envoyerAGemini(transcript);
+  };
+  geminiRecognition.onerror = () => {
+    stopGemini();
+    document.getElementById(getActiveStatusId()).textContent = "Erreur micro — réessayez";
+  };
+  geminiRecognition.onend = () => stopGemini();
+  geminiRecognition.start();
+}
+
+function stopGemini() {
+  isRecording = false;
+  if (geminiRecognition) { try { geminiRecognition.stop(); } catch(e) {} }
+  const dotEl = document.getElementById(getActiveDotId());
+  const btnEl = document.getElementById(getActiveBtnId());
+  if (dotEl) dotEl.classList.remove("active");
+  if (btnEl) btnEl.innerHTML = "🎤 Parler";
+}
+
+async function envoyerAGemini(texte) {
+  const statusEl = document.getElementById(getActiveStatusId());
+  const btnEl = document.getElementById(getActiveBtnId());
+  statusEl.textContent = "⏳ Gemini analyse...";
+  btnEl.disabled = true;
+
+  const prompt = `Tu es un assistant expert en documents commerciaux français. Tu analyses un texte dicté librement et tu extrais toutes les informations pour remplir un document (devis, facture ou bon de livraison).
+
+Texte dicté : "${texte}"
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication, sans texte avant ou après :
+{
+  "client": "nom complet du client mentionné, sinon chaîne vide",
+  "lignes": [
+    { "designation": "description précise du produit ou service", "quantite": 1, "prix": 0, "tva": 20 }
+  ],
+  "remise": 0,
+  "validite": "date au format jj/mm/aaaa si mentionnée (ex: valable jusqu'au 30/04/2026), sinon chaîne vide",
+  "delai_paiement": "nombre de jours si mentionné (ex: 30), sinon chaîne vide"
+}
+
+Règles STRICTES :
+- TVA par défaut : 20 si non précisée. Accepte des formulations comme "tva à 10%", "sans tva", "tva 5.5"
+- Si "sans TVA" ou "TVA 0" est dit : mets tva à 0
+- Quantité par défaut : 1 si non précisée
+- Le prix est TOUJOURS hors taxes (HT)
+- Chaque produit ou service = une ligne séparée dans "lignes"
+- Remise : extrais le pourcentage si mentionné (ex: "10% de remise" → 10), sinon 0
+- Validité : si une date ou durée est mentionnée (ex: "valable 30 jours", "jusqu'au 15 mai"), convertis en date jj/mm/aaaa par rapport à aujourd'hui ${new Date().toLocaleDateString('fr-FR')}
+- Délai paiement : extrait le nombre de jours (ex: "paiement à 30 jours" → 30)
+- Ignore les mots parasites (euh, donc, alors, voilà)
+- Si le client dit "modifier", "changer", "mettre à jour" : traite quand même les nouvelles informations normalement`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+        })
+      }
+    );
+    const data = await res.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    remplirDepuisGemini(parsed);
+    statusEl.textContent = "✅ Champs remplis avec succès !";
+  } catch(err) {
+    console.error(err);
+    statusEl.textContent = "❌ Erreur Gemini — réessayez";
+  } finally {
+    btnEl.disabled = false;
+  }
+}
+
+function remplirDepuisGemini(data) {
+  // ── Client
+  if (data.client && data.client.trim()) {
+    if (documentActif === "devis") document.getElementById("clientInput").value = data.client;
+    else if (documentActif === "facture") document.getElementById("clientInputFacture").value = data.client;
+    else if (documentActif === "bl") document.getElementById("clientInputBL").value = data.client;
+  }
+
+  // ── Lignes
+  if (data.lignes && data.lignes.length > 0) {
+    if (documentActif === "devis") {
+      devis.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix)||0, tva: String(l.tva ?? 20) }));
+      render(); calculate();
+    } else if (documentActif === "facture") {
+      devisFacture.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix)||0, tva: String(l.tva ?? 20) }));
+      renderFacture(); calculateFacture();
+    } else if (documentActif === "bl") {
+      devisBL.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1 }));
+      renderBL();
+    }
+  }
+
+  // ── Remise
+  const remiseVal = Number(data.remise) || 0;
+  if (documentActif === "devis") {
+    document.getElementById("remise").value = remiseVal > 0 ? remiseVal : "";
+    calculate();
+  } else if (documentActif === "facture") {
+    document.getElementById("remiseFacture").value = remiseVal > 0 ? remiseVal : "";
+    calculateFacture();
+  }
+
+  // ── Validité devis
+  if (documentActif === "devis" && data.validite && data.validite.trim()) {
+    document.getElementById("validiteDevis").value = data.validite;
+  }
+
+  // ── Délai paiement facture
+  if (documentActif === "facture" && data.delai_paiement && String(data.delai_paiement).trim()) {
+    document.getElementById("delaiPaiementFacture").value = data.delai_paiement;
+  }
+}
 
 // ══════════════════════════════════════════════
-// GÉNÉRATION PDF CÔTÉ NAVIGATEUR (jsPDF)
+// PDF
 // ══════════════════════════════════════════════
 async function genererPDF(docData) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
   const pageW = 210, pageH = 297;
   const marginL = 15, marginR = 15, marginT = 15, marginB = 20;
   const contentW = pageW - marginL - marginR;
+  const noir = [26, 26, 26], gris = [100, 100, 100], grisClair = [220, 220, 220], grisUltra = [248, 248, 248];
 
-  // Couleurs
-  const noir = [26, 26, 26];
-  const gris = [100, 100, 100];
-  const grisClair = [220, 220, 220];
-  const grisUltra = [248, 248, 248];
-  const vert = [52, 211, 153];
-
-  // Récupérer logo depuis GS + précalculer dimensions
-  let logoBase64 = null;
-  let logoW = 0, logoH = 0;
+  let logoBase64 = null, logoW = 0, logoH = 0;
   try {
     const res = await fetch(WEBAPP_URL + "?logoBase64=1");
     const d = await res.json();
     if (d && d.logo) {
       logoBase64 = d.logo;
-      // Charger l'image pour obtenir ses dimensions réelles
       await new Promise((resolve) => {
         const tmpImg = new Image();
         tmpImg.onload = () => {
           const maxW = 35, maxH = 20;
           const ratio = tmpImg.naturalWidth / tmpImg.naturalHeight;
           if (ratio >= 1) { logoW = Math.min(maxW, maxH * ratio); logoH = logoW / ratio; }
-          else            { logoH = Math.min(maxH, maxW / ratio); logoW = logoH * ratio; }
+          else { logoH = Math.min(maxH, maxW / ratio); logoW = logoH * ratio; }
           resolve();
         };
         tmpImg.onerror = () => resolve();
@@ -597,23 +714,17 @@ async function genererPDF(docData) {
     }
   } catch(e) {}
 
-  // Récupérer infos entreprise
   let entreprise = { nom: "", adresse: "", siret: "", tva: "" };
-  try {
-    const res = await fetch(WEBAPP_URL + "?infos=1");
-    entreprise = await res.json();
-  } catch(e) {}
+  try { const res = await fetch(WEBAPP_URL + "?infos=1"); entreprise = await res.json(); } catch(e) {}
 
-  // Récupérer infos client
   let clientInfos = { adresse: "", email: "", tel: "" };
   try {
     const res = await fetch(WEBAPP_URL + "?clientsAll=1");
     const clients = await res.json();
     const found = clients.find(r => r[1] === docData.client);
-    if (found) { clientInfos.adresse = found[2] || ""; clientInfos.email = found[3] || ""; clientInfos.tel = found[4] || ""; }
+    if (found) { clientInfos.adresse = found[2]||""; clientInfos.email = found[3]||""; clientInfos.tel = found[4]||""; }
   } catch(e) {}
 
-  // Filtrer lignes vides
   const lignes = (docData.lignes || []).filter(l => l.designation && l.designation.toString().trim() !== "");
   const remise = Number(docData.remise) || 0;
   const totalHT = lignes.reduce((s, l) => s + Number(l.quantite||0) * Number(l.prix||0), 0);
@@ -622,18 +733,12 @@ async function genererPDF(docData) {
   const totalTVA = lignes.reduce((s, l) => { const ht = Number(l.quantite||0)*Number(l.prix||0); return s + ht*(Number(l.tva||0)/100); }, 0);
   const totalTTC = htApres + totalTVA;
   const hasTVA = totalTVA > 0;
-
   const titres = { devis: "DEVIS", facture: "FACTURE", bl: "BON DE LIVRAISON" };
   const titre = titres[docData.docType] || "DOCUMENT";
-
-  let currentPage = 1;
-  let totalPages = 1; // on calculera après
+  let currentPage = 1, totalPages = 1;
 
   const drawPage = (pageNum) => {
-    // ── HEADER ──
     let y = marginT;
-
-    // Logo ou nom entreprise (dimensions précalculées en async avant drawPage)
     let headerLogoH = 0;
     if (logoBase64 && logoW > 0) {
       try {
@@ -641,486 +746,373 @@ async function genererPDF(docData) {
         doc.addImage(logoBase64, ext, marginL, y, logoW, logoH, undefined, 'FAST');
         headerLogoH = logoH;
       } catch(e) {
-        doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...noir);
-        doc.text(entreprise.nom || "", marginL, y + 12);
-        headerLogoH = 12;
+        doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);
+        doc.text(entreprise.nom||"", marginL, y+12); headerLogoH = 12;
       }
     } else {
-      doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...noir);
-      doc.text(entreprise.nom || "", marginL, y + 12);
-      headerLogoH = 12;
+      doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);
+      doc.text(entreprise.nom||"", marginL, y+12); headerLogoH = 12;
     }
-
-    // Titre document à droite
-    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(...noir);
-    doc.text(titre, pageW - marginR, y + 8, { align: "right" });
-    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...gris);
-    doc.text(`N° ${docData.numero || ""}`, pageW - marginR, y + 14, { align: "right" });
-    doc.text(`Date : ${docData.date || ""}`, pageW - marginR, y + 19, { align: "right" });
-
+    doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);
+    doc.text(titre, pageW-marginR, y+8, { align:"right" });
+    doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);
+    doc.text(`N° ${docData.numero||""}`, pageW-marginR, y+14, { align:"right" });
+    doc.text(`Date : ${docData.date||""}`, pageW-marginR, y+19, { align:"right" });
     y += Math.max(headerLogoH, 22) + 4;
-
-    // ── PARTIES (Émetteur / Client) ──
-    const boxH = 28;
-    const halfW = (contentW - 6) / 2;
-
-    // Box Émetteur
-    doc.setFillColor(248, 248, 248).setDrawColor(...grisClair).setLineWidth(0.3);
+    const boxH = 28, halfW = (contentW-6)/2;
+    doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);
     doc.roundedRect(marginL, y, halfW, boxH, 2, 2, 'FD');
-    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(...gris);
-    doc.text("ÉMETTEUR", marginL + 4, y + 5);
+    doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);
+    doc.text("ÉMETTEUR", marginL+4, y+5);
     doc.setDrawColor(...grisClair).setLineWidth(0.2);
-    doc.line(marginL + 4, y + 6.5, marginL + halfW - 4, y + 6.5);
-    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(...noir);
-    doc.text(entreprise.nom || "", marginL + 4, y + 11);
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
-    doc.text(entreprise.adresse || "", marginL + 4, y + 16, { maxWidth: halfW - 8 });
-    doc.text(`SIRET : ${entreprise.siret || ""}`, marginL + 4, y + 22);
-    if (entreprise.tva) doc.text(`N° TVA : ${entreprise.tva}`, marginL + 4, y + 26);
-
-    // Box Client
-    const cx = marginL + halfW + 6;
-    doc.setFillColor(248, 248, 248).setDrawColor(...grisClair).setLineWidth(0.3);
+    doc.line(marginL+4, y+6.5, marginL+halfW-4, y+6.5);
+    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);
+    doc.text(entreprise.nom||"", marginL+4, y+11);
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
+    doc.text(entreprise.adresse||"", marginL+4, y+16, { maxWidth: halfW-8 });
+    doc.text(`SIRET : ${entreprise.siret||""}`, marginL+4, y+22);
+    if (entreprise.tva) doc.text(`N° TVA : ${entreprise.tva}`, marginL+4, y+26);
+    const cx = marginL+halfW+6;
+    doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);
     doc.roundedRect(cx, y, halfW, boxH, 2, 2, 'FD');
-    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(...gris);
-    doc.text("CLIENT", cx + 4, y + 5);
+    doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);
+    doc.text("CLIENT", cx+4, y+5);
     doc.setDrawColor(...grisClair).setLineWidth(0.2);
-    doc.line(cx + 4, y + 6.5, cx + halfW - 4, y + 6.5);
-    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(...noir);
-    doc.text(docData.client || "", cx + 4, y + 11);
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
-    let cy2 = y + 16;
-    if (clientInfos.adresse) { doc.text(clientInfos.adresse, cx + 4, cy2, { maxWidth: halfW - 8 }); cy2 += 5; }
-    if (clientInfos.email)   { doc.text(`Email : ${clientInfos.email}`, cx + 4, cy2, { maxWidth: halfW - 8 }); cy2 += 4; }
-    if (clientInfos.tel)     { doc.text(`Tél : ${clientInfos.tel}`, cx + 4, cy2); }
-
-    y += boxH + 6;
-
-    // Mention devis
+    doc.line(cx+4, y+6.5, cx+halfW-4, y+6.5);
+    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);
+    doc.text(docData.client||"", cx+4, y+11);
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
+    let cy2 = y+16;
+    if (clientInfos.adresse) { doc.text(clientInfos.adresse, cx+4, cy2, { maxWidth: halfW-8 }); cy2+=5; }
+    if (clientInfos.email)   { doc.text(`Email : ${clientInfos.email}`, cx+4, cy2, { maxWidth: halfW-8 }); cy2+=4; }
+    if (clientInfos.tel)     { doc.text(`Tél : ${clientInfos.tel}`, cx+4, cy2); }
+    y += boxH+6;
     if (docData.docType === "devis") {
-      doc.setFont("helvetica", "italic").setFontSize(8).setTextColor(...gris);
-      doc.text("Ce document n'est pas une facture.", marginL, y);
-      y += 5;
+      doc.setFont("helvetica","italic").setFontSize(8).setTextColor(...gris);
+      doc.text("Ce document n'est pas une facture.", marginL, y); y += 5;
     }
-
     return y;
   };
 
-  // ── TABLEAU ──
   const drawTableHeader = (y, hasTVA, docType) => {
     doc.setFillColor(...noir).setDrawColor(...noir);
     doc.rect(marginL, y, contentW, 7, 'F');
-    doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(255, 255, 255);
+    doc.setFont("helvetica","bold").setFontSize(8).setTextColor(255,255,255);
     if (docType === "bl") {
-      doc.text("Désignation", marginL + 3, y + 5);
-      doc.text("Qté", marginL + contentW - 20, y + 5, { align: "center" });
+      doc.text("Désignation", marginL+3, y+5);
+      doc.text("Qté", marginL+contentW-20, y+5, { align:"center" });
     } else if (hasTVA) {
-      doc.text("Désignation", marginL + 3, y + 5);
-      doc.text("Qté", marginL + 80, y + 5, { align: "center" });
-      doc.text("PU HT", marginL + 115, y + 5, { align: "right" });
-      doc.text("TVA", marginL + 140, y + 5, { align: "center" });
-      doc.text("Total HT", marginL + contentW - 2, y + 5, { align: "right" });
+      doc.text("Désignation", marginL+3, y+5);
+      doc.text("Qté", marginL+80, y+5, { align:"center" });
+      doc.text("PU HT", marginL+115, y+5, { align:"right" });
+      doc.text("TVA", marginL+140, y+5, { align:"center" });
+      doc.text("Total HT", marginL+contentW-2, y+5, { align:"right" });
     } else {
-      doc.text("Désignation", marginL + 3, y + 5);
-      doc.text("Qté", marginL + 85, y + 5, { align: "center" });
-      doc.text("PU HT", marginL + 130, y + 5, { align: "right" });
-      doc.text("Total HT", marginL + contentW - 2, y + 5, { align: "right" });
+      doc.text("Désignation", marginL+3, y+5);
+      doc.text("Qté", marginL+85, y+5, { align:"center" });
+      doc.text("PU HT", marginL+130, y+5, { align:"right" });
+      doc.text("Total HT", marginL+contentW-2, y+5, { align:"right" });
     }
-    return y + 7;
+    return y+7;
   };
 
   const drawLine = (y, ligne, idx, hasTVA, docType) => {
     const rowH = 7;
-    const ht = Number(ligne.quantite||0) * Number(ligne.prix||0);
-    if (idx % 2 === 1) { doc.setFillColor(...grisUltra); doc.rect(marginL, y, contentW, rowH, 'F'); }
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...noir);
-
+    const ht = Number(ligne.quantite||0)*Number(ligne.prix||0);
+    if (idx%2===1) { doc.setFillColor(...grisUltra); doc.rect(marginL, y, contentW, rowH, 'F'); }
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...noir);
     if (docType === "bl") {
-      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 130 });
-      doc.text(String(Number(ligne.quantite||0)), marginL + contentW - 20, y + 5, { align: "center" });
+      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:130 });
+      doc.text(String(Number(ligne.quantite||0)), marginL+contentW-20, y+5, { align:"center" });
     } else if (hasTVA) {
-      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 72 });
-      doc.text(String(Number(ligne.quantite||0)), marginL + 80, y + 5, { align: "center" });
-      doc.text(Number(ligne.prix||0).toFixed(2) + " €", marginL + 115, y + 5, { align: "right" });
-      doc.text((Number(ligne.tva||0)) + " %", marginL + 140, y + 5, { align: "center" });
-      doc.text(ht.toFixed(2) + " €", marginL + contentW - 2, y + 5, { align: "right" });
+      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:72 });
+      doc.text(String(Number(ligne.quantite||0)), marginL+80, y+5, { align:"center" });
+      doc.text(Number(ligne.prix||0).toFixed(2)+" €", marginL+115, y+5, { align:"right" });
+      doc.text((Number(ligne.tva||0))+" %", marginL+140, y+5, { align:"center" });
+      doc.text(ht.toFixed(2)+" €", marginL+contentW-2, y+5, { align:"right" });
     } else {
-      doc.text(ligne.designation || "", marginL + 3, y + 5, { maxWidth: 77 });
-      doc.text(String(Number(ligne.quantite||0)), marginL + 85, y + 5, { align: "center" });
-      doc.text(Number(ligne.prix||0).toFixed(2) + " €", marginL + 130, y + 5, { align: "right" });
-      doc.text(ht.toFixed(2) + " €", marginL + contentW - 2, y + 5, { align: "right" });
+      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:77 });
+      doc.text(String(Number(ligne.quantite||0)), marginL+85, y+5, { align:"center" });
+      doc.text(Number(ligne.prix||0).toFixed(2)+" €", marginL+130, y+5, { align:"right" });
+      doc.text(ht.toFixed(2)+" €", marginL+contentW-2, y+5, { align:"right" });
     }
-
-    // Ligne séparatrice
     doc.setDrawColor(...grisClair).setLineWidth(0.1);
-    doc.line(marginL, y + rowH, marginL + contentW, y + rowH);
-
-    return y + rowH;
+    doc.line(marginL, y+rowH, marginL+contentW, y+rowH);
+    return y+rowH;
   };
 
-  // ── TOTAUX ──
   const drawTotaux = (y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA) => {
     if (docData.docType === "bl") return y;
-    const boxW = 75;
-    const bx = pageW - marginR - boxW;
-    let by = y + 4;
-
+    const boxW = 75, bx = pageW-marginR-boxW;
+    let by = y+4;
     doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(bx, by, boxW, hasTVA ? (remise > 0 ? 32 : 22) : (remise > 0 ? 28 : 18), 2, 2, 'S');
-
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
-    doc.text("Total HT", bx + 4, by + 6);
+    doc.roundedRect(bx, by, boxW, hasTVA ? (remise>0?32:22) : (remise>0?28:18), 2, 2, 'S');
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
+    doc.text("Total HT", bx+4, by+6);
     doc.setTextColor(...noir);
-    doc.text(totalHT.toFixed(2) + " €", bx + boxW - 4, by + 6, { align: "right" });
-
-    let ty = by + 6;
+    doc.text(totalHT.toFixed(2)+" €", bx+boxW-4, by+6, { align:"right" });
+    let ty = by+6;
     if (remise > 0) {
-      ty += 6;
-      doc.setTextColor(...gris).text(`Remise (${remise} %)`, bx + 4, ty);
-      doc.setTextColor(...noir).text("- " + remiseVal.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
-      ty += 6;
-      doc.setTextColor(...gris).text("HT après remise", bx + 4, ty);
-      doc.setTextColor(...noir).text(htApres.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
+      ty+=6; doc.setTextColor(...gris).text(`Remise (${remise} %)`, bx+4, ty);
+      doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
+      ty+=6; doc.setTextColor(...gris).text("HT après remise", bx+4, ty);
+      doc.setTextColor(...noir).text(htApres.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
     }
-
     if (hasTVA) {
-      ty += 6;
-      doc.setTextColor(...gris).text("TVA", bx + 4, ty);
-      doc.setTextColor(...noir).text(totalTVA.toFixed(2) + " €", bx + boxW - 4, ty, { align: "right" });
+      ty+=6; doc.setTextColor(...gris).text("TVA", bx+4, ty);
+      doc.setTextColor(...noir).text(totalTVA.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
     }
-
-    // TTC
-    ty += 4;
+    ty+=4;
     doc.setFillColor(...noir);
     doc.roundedRect(bx, ty, boxW, 10, 2, 2, 'F');
-    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(255, 255, 255);
-    doc.text("Total TTC", bx + 4, ty + 6.5);
-    doc.text(totalTTC.toFixed(2) + " €", bx + boxW - 4, ty + 6.5, { align: "right" });
-
-    return ty + 14;
+    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);
+    doc.text("Total TTC", bx+4, ty+6.5);
+    doc.text(totalTTC.toFixed(2)+" €", bx+boxW-4, ty+6.5, { align:"right" });
+    return ty+14;
   };
 
-  // ── PIED ──
   const drawPied = (y, docData, entreprise, pageNum, totalPages) => {
-    // Info délai/validité
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
-    if (docData.docType === "facture" && docData.delaiPaiement)
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
+    if (docData.docType==="facture" && docData.delaiPaiement)
       doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`, marginL, y);
-    else if (docData.docType === "devis" && docData.validite)
+    else if (docData.docType==="devis" && docData.validite)
       doc.text(`Devis valable jusqu'au : ${docData.validite}`, marginL, y);
-    else if (docData.docType === "bl" && docData.refFacture)
+    else if (docData.docType==="bl" && docData.refFacture)
       doc.text(`Référence facture : ${docData.refFacture}`, marginL, y);
-
-    y += 6;
-
-    // Ligne séparatrice
+    y+=6;
     doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.line(marginL, y, marginL + contentW, y);
-    y += 5;
-
-    // Mentions légales
-    doc.setFont("helvetica", "normal").setFontSize(7).setTextColor(170, 170, 170);
-    if (docData.docType === "facture") {
-      doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur", marginL, y, { maxWidth: 130 });
-      doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).", marginL, y + 4, { maxWidth: 130 });
+    doc.line(marginL, y, marginL+contentW, y); y+=5;
+    doc.setFont("helvetica","normal").setFontSize(7).setTextColor(170,170,170);
+    if (docData.docType==="facture") {
+      doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur", marginL, y, { maxWidth:130 });
+      doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).", marginL, y+4, { maxWidth:130 });
     }
-    if ((docData.docType === "devis" || docData.docType === "facture") && !entreprise.tva) {
-      doc.text("TVA non applicable, article 293 B du CGI.", marginL, y + (docData.docType === "facture" ? 9 : 0));
-    }
-
-    // Signature
+    if ((docData.docType==="devis"||docData.docType==="facture") && !entreprise.tva)
+      doc.text("TVA non applicable, article 293 B du CGI.", marginL, y+(docData.docType==="facture"?9:0));
     doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(marginL + contentW - 55, y - 2, 55, 18, 2, 2, 'S');
-    doc.setFont("helvetica", "normal").setFontSize(7).setTextColor(...gris);
-    doc.text(docData.docType === "devis" ? "Signature client — bon pour accord :" : "Signature :", marginL + contentW - 53, y + 3);
-
-    // ✅ PAGINATION en bas de page
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...gris);
-    doc.text(`Page ${pageNum} / ${totalPages}`, pageW / 2, pageH - 8, { align: "center" });
+    doc.roundedRect(marginL+contentW-55, y-2, 55, 18, 2, 2, 'S');
+    doc.setFont("helvetica","normal").setFontSize(7).setTextColor(...gris);
+    doc.text(docData.docType==="devis" ? "Signature client — bon pour accord :" : "Signature :", marginL+contentW-53, y+3);
+    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
+    doc.text(`Page ${pageNum} / ${totalPages}`, pageW/2, pageH-8, { align:"center" });
   };
 
-  // ── CALCUL NOMBRE DE PAGES ──
-  // On simule le rendu pour compter les pages
   let simY = drawPage(1);
   simY = drawTableHeader(simY, hasTVA, docData.docType) + 1;
   let simPages = 1;
   lignes.forEach((l) => {
-    if (simY + 7 > pageH - marginB - 60) { simPages++; simY = marginT + 10; }
+    if (simY+7 > pageH-marginB-60) { simPages++; simY = marginT+10; }
     simY += 7;
   });
   totalPages = simPages;
 
-  // ── RENDU RÉEL ──
   let y = drawPage(1);
   y = drawTableHeader(y, hasTVA, docData.docType) + 1;
-
   lignes.forEach((l, i) => {
-    if (y + 7 > pageH - marginB - 60) {
-      drawPied(y + 4, docData, entreprise, currentPage, totalPages);
-      doc.addPage();
-      currentPage++;
-      y = marginT + 10;
+    if (y+7 > pageH-marginB-60) {
+      drawPied(y+4, docData, entreprise, currentPage, totalPages);
+      doc.addPage(); currentPage++;
+      y = marginT+10;
       y = drawTableHeader(y, hasTVA, docData.docType) + 1;
     }
     y = drawLine(y, l, i, hasTVA, docData.docType);
   });
-
   y += 4;
   y = drawTotaux(y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA);
   drawPied(y, docData, entreprise, currentPage, totalPages);
-
   return doc;
 }
 
-// ══════════════════════════════════════════════
-// FONCTIONS TÉLÉCHARGEMENT PDF
-// ══════════════════════════════════════════════
 async function telechargerPDFDevis(e) {
-  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
-  try {
-    const doc = await genererPDF({ docType:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, validite:validiteDevis.value });
-    doc.save(`${clientInput.value} - ${numeroDevis.value}.pdf`);
-  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML = old; btn.disabled = false; }
+  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
+  try { const doc=await genererPDF({docType:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}); doc.save(`${clientInput.value} - ${numeroDevis.value}.pdf`); }
+  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML=old; btn.disabled=false; }
 }
-
 async function telechargerPDFFacture(e) {
-  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
-  try {
-    const doc = await genererPDF({ docType:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, delaiPaiement:delaiPaiementFacture.value });
-    doc.save(`${clientInputFacture.value} - ${numeroFacture.value}.pdf`);
-  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML = old; btn.disabled = false; }
+  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
+  try { const doc=await genererPDF({docType:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}); doc.save(`${clientInputFacture.value} - ${numeroFacture.value}.pdf`); }
+  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML=old; btn.disabled=false; }
 }
-
 async function telechargerPDFBL(e) {
-  const btn = e.currentTarget; const old = btn.innerHTML; btn.innerHTML = "⏳..."; btn.disabled = true;
-  try {
-    const doc = await genererPDF({ docType:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value, lignes:devisBL.lignes, refFacture:refFactureBL.value });
-    doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`);
-  } catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML = old; btn.disabled = false; }
+  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
+  try { const doc=await genererPDF({docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes,refFacture:refFactureBL.value}); doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`); }
+  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
+  finally { btn.innerHTML=old; btn.disabled=false; }
 }
-
 async function chargerDepuisHistorique(type, doc, tr) {
   if (tr) {
-    tr.style.opacity = "0.5";
-    tr.style.pointerEvents = "none";
-    const orig = tr.innerHTML;
-    const cols = tr.querySelectorAll("td").length;
-    tr.innerHTML = `<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;
-    try {
-      const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
-      pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
-    } catch(err) { console.error(err); alert("Erreur PDF"); }
-    tr.innerHTML = orig;
-    tr.style.opacity = "";
-    tr.style.pointerEvents = "";
+    tr.style.opacity="0.5"; tr.style.pointerEvents="none";
+    const orig=tr.innerHTML; const cols=tr.querySelectorAll("td").length;
+    tr.innerHTML=`<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;
+    try { const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""}); pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`); }
+    catch(err) { console.error(err); alert("Erreur PDF"); }
+    tr.innerHTML=orig; tr.style.opacity=""; tr.style.pointerEvents="";
   } else {
-    try {
-      const pdfDoc = await genererPDF({ docType:type, numero:doc.numero, client:doc.client, date:doc.date, lignes:doc.lignes||[], remise:doc.remise||0, validite:doc.validite||"", delaiPaiement:doc.delai||"", refFacture:doc.refFacture||"" });
-      pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);
-    } catch(err) { console.error(err); alert("Erreur PDF"); }
+    try { const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""}); pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`); }
+    catch(err) { console.error(err); alert("Erreur PDF"); }
   }
 }
 
 // ══════════════════════════════════════════════
-// RESTE DU CODE (inchangé)
+// NAVIGATION
 // ══════════════════════════════════════════════
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => { p.classList.remove("active"); p.classList.add("hidden"); });
   const target = document.getElementById(id);
   if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
-  if (id === "devisPage")      { documentActif = "devis";   setDateDevis();   loadNumeroDevis(); }
-  if (id === "facturePage")    { documentActif = "facture"; setDateFacture(); loadNumeroFacture(); }
-  if (id === "infosPage")      { loadInfos(); }
-  if (id === "clientPage")     { loadClientsTable(); }
-  if (id === "historiquePage") { loadHistorique(); }
-  if (id === "blPage")         { setDateBL(); loadNumeroBL(); }
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (id==="devisPage")      { documentActif="devis";   setDateDevis();   loadNumeroDevis(); }
+  if (id==="facturePage")    { documentActif="facture"; setDateFacture(); loadNumeroFacture(); }
+  if (id==="infosPage")      { loadInfos(); }
+  if (id==="clientPage")     { loadClientsTable(); }
+  if (id==="historiquePage") { loadHistorique(); }
+  if (id==="blPage")         { documentActif="bl"; setDateBL(); loadNumeroBL(); }
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
 
 function saveInfos(btn) {
-  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"infos", nom:info_nom.value, adresse:info_adresse.value, siret:info_siret.value, tva:info_tva.value }), mode:"no-cors" })
-    .finally(() => { btn.innerHTML = old; btn.disabled = false; alert("✅ Infos enregistrées"); });
+  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"infos",nom:info_nom.value,adresse:info_adresse.value,siret:info_siret.value,tva:info_tva.value}),mode:"no-cors"})
+    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("✅ Infos enregistrées"); });
 }
 
-
 function uploadLogo(btn) {
-  const file = document.getElementById("logoInput").files[0];
+  const file=document.getElementById("logoInput").files[0];
   if (!file) { alert("Sélectionne une image"); return; }
-  const old = btn.innerHTML; btn.disabled = true;
-
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    const img = new Image();
-    img.onload = async function() {
+  const old=btn.innerHTML; btn.disabled=true;
+  const reader=new FileReader();
+  reader.onload=function(ev) {
+    const img=new Image();
+    img.onload=async function() {
       try {
-        const LIMIT = 38000; // marge sous la limite 50 000 chars de Sheets
-        let w = img.naturalWidth  || img.width;
-        let h = img.naturalHeight || img.height;
-        if (w === 0 || h === 0) throw new Error("Dimensions image invalides");
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        let base64 = "";
-        let maxDim = 300;
-
-        // Réduire jusqu'à ce que ça rentre dans la limite
-        for (let attempt = 0; attempt < 8; attempt++) {
-          const ratio = Math.min(1, maxDim / w, maxDim / h);
-          const cw = Math.max(1, Math.floor(w * ratio));
-          const ch = Math.max(1, Math.floor(h * ratio));
-          canvas.width = cw; canvas.height = ch;
-          ctx.clearRect(0, 0, cw, ch);
-          ctx.drawImage(img, 0, 0, cw, ch);
-
-          const isTransparent = file.type === "image/png" || file.type === "image/webp";
-          // Pour PNG transparent on essaie en JPEG si trop lourd
-          if (isTransparent && attempt === 0) {
-            base64 = canvas.toDataURL("image/png");
-          } else {
-            const quality = Math.max(0.3, 0.85 - attempt * 0.1);
-            base64 = canvas.toDataURL("image/jpeg", quality);
-          }
-
-          btn.innerHTML = `⏳ Compression… (${base64.length} chars)`;
-          if (base64.length <= LIMIT) break;
-          maxDim = Math.floor(maxDim * 0.7); // réduire de 30% à chaque tentative
+        const LIMIT=38000;
+        let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+        if (w===0||h===0) throw new Error("Dimensions image invalides");
+        const canvas=document.createElement("canvas"); const ctx=canvas.getContext("2d");
+        let base64="", maxDim=300;
+        for (let attempt=0; attempt<8; attempt++) {
+          const ratio=Math.min(1,maxDim/w,maxDim/h);
+          const cw=Math.max(1,Math.floor(w*ratio)), ch=Math.max(1,Math.floor(h*ratio));
+          canvas.width=cw; canvas.height=ch; ctx.clearRect(0,0,cw,ch); ctx.drawImage(img,0,0,cw,ch);
+          const isTransparent=file.type==="image/png"||file.type==="image/webp";
+          if (isTransparent&&attempt===0) base64=canvas.toDataURL("image/png");
+          else { const quality=Math.max(0.3,0.85-attempt*0.1); base64=canvas.toDataURL("image/jpeg",quality); }
+          btn.innerHTML=`⏳ Compression… (${base64.length} chars)`;
+          if (base64.length<=LIMIT) break;
+          maxDim=Math.floor(maxDim*0.7);
         }
-
-        if (base64.length > LIMIT) {
-          throw new Error(`Image trop lourde même après compression (${base64.length} chars). Essaie une image plus petite.`);
-        }
-
-        // Envoyer en un seul chunk (on est sous 38 000 chars)
-        btn.innerHTML = `⏳ Upload…`;
-        await fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"logoChunk", chunk:base64, index:0, last:true }), mode:"no-cors" });
-        await new Promise(r => setTimeout(r, 500));
-
-        btn.innerHTML = "✅ Uploadé !";
-        setTimeout(() => { btn.innerHTML = old; btn.disabled = false; }, 2000);
-      } catch(err) {
-        console.error(err);
-        alert("❌ " + err.message);
-        btn.innerHTML = old; btn.disabled = false;
-      }
+        if (base64.length>LIMIT) throw new Error(`Image trop lourde même après compression. Essaie une image plus petite.`);
+        btn.innerHTML=`⏳ Upload…`;
+        await fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"logoChunk",chunk:base64,index:0,last:true}),mode:"no-cors"});
+        await new Promise(r=>setTimeout(r,500));
+        btn.innerHTML="✅ Uploadé !";
+        setTimeout(()=>{ btn.innerHTML=old; btn.disabled=false; },2000);
+      } catch(err) { console.error(err); alert("❌ "+err.message); btn.innerHTML=old; btn.disabled=false; }
     };
-    img.onerror = () => { alert("❌ Image illisible"); btn.innerHTML = old; btn.disabled = false; };
-    img.src = ev.target.result;
+    img.onerror=()=>{ alert("❌ Image illisible"); btn.innerHTML=old; btn.disabled=false; };
+    img.src=ev.target.result;
   };
-  reader.onerror = () => { alert("❌ Lecture fichier impossible"); btn.innerHTML = old; btn.disabled = false; };
-  btn.innerHTML = "⏳ Lecture…";
+  reader.onerror=()=>{ alert("❌ Lecture fichier impossible"); btn.innerHTML=old; btn.disabled=false; };
+  btn.innerHTML="⏳ Lecture…";
   reader.readAsDataURL(file);
 }
 
-
 function loadInfos() {
-  fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
-    const tbody = infosTableBody; tbody.innerHTML = "";
+  fetch(WEBAPP_URL+"?infos=1").then(r=>r.json()).then(data=>{
+    const tbody=infosTableBody; tbody.innerHTML="";
     if (!data) return;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
-    tr.onclick = () => { info_nom.value=data.nom||""; info_adresse.value=data.adresse||""; info_siret.value=data.siret||""; info_tva.value=data.tva||""; };
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
+    tr.onclick=()=>{ info_nom.value=data.nom||""; info_adresse.value=data.adresse||""; info_siret.value=data.siret||""; info_tva.value=data.tva||""; };
     tbody.appendChild(tr);
   });
 }
 
-let clientsList = [];
+let clientsList=[];
 function loadClients() {
   if (!WEBAPP_URL) return;
-  fetch(WEBAPP_URL + "?clients=1").then(r => r.json()).then(data => { clientsList = data || []; }).catch(() => {});
+  fetch(WEBAPP_URL+"?clients=1").then(r=>r.json()).then(data=>{ clientsList=data||[]; }).catch(()=>{});
 }
 
-let allClientsData = [];
+let allClientsData=[];
 function loadClientsTable() {
-  fetch(WEBAPP_URL + "?clientsAll=1").then(r => r.json())
-    .then(data => { allClientsData = data || []; renderClientsTable(allClientsData); })
-    .catch(() => { document.getElementById("clientsTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`; });
+  fetch(WEBAPP_URL+"?clientsAll=1").then(r=>r.json())
+    .then(data=>{ allClientsData=data||[]; renderClientsTable(allClientsData); })
+    .catch(()=>{ document.getElementById("clientsTableBody").innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`; });
 }
 function renderClientsTable(rows) {
-  const head = document.getElementById("clientsTableHead");
-  const body = document.getElementById("clientsTableBody");
-  head.innerHTML = "<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
-  if (!rows || rows.length === 0) { body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`; return; }
-  body.innerHTML = "";
-  rows.forEach((row, i) => {
-    const tr = document.createElement("tr"); tr.style.cursor = "pointer";
-    tr.innerHTML = row.map(cell => `<td>${cell||""}</td>`).join("");
-    tr.onclick = () => chargerClientDansFormulaire(row, i);
-    body.appendChild(tr);
-  });
+  const head=document.getElementById("clientsTableHead"), body=document.getElementById("clientsTableBody");
+  head.innerHTML="<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
+  if (!rows||rows.length===0) { body.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`; return; }
+  body.innerHTML="";
+  rows.forEach((row,i)=>{ const tr=document.createElement("tr"); tr.style.cursor="pointer"; tr.innerHTML=row.map(cell=>`<td>${cell||""}</td>`).join(""); tr.onclick=()=>chargerClientDansFormulaire(row,i); body.appendChild(tr); });
 }
 function filterClients() {
-  const q = document.getElementById("clientSearchInput").value.toLowerCase();
-  renderClientsTable(allClientsData.filter(row => row.some(cell => String(cell).toLowerCase().includes(q))));
+  const q=document.getElementById("clientSearchInput").value.toLowerCase();
+  renderClientsTable(allClientsData.filter(row=>row.some(cell=>String(cell).toLowerCase().includes(q))));
 }
-function chargerClientDansFormulaire(row, idx) {
-  document.getElementById("c_row").value = idx;
-  document.getElementById("c_nom").value = row[1] || "";
-  document.getElementById("c_mail").value = row[3] || "";
-  document.getElementById("c_adresse").value = row[2] || "";
-  document.getElementById("c_tel").value = row[4] || "";
-  document.getElementById("clientFormTitle").textContent = "Modifier le client";
+function chargerClientDansFormulaire(row,idx) {
+  document.getElementById("c_row").value=idx;
+  document.getElementById("c_nom").value=row[1]||"";
+  document.getElementById("c_mail").value=row[3]||"";
+  document.getElementById("c_adresse").value=row[2]||"";
+  document.getElementById("c_tel").value=row[4]||"";
+  document.getElementById("clientFormTitle").textContent="Modifier le client";
   document.getElementById("btnSaveClient").classList.add("hidden");
   document.getElementById("btnModifierClient").classList.remove("hidden");
   document.getElementById("btnSupprimerClient").classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 function resetClientForm() {
-  document.getElementById("c_row").value = "";
-  document.getElementById("c_nom").value = "";
-  document.getElementById("c_mail").value = "";
-  document.getElementById("c_adresse").value = "";
-  document.getElementById("c_tel").value = "";
-  document.getElementById("clientFormTitle").textContent = "Nouveau client";
+  document.getElementById("c_row").value="";
+  document.getElementById("c_nom").value="";
+  document.getElementById("c_mail").value="";
+  document.getElementById("c_adresse").value="";
+  document.getElementById("c_tel").value="";
+  document.getElementById("clientFormTitle").textContent="Nouveau client";
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
   document.getElementById("btnSupprimerClient").classList.add("hidden");
 }
 function saveClient() {
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"client", nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
-  alert("Client ajouté"); resetClientForm(); setTimeout(loadClientsTable, 1500);
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),mode:"no-cors"});
+  alert("Client ajouté"); resetClientForm(); setTimeout(loadClientsTable,1500);
 }
 function modifierClient() {
-  const idx = Number(document.getElementById("c_row").value);
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"modifierClient", rowIndex: idx + 2, nom:c_nom.value, adresse:c_adresse.value, mail:c_mail.value, tel:c_tel.value }), mode:"no-cors" });
-  alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable, 1500);
+  const idx=Number(document.getElementById("c_row").value);
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"modifierClient",rowIndex:idx+2,nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),mode:"no-cors"});
+  alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable,1500);
 }
 function supprimerClient() {
-  const idx = Number(document.getElementById("c_row").value);
-  const nom = document.getElementById("c_nom").value;
+  const idx=Number(document.getElementById("c_row").value);
+  const nom=document.getElementById("c_nom").value;
   if (!confirm(`Supprimer le client "${nom}" ? Cette action est irréversible.`)) return;
-  fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify({ type:"supprimerClient", rowIndex: idx + 2 }), mode:"no-cors" });
-  alert("Client supprimé"); resetClientForm(); setTimeout(loadClientsTable, 1500);
+  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"supprimerClient",rowIndex:idx+2}),mode:"no-cors"});
+  alert("Client supprimé"); resetClientForm(); setTimeout(loadClientsTable,1500);
 }
-function setupClientSearch(inputId, suggestionsId) {
-  const input = document.getElementById(inputId);
-  const suggestions = document.getElementById(suggestionsId);
-  input.addEventListener("input", () => {
-    const value = input.value.toLowerCase(); suggestions.innerHTML = "";
+function setupClientSearch(inputId,suggestionsId) {
+  const input=document.getElementById(inputId), suggestions=document.getElementById(suggestionsId);
+  input.addEventListener("input",()=>{
+    const value=input.value.toLowerCase(); suggestions.innerHTML="";
     if (!value) return;
-    clientsList.filter(c => c.toLowerCase().includes(value)).forEach(c => {
-      const div = document.createElement("div");
-      div.textContent = c; div.className = "suggestion";
-      div.onclick = () => { input.value = c; suggestions.innerHTML = ""; };
+    clientsList.filter(c=>c.toLowerCase().includes(value)).forEach(c=>{
+      const div=document.createElement("div"); div.textContent=c; div.className="suggestion";
+      div.onclick=()=>{ input.value=c; suggestions.innerHTML=""; };
       suggestions.appendChild(div);
     });
   });
 }
-setupClientSearch("clientInput", "clientSuggestions");
-setupClientSearch("clientInputFacture", "clientSuggestionsFacture");
-setupClientSearch("clientInputBL", "clientSuggestionsBL");
+setupClientSearch("clientInput","clientSuggestions");
+setupClientSearch("clientInputFacture","clientSuggestionsFacture");
+setupClientSearch("clientInputBL","clientSuggestionsBL");
 
-let devis = { lignes: [] };
-let devisFacture = { lignes: [] };
-let documentActif = "devis";
+let devis={lignes:[]}, devisFacture={lignes:[]}, documentActif="devis";
 
 function render() {
-  lines.innerHTML = "";
-  devis.lignes.forEach((l, i) => {
-    lines.innerHTML += `<div class="line">
+  lines.innerHTML="";
+  devis.lignes.forEach((l,i)=>{
+    lines.innerHTML+=`<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devis.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
@@ -1128,19 +1120,19 @@ function render() {
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
           <input type="number" value="${l.prix}" oninput="devis.lignes[${i}].prix=this.value;calculate()"></div>
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">TVA %</span>
-          <input type="number" value="${l.tva ?? ''}" placeholder="%" oninput="devis.lignes[${i}].tva=this.value;calculate()"></div>
+          <input type="number" value="${l.tva??''}" placeholder="%" oninput="devis.lignes[${i}].tva=this.value;calculate()"></div>
         <button class="deleteBtn" onclick="deleteLine(${i})">✖</button>
       </div>
     </div>`;
   });
   calculate();
 }
-function addLine()     { devis.lignes.push({ designation:"", quantite:1, prix:0, tva:"" }); render(); }
-function deleteLine(i) { devis.lignes.splice(i, 1); render(); }
-function clearAll() { devis={lignes:[]}; clientInput.value=""; remise.value=""; validiteDevis.value=""; render(); }
+function addLine()     { devis.lignes.push({designation:"",quantite:1,prix:0,tva:""}); render(); }
+function deleteLine(i) { devis.lignes.splice(i,1); render(); }
+function clearAll()    { devis={lignes:[]}; clientInput.value=""; remise.value=""; validiteDevis.value=""; render(); }
 function setDateDevis() {
-  const d = new Date();
-  dateDevis.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  const d=new Date();
+  dateDevis.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 function loadNumeroDevis() {
   fetch(WEBAPP_URL+"?lastDevis=1").then(r=>r.json()).then(data=>{
@@ -1157,7 +1149,7 @@ function calculate() {
   totalApresRemise.textContent=htA.toFixed(2)+" €"; montantTVA.textContent=totalTVA.toFixed(2)+" €"; totalTTC.textContent=ttc.toFixed(2)+" €";
 }
 function saveDevis(btn) {
-  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}),mode:"no-cors"})
     .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Devis enregistré ✅"); });
 }
@@ -1168,9 +1160,9 @@ function transformerEnFacture() {
 }
 
 function renderFacture() {
-  linesFacture.innerHTML = "";
-  devisFacture.lignes.forEach((l, i) => {
-    linesFacture.innerHTML += `<div class="line">
+  linesFacture.innerHTML="";
+  devisFacture.lignes.forEach((l,i)=>{
+    linesFacture.innerHTML+=`<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisFacture.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
@@ -1178,7 +1170,7 @@ function renderFacture() {
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
           <input type="number" value="${l.prix}" oninput="devisFacture.lignes[${i}].prix=this.value;calculateFacture()"></div>
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">TVA %</span>
-          <input type="number" value="${l.tva ?? ''}" placeholder="%" oninput="devisFacture.lignes[${i}].tva=this.value;calculateFacture()"></div>
+          <input type="number" value="${l.tva??''}" placeholder="%" oninput="devisFacture.lignes[${i}].tva=this.value;calculateFacture()"></div>
         <button class="deleteBtn" onclick="deleteLineFacture(${i})">✖</button>
       </div>
     </div>`;
@@ -1207,7 +1199,7 @@ function calculateFacture() {
   totalApresRemiseFacture.textContent=htA.toFixed(2)+" €"; montantTVAFacture.textContent=totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent=ttc.toFixed(2)+" €";
 }
 function saveFacture(btn) {
-  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}),mode:"no-cors"})
     .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Facture enregistrée ✅"); });
 }
@@ -1216,7 +1208,7 @@ function transformerEnBL() {
   clientInputBL.value=clientInputFacture.value; renderBL(); showPage("blPage");
 }
 
-let devisBL = { lignes: [] };
+let devisBL={lignes:[]};
 function renderBL() {
   linesBL.innerHTML="";
   devisBL.lignes.forEach((l,i)=>{
@@ -1245,45 +1237,9 @@ function loadNumeroBL() {
   }).catch(()=>{numeroBL.value=`BL-${new Date().getFullYear()}-1`;});
 }
 function saveBL(btn) {
-  const old = btn.innerHTML; btn.innerHTML = "⏳ Enregistrement..."; btn.disabled = true;
+  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
   fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}),mode:"no-cors"})
     .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("BL enregistré ✅"); });
-}
-
-let recognition, lastProcessedText="";
-function cleanSpeechText(text) { return text.replace(/[€]/g,"").replace(/\s+/g," ").replace(/^\s+|\s+$/g,"").replace(/\b(euh|heu|alors|donc|voilà)\b/g,"").trim(); }
-function capitalize(str) { return str.charAt(0).toUpperCase()+str.slice(1); }
-function startVocal() {
-  recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
-  recognition.lang="fr-FR"; recognition.continuous=true; recognition.interimResults=false; recognition.start();
-  recognition.onresult=e=>{
-    let text=e.results[e.results.length-1][0].transcript.toLowerCase().trim();
-    if(text===lastProcessedText) return; lastProcessedText=text;
-    if(document.getElementById("status")) status.innerText=text;
-    const remMatch=text.match(/remise\s*(\d+)/);
-    if(remMatch){if(documentActif==="devis"){remise.value=remMatch[1];calculate();}else{remiseFacture.value=remMatch[1];calculateFacture();}}
-    const tvaGM=text.match(/tva\s+(?:globale\s+)?(?:à\s+)?(\d+)\s*(?:%|pour\s*cent)?/);
-    if(tvaGM){const tvaVal=tvaGM[1];if(documentActif==="devis"){devis.lignes.forEach(l=>l.tva=tvaVal);render();}else{devisFacture.lignes.forEach(l=>l.tva=tvaVal);renderFacture();}}
-    let cleanText=cleanSpeechText(text.replace(/remise\s*\d+/g,"").replace(/tva\s+(?:globale\s+)?(?:à\s+)?\d+\s*(?:%|pour\s*cent)?/g,""));
-    cleanText.split(/\b(?:suivant|puis|et ensuite)\b/).forEach(bloc=>{
-      bloc=bloc.trim(); if(!bloc) return;
-      let ligneTVA=""; const tvaBM=bloc.match(/(?:tva|à)\s*(\d+)\s*(?:%|pour\s*cent)?/);
-      if(tvaBM){ligneTVA=tvaBM[1];bloc=bloc.replace(tvaBM[0],"").trim();}
-      const numbers=bloc.match(/\d+(?:[.,]\d+)?/g);
-      let designation=capitalize(cleanSpeechText(bloc.replace(/\d+(?:[.,]\d+)?/g,"").trim()));
-      if(!designation) return;
-      let quantite=1,prix=0;
-      if(numbers){if(numbers.length===1) prix=numbers[0].replace(",",".");else{quantite=numbers[0];prix=numbers[1].replace(",",".");}}
-      const ligne={designation,quantite,prix,tva:ligneTVA};
-      if(documentActif==="devis"){devis.lignes.push(ligne);render();}else{devisFacture.lignes.push(ligne);renderFacture();}
-    });
-  };
-  document.getElementById("voiceDot")?.classList.add("active");
-}
-function stopVocal() {
-  if(recognition) recognition.stop(); lastProcessedText="";
-  document.getElementById("voiceDot")?.classList.remove("active");
-  if(document.getElementById("status")) status.innerText="Arrêté";
 }
 
 const HISTO_CONFIG = {
@@ -1308,7 +1264,7 @@ function loadHistorique() {
         if(type==="bl"){
           tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
         } else {
-          const fmtDate = v => { if(!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
+          const fmtDate=v=>{ if(!v) return ""; const d=new Date(v); return isNaN(d)?v:d.toLocaleDateString("fr-FR"); };
           tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         }
         tr.onclick=()=>chargerDepuisHistorique(type,doc,tr); body.appendChild(tr);
@@ -1334,47 +1290,42 @@ window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-    setTimeout(() => showPWABanner("desktop"), 3000);
+    setTimeout(() => showPWABanner(), 3000);
   }
 });
 
-function showPWABanner(type) {
+function showPWABanner() {
   const sub = document.getElementById("pwaBannerSub");
   if (isIOS) sub.textContent = "Appuyez sur Partager puis 'Sur l'écran d'accueil'";
   else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
   else sub.textContent = "Installez l'app sur votre bureau";
-  document.getElementById("pwaBanner").style.display = "block";
+  document.getElementById("pwaBanner").classList.add("visible");
 }
 
 function installPWA() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      document.getElementById("pwaBanner").style.display = "none";
-    });
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPWA(); });
   } else if (isIOS) {
     alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter");
-    document.getElementById("pwaBanner").style.display = "none";
+    dismissPWA();
   }
 }
 
 function dismissPWA() {
   sessionStorage.setItem("pwaDismissed", "1");
-  document.getElementById("pwaBanner").style.display = "none";
+  document.getElementById("pwaBanner").classList.remove("visible");
 }
 
-// Sur iOS afficher quand même si pas standalone
 if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
   setTimeout(() => {
     document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment";
-    showPWABanner("ios");
+    showPWABanner();
   }, 3000);
 }
-
 </script>
 
-<!-- PWA INSTALL BANNER -->
+<!-- ══ BANNER PWA INSTALL ══ -->
 <div id="pwaBanner">
   <div class="pwa-icon">📲</div>
   <div class="pwa-text">
@@ -1387,53 +1338,5 @@ if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
   </div>
 </div>
 
-<script>
-let deferredPrompt = null;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isAndroid = /android/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem('pwaDismissed')) {
-    setTimeout(() => showPWABanner(), 3000);
-  }
-});
-
-function showPWABanner() {
-  const sub = document.getElementById('pwaBannerSub');
-  if (isIOS) {
-    sub.textContent = "Appuyez sur Partager puis 'Sur l’écran d’accueil'";
-    document.getElementById('pwaBannerBtn').textContent = 'Voir comment';
-    document.getElementById('pwaBannerBtn').onclick = () => {
-      alert("Sur iPhone/iPad :
-1. Appuyez sur l'icône Partager ⧆
-2. Faites défiler et appuyez sur 'Sur l'écran d'accueil'
-3. Appuyez sur 'Ajouter'");
-    };
-  }
-  document.getElementById('pwaBanner').classList.add('visible');
-}
-
-function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPWA(); });
-  }
-}
-
-function dismissPWA() {
-  sessionStorage.setItem('pwaDismissed', '1');
-  document.getElementById('pwaBanner').classList.remove('visible');
-}
-
-// iOS : afficher si pas standalone et pas dismissé
-if (isIOS && !isStandalone && !sessionStorage.getItem('pwaDismissed')) {
-  setTimeout(() => showPWABanner(), 3000);
-}
-</script>
-
 </body>
 </html>
-
