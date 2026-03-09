@@ -531,39 +531,44 @@ async function doLogin(btn) {
   if (!email || !password) { errEl.textContent = "Veuillez remplir tous les champs"; errEl.classList.add("visible"); return; }
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
-  // Tentative JSONP (fonctionne partout sauf Safari strict)
-  function tryJSONP(email, password) {
+  // JSONP universel — fonctionne sur tous les navigateurs y compris Safari
+  // Safari ne déclenche pas onerror sur les scripts bloqués, on utilise un timeout
+  function jsonpLogin(timeoutMs) {
     return new Promise((resolve, reject) => {
-      const cbName = "cb_" + Date.now();
-      const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
+      const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
+      const url = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password) + "&callback=" + cbName;
       const script = document.createElement("script");
-      const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
-      window[cbName] = (data) => { cleanup(); resolve(data); };
-      function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
-      script.onerror = () => { cleanup(); reject(new Error("Script error")); };
-      script.src = url;
+      let done = false;
+      const timer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error("Timeout"));
+      }, timeoutMs);
+      window[cbName] = (data) => {
+        if (done) return;
+        done = true;
+        cleanup();
+        resolve(data);
+      };
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+      script.onerror = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error("Script error"));
+      };
       document.head.appendChild(script);
+      // Délai pour éviter race condition sur Safari avant d'assigner src
+      setTimeout(() => { script.src = url; }, 50);
     });
   }
 
-  // Fallback fetch direct (fonctionne si GAS a les bons headers CORS)
-  async function tryFetch(email, password) {
-    const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=_`;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
-    try {
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timer);
-      const text = await res.text();
-      // GAS répond avec _({...}) — on extrait le JSON
-      const json = text.replace(/^[^(]+\(/, "").replace(/\);?\s*$/, "");
-      return JSON.parse(json);
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  const handleSuccess = (data) => {
+  const handleResult = (data) => {
     if (data && data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
@@ -575,26 +580,17 @@ async function doLogin(btn) {
     return false;
   };
 
-  const handleError = (msg) => {
-    errEl.textContent = msg;
+  try {
+    const data = await jsonpLogin(15000);
+    if (!handleResult(data)) {
+      errEl.textContent = "Email ou mot de passe incorrect";
+      errEl.classList.add("visible");
+      btn.innerHTML = old; btn.disabled = false;
+    }
+  } catch(err) {
+    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
-  };
-
-  // 1. Essai JSONP
-  try {
-    const data = await tryJSONP(email, password);
-    if (handleSuccess(data)) return;
-    handleError("Email ou mot de passe incorrect");
-  } catch(e1) {
-    // JSONP a échoué (Safari, blocage réseau...) → fallback fetch
-    try {
-      const data = await tryFetch(email, password);
-      if (handleSuccess(data)) return;
-      handleError("Email ou mot de passe incorrect");
-    } catch(e2) {
-      handleError("Erreur de connexion — vérifiez votre réseau et réessayez");
-    }
   }
 }
 
