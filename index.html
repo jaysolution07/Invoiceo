@@ -83,6 +83,9 @@
   .btn-danger:hover { background:rgba(244,63,94,0.18); }
   .btn-purple { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; box-shadow:0 4px 16px rgba(124,58,237,0.3); }
   .btn-purple:hover { box-shadow:0 8px 24px rgba(124,58,237,0.45); transform:translateY(-1px); }
+  .btn-mail { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:white; box-shadow:0 4px 16px rgba(14,165,233,0.3); }
+  .btn-mail:hover { box-shadow:0 8px 24px rgba(14,165,233,0.45); transform:translateY(-1px); }
+  .btn-mail:disabled, .btn-mail.disabled { background:var(--surface2); color:var(--text-3); border:1px solid var(--border); box-shadow:none; cursor:not-allowed; transform:none; opacity:0.5; }
   .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
   #clientSuggestions, #clientSuggestionsFacture, #clientSuggestionsBL { background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius-sm); margin-top:4px; overflow:hidden; }
   .suggestion { padding:10px 14px; cursor:pointer; font-size:13px; color:var(--text-2); transition:all var(--transition); border-bottom:1px solid var(--border); }
@@ -140,6 +143,27 @@
   #pwaBanner .pwa-text strong { display:block; font-family:var(--font-head); font-size:14px; color:var(--text); margin-bottom:2px; }
   #pwaBanner .pwa-text span { font-size:12px; color:var(--text-3); }
   #pwaBanner .pwa-actions { display:flex; gap:8px; flex-shrink:0; }
+
+  /* ══ MODAL MAIL ══ */
+  .modal-overlay { position:fixed; inset:0; z-index:400; background:rgba(8,13,10,0.85); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s ease; }
+  .modal-overlay.visible { opacity:1; pointer-events:all; }
+  .modal-box { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; width:100%; max-width:480px; box-shadow:0 0 0 1px rgba(52,211,153,0.08), 0 32px 80px rgba(0,0,0,0.7); transform:translateY(16px) scale(0.97); transition:transform 0.25s ease; position:relative; }
+  .modal-overlay.visible .modal-box { transform:translateY(0) scale(1); }
+  .modal-title { font-family:var(--font-head); font-size:18px; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .modal-sub { font-size:12px; color:var(--text-3); margin-bottom:20px; }
+  .modal-recap { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px 18px; margin-bottom:18px; }
+  .modal-recap-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:var(--text-2); border-bottom:1px solid rgba(52,211,153,0.05); }
+  .modal-recap-row:last-child { border-bottom:none; }
+  .modal-recap-row strong { color:var(--text); }
+  .modal-lignes { margin-top:10px; }
+  .modal-ligne { font-size:12px; color:var(--text-3); padding:3px 0; }
+  .modal-email-row { margin-bottom:16px; }
+  .modal-email-row label { margin-top:0; font-size:11px; }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+  .modal-close { position:absolute; top:16px; right:18px; background:none; border:none; color:var(--text-3); font-size:18px; cursor:pointer; line-height:1; transition:color var(--transition); }
+  .modal-close:hover { color:var(--text); }
+  .mail-sent-badge { background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--accent); margin-top:14px; display:none; text-align:center; }
+  .mail-sent-badge.visible { display:block; }
 </style>
 </head>
 <body>
@@ -160,6 +184,29 @@
       <button id="btnLogin" class="btn btn-primary btn-login" onclick="doLogin(this)">🔐 Se connecter</button>
     </div>
     <div class="login-version">INVOICEO v2.0 — Multi-tenant</div>
+  </div>
+</div>
+
+<!-- ══ MODAL ENVOI MAIL ══ -->
+<div id="mailModal" class="modal-overlay" onclick="if(event.target===this) closeMailModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMailModal()">✕</button>
+    <div class="modal-title">📧 Envoyer par mail</div>
+    <div class="modal-sub">Vérifiez les informations avant envoi</div>
+    <div class="modal-recap" id="mailRecapContent"></div>
+    <div class="modal-email-row">
+      <label>Adresse email du destinataire</label>
+      <input id="mailToInput" type="email" placeholder="client@exemple.com">
+    </div>
+    <div class="modal-email-row">
+      <label>Message personnalisé (optionnel)</label>
+      <input id="mailMessageInput" placeholder="Veuillez trouver ci-joint votre document...">
+    </div>
+    <div id="mailSentBadge" class="mail-sent-badge">✅ Mail envoyé !</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeMailModal()">Annuler</button>
+      <button class="btn btn-mail" id="btnSendMail" onclick="confirmerEnvoiMail()">📤 Envoyer</button>
+    </div>
   </div>
 </div>
 
@@ -307,14 +354,14 @@
         <div><label>N° Devis</label><input id="numeroDevis" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ GEMINI AI CARD ══ -->
+      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDot"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">🎙️ Saisie vocale</div>
           <div style="font-size:12px;color:var(--text-3)" id="status">Appuyez sur le micro et décrivez votre document</div>
         </div>
-        <button class="btn btn-primary" id="btnMicro" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
+        <button class="btn btn-primary" id="btnMicro" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
       <input id="clientInput" placeholder="Tapez pour rechercher un client...">
@@ -338,6 +385,7 @@
         <button class="btn btn-primary" onclick="saveDevis(this)">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="transformerEnFacture()">🔁 En facture</button>
         <button class="btn btn-purple" onclick="telechargerPDFDevis(event)">📄 PDF</button>
+        <button id="btnMailDevis" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('devis')" title="Enregistrez d'abord le devis">📧 Envoyer</button>
         <button class="btn btn-danger" onclick="clearAll()">🧹 Effacer</button>
       </div>
     </div>
@@ -355,14 +403,14 @@
         <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ GEMINI AI CARD ══ -->
+      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDotFacture"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">🎙️ Saisie vocale</div>
           <div style="font-size:12px;color:var(--text-3)" id="statusFacture">Appuyez sur le micro et décrivez votre document</div>
         </div>
-        <button class="btn btn-primary" id="btnMicroFacture" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
+        <button class="btn btn-primary" id="btnMicroFacture" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
       <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
@@ -385,6 +433,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveFacture(this)">💾 Enregistrer facture</button>
         <button class="btn btn-purple" onclick="telechargerPDFFacture(event)">📄 PDF</button>
+        <button id="btnMailFacture" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('facture')" title="Enregistrez d'abord la facture">📧 Envoyer</button>
         <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
         <button class="btn btn-danger" onclick="clearAllFacture()">🧹 Effacer</button>
       </div>
@@ -423,7 +472,6 @@
       <div class="back-btn" onclick="showPage('homePage')">←</div>
       <div class="page-title">Statisti<span>ques</span></div>
     </div>
-    <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px">
       <div class="card" style="padding:20px;margin-bottom:0;text-align:center">
         <div style="font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">CA Total TTC</div>
@@ -442,7 +490,6 @@
         <div id="kpiBestMonth" style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--accent)">—</div>
       </div>
     </div>
-    <!-- Filtres -->
     <div class="card" style="padding:16px 20px;margin-bottom:16px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
         <span style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em">Filtres</span>
@@ -462,12 +509,10 @@
         <button class="btn btn-ghost" onclick="resetFiltresStats()" style="padding:7px 12px;font-size:12px;margin-left:auto">✖ Réinitialiser</button>
       </div>
     </div>
-    <!-- Courbe -->
     <div class="card" style="margin-bottom:16px">
       <div class="section-label" style="margin-top:0">Chiffre d'affaires mensuel (TTC)</div>
       <div style="position:relative;height:230px"><canvas id="statsChart"></canvas></div>
     </div>
-    <!-- Top 5 -->
     <div class="card">
       <div class="section-label" style="margin-top:0">🏆 Top 5 clients</div>
       <div id="statsTop5"></div>
@@ -486,14 +531,14 @@
         <div><label>N° BL</label><input id="numeroBL" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ GEMINI AI CARD ══ -->
+      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDotBL"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text-2)">✨ Assistant IA Gemini</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text-2)">🎙️ Saisie vocale</div>
           <div style="font-size:12px;color:var(--text-3)" id="statusBL">Appuyez sur le micro et décrivez votre livraison</div>
         </div>
-        <button class="btn btn-primary" id="btnMicroBL" onclick="startGemini()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
+        <button class="btn btn-primary" id="btnMicroBL" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
       <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
@@ -506,6 +551,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveBL(this)">💾 Enregistrer BL</button>
         <button class="btn btn-purple" onclick="telechargerPDFBL(event)">📄 PDF</button>
+        <button id="btnMailBL" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('bl')" title="Enregistrez d'abord le BL">📧 Envoyer</button>
         <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
       </div>
     </div>
@@ -516,9 +562,6 @@
 <script>
 const MASTER_URL = "https://script.google.com/macros/s/AKfycbxjdreF1iCdeRu2IiCgsAlXjEBIRHZQbh_QRFLQTkokT8_Sl8fmgjbxIZLoDtceR0HY/exec";
 let WEBAPP_URL = "";
-
-// ══ GEMINI KEY — remplace ici par ta vraie clé ══
-const GEMINI_KEY = "";
 
 // ══════════════════════════════════════════════
 // AUTH
@@ -531,8 +574,6 @@ async function doLogin(btn) {
   if (!email || !password) { errEl.textContent = "Veuillez remplir tous les champs"; errEl.classList.add("visible"); return; }
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
-  // JSONP universel — fonctionne sur tous les navigateurs y compris Safari
-  // Safari ne déclenche pas onerror sur les scripts bloqués, on utilise un timeout
   function jsonpLogin(timeoutMs) {
     return new Promise((resolve, reject) => {
       const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
@@ -540,30 +581,19 @@ async function doLogin(btn) {
       const script = document.createElement("script");
       let done = false;
       const timer = setTimeout(() => {
-        if (done) return;
-        done = true;
-        cleanup();
-        reject(new Error("Timeout"));
+        if (done) return; done = true; cleanup(); reject(new Error("Timeout"));
       }, timeoutMs);
       window[cbName] = (data) => {
-        if (done) return;
-        done = true;
-        cleanup();
-        resolve(data);
+        if (done) return; done = true; cleanup(); resolve(data);
       };
       function cleanup() {
-        clearTimeout(timer);
-        delete window[cbName];
+        clearTimeout(timer); delete window[cbName];
         if (script.parentNode) script.parentNode.removeChild(script);
       }
       script.onerror = () => {
-        if (done) return;
-        done = true;
-        cleanup();
-        reject(new Error("Script error"));
+        if (done) return; done = true; cleanup(); reject(new Error("Script error"));
       };
       document.head.appendChild(script);
-      // Délai pour éviter race condition sur Safari avant d'assigner src
       setTimeout(() => { script.src = url; }, 50);
     });
   }
@@ -621,9 +651,9 @@ function doLogout() {
 })();
 
 // ══════════════════════════════════════════════
-// GEMINI AI — REMPLISSAGE AUTOMATIQUE
+// COMMANDE VOCALE NATIVE (sans IA)
 // ══════════════════════════════════════════════
-let geminiRecognition = null;
+let voiceRecognition = null;
 let isRecording = false;
 
 function getActiveDotId() {
@@ -642,198 +672,321 @@ function getActiveBtnId() {
   return "btnMicroBL";
 }
 
-function startGemini() {
-  if (isRecording) { stopGemini(); return; }
+function startVoice() {
+  if (isRecording) { stopVoice(); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Reconnaissance vocale non supportée sur ce navigateur"); return; }
-  geminiRecognition = new SR();
-  geminiRecognition.lang = "fr-FR";
-  geminiRecognition.continuous = false;
-  geminiRecognition.interimResults = false;
-  geminiRecognition.onstart = () => {
+  voiceRecognition = new SR();
+  voiceRecognition.lang = "fr-FR";
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = false;
+  voiceRecognition.onstart = () => {
     isRecording = true;
     document.getElementById(getActiveDotId()).classList.add("active");
     document.getElementById(getActiveBtnId()).innerHTML = "⏹ Stop";
     document.getElementById(getActiveStatusId()).textContent = "Écoute en cours...";
   };
-  geminiRecognition.onresult = async (e) => {
+  voiceRecognition.onresult = (e) => {
     const transcript = e.results[0][0].transcript;
     document.getElementById(getActiveStatusId()).textContent = "\"" + transcript + "\"";
-    stopGemini();
-    await envoyerAGemini(transcript);
+    stopVoice();
+    parserVoice(transcript);
   };
-  geminiRecognition.onerror = () => {
-    stopGemini();
+  voiceRecognition.onerror = () => {
+    stopVoice();
     document.getElementById(getActiveStatusId()).textContent = "Erreur micro — réessayez";
   };
-  geminiRecognition.onend = () => stopGemini();
-  geminiRecognition.start();
+  voiceRecognition.onend = () => stopVoice();
+  voiceRecognition.start();
 }
 
-function stopGemini() {
+function stopVoice() {
   isRecording = false;
-  if (geminiRecognition) { try { geminiRecognition.stop(); } catch(e) {} }
+  if (voiceRecognition) { try { voiceRecognition.stop(); } catch(e) {} }
   const dotEl = document.getElementById(getActiveDotId());
   const btnEl = document.getElementById(getActiveBtnId());
   if (dotEl) dotEl.classList.remove("active");
   if (btnEl) btnEl.innerHTML = "🎤 Parler";
 }
 
-async function envoyerAGemini(texte) {
+// ── Parser vocal natif : extrait client, lignes, remise, TVA, validité, délai
+function parserVoice(texte) {
+  const t = texte.toLowerCase();
   const statusEl = document.getElementById(getActiveStatusId());
-  const btnEl = document.getElementById(getActiveBtnId());
-  statusEl.textContent = "⏳ Gemini analyse...";
-  btnEl.disabled = true;
 
-  const prompt = `Tu es un assistant expert en documents commerciaux français. Tu analyses un texte dicté librement et tu extrais toutes les informations pour remplir un document (devis, facture ou bon de livraison).
-
-Texte dicté : "${texte}"
-
-Réponds UNIQUEMENT en JSON valide, sans markdown, sans explication, sans texte avant ou après :
-{
-  "client": "nom complet du client mentionné, sinon chaîne vide",
-  "lignes": [
-    { "designation": "description précise du produit ou service", "quantite": 1, "prix": 0, "tva": 20 }
-  ],
-  "remise": 0,
-  "validite": "date au format jj/mm/aaaa si mentionnée (ex: valable jusqu'au 30/04/2026), sinon chaîne vide",
-  "delai_paiement": "nombre de jours si mentionné (ex: 30), sinon chaîne vide"
-}
-
-Règles STRICTES :
-- TVA par défaut : 20 si non précisée. Accepte des formulations comme "tva à 10%", "sans tva", "tva 5.5"
-- Si "sans TVA" ou "TVA 0" est dit : mets tva à 0
-- Quantité par défaut : 1 si non précisée
-- Le prix est TOUJOURS hors taxes (HT)
-- Chaque produit ou service = une ligne séparée dans "lignes"
-- Remise : extrais le pourcentage si mentionné (ex: "10% de remise" → 10), sinon 0
-- Validité : si une date ou durée est mentionnée (ex: "valable 30 jours", "jusqu'au 15 mai"), convertis en date jj/mm/aaaa par rapport à aujourd'hui ${new Date().toLocaleDateString('fr-FR')}
-- Délai paiement : extrait le nombre de jours (ex: "paiement à 30 jours" → 30)
-- Ignore les mots parasites (euh, donc, alors, voilà)
-- Si le client dit "modifier", "changer", "mettre à jour" : traite quand même les nouvelles informations normalement`;
-
-  try {
-const res = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-{
-  method:"POST",
-  headers:{ "Content-Type":"application/json" },
-  body:JSON.stringify({
-    contents:[{ parts:[{ text:prompt }] }],
-    generationConfig:{
-      temperature:0.1,
-      maxOutputTokens:1000
+  // ── 1. Client : cherche "pour [nom]" ou "client [nom]" ou match direct dans la liste
+  let clientTrouve = "";
+  const matchPour = t.match(/(?:pour|client|destinataire)\s+([a-zàâäéèêëîïôùûü\s\-]+?)(?:\s+(?:livraison|facture|devis|article|produit|quantit|prix|\d|remise|tva|valable|paiement|$))/i);
+  if (matchPour) {
+    const candidat = matchPour[1].trim();
+    clientTrouve = trouverClientDansListe(candidat) || candidat;
+  } else {
+    // Tentative de match direct dans la liste des clients
+    for (let c of clientsList) {
+      if (t.includes(c.toLowerCase())) { clientTrouve = c; break; }
     }
-  })
-});
-
-const data = await res.json();
-
-if (!data.candidates) {
-  throw new Error("Réponse Gemini invalide");
-}
-
-const raw = data.candidates[0].content.parts[0].text;
-
-let jsonMatch = raw.match(/\{[\s\S]*\}/);
-
-if (!jsonMatch) {
-  throw new Error("JSON introuvable");
-}
-
-const parsed = JSON.parse(jsonMatch[0]);
-
-remplirDepuisGemini(parsed);
-    statusEl.textContent = "✅ Champs remplis avec succès !";
-  } catch(err) {
-    console.error(err);
-    statusEl.textContent = "❌ Erreur Gemini — réessayez";
-  } finally {
-    btnEl.disabled = false;
-  }
-}
-
-function remplirDepuisGemini(data) {
-// ── Client
-if (data.client && data.client.trim()) {
-
-  const clientGemini = data.client.trim().toLowerCase();
-
-  let clientTrouve = null;
-
-  for (let c of clientsList) {
-
-    const base = c.toLowerCase();
-
-    // match direct
-    if (base.includes(clientGemini) || clientGemini.includes(base)) {
-      clientTrouve = c;
-      break;
-    }
-
-    // match par mots (fabien botté vs botté fabien)
-    const motsGemini = clientGemini.split(" ");
-    const motsBase = base.split(" ");
-
-    const match = motsGemini.some(m =>
-      motsBase.includes(m)
-    );
-
-    if (match) {
-      clientTrouve = c;
-      break;
-    }
-
   }
 
-  const clientFinal = clientTrouve || data.client;
-
-  if (documentActif === "devis")
-    document.getElementById("clientInput").value = clientFinal;
-
-  else if (documentActif === "facture")
-    document.getElementById("clientInputFacture").value = clientFinal;
-
-  else if (documentActif === "bl")
-    document.getElementById("clientInputBL").value = clientFinal;
-
-  if (!clientTrouve) {
-    document.getElementById(getActiveStatusId()).textContent =
-      "⚠️ Nouveau client détecté";
+  // ── 2. Lignes : parse "X [produit] à Y euros" / "Y euros de [produit]" / "[quantité] [produit] à [prix]"
+  const lignes = [];
+  // Pattern principal : (quantité) description (à/pour/au prix de) prix (euros/€) (tva X%)
+  const regexLigne = /(\d+(?:[.,]\d+)?)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]+?)\s+(?:à|au prix de|pour)\s+(\d+(?:[.,]\d+)?)\s*(?:euros?|€)?(?:\s+tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?)?/gi;
+  let m;
+  while ((m = regexLigne.exec(t)) !== null) {
+    const qte = parseFloat(m[1].replace(",","."));
+    const desc = capitaliser(m[2].trim());
+    const prix = parseFloat(m[3].replace(",","."));
+    const tva = m[4] ? parseFloat(m[4].replace(",",".")) : (t.includes("sans tva") || t.includes("tva 0") ? 0 : 20);
+    if (desc && !isNaN(prix)) lignes.push({ designation: desc, quantite: qte||1, prix, tva: String(tva) });
   }
+
+  // Pattern secondaire : "[prix] euros de [description]"
+  if (lignes.length === 0) {
+    const regexAlt = /(\d+(?:[.,]\d+)?)\s*(?:euros?|€)\s+(?:de|d'|pour)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]+?)(?:\s+tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?)?(?:\s|$)/gi;
+    while ((m = regexAlt.exec(t)) !== null) {
+      const prix = parseFloat(m[1].replace(",","."));
+      const desc = capitaliser(m[2].trim());
+      const tva = m[3] ? parseFloat(m[3].replace(",",".")) : (t.includes("sans tva") ? 0 : 20);
+      if (desc && !isNaN(prix)) lignes.push({ designation: desc, quantite: 1, prix, tva: String(tva) });
+    }
+  }
+
+  // Pattern BL simple : "X [produit]" sans prix
+  if (documentActif === "bl" && lignes.length === 0) {
+    const regexBL = /(\d+)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]{2,30}?)(?:\s+(?:et|,|\d|$))/gi;
+    while ((m = regexBL.exec(t)) !== null) {
+      const qte = parseInt(m[1]);
+      const desc = capitaliser(m[2].trim());
+      if (desc.length > 2) lignes.push({ designation: desc, quantite: qte||1 });
+    }
+  }
+
+  // ── 3. Remise
+  let remiseVal = 0;
+  const matchRemise = t.match(/(\d+(?:[.,]\d+)?)\s*%?\s*(?:de\s+)?remise/);
+  if (matchRemise) remiseVal = parseFloat(matchRemise[1].replace(",","."));
+
+  // ── 4. TVA globale
+  let tvaGlobale = null;
+  if (t.includes("sans tva") || t.includes("tva 0") || t.includes("tva zéro")) tvaGlobale = "0";
+  else { const mt = t.match(/tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?/); if (mt) tvaGlobale = mt[1].replace(",","."); }
+  if (tvaGlobale !== null && lignes.length > 0) lignes.forEach(l => { l.tva = tvaGlobale; });
+
+  // ── 5. Validité (devis)
+  let validite = "";
+  const matchVal = t.match(/valable?\s+(?:jusqu'?au?\s+)?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+  if (matchVal) validite = matchVal[1].replace(/-/g,"/");
+  else {
+    const matchJours = t.match(/valable?\s+(\d+)\s+jours?/);
+    if (matchJours) {
+      const d = new Date(); d.setDate(d.getDate() + parseInt(matchJours[1]));
+      validite = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+    }
+  }
+
+  // ── 6. Délai paiement (facture)
+  let delai = "";
+  const matchDelai = t.match(/(?:paiement|régl[a-z]+)\s+(?:à\s+)?(\d+)\s+jours?/);
+  if (matchDelai) delai = matchDelai[1];
+
+  // ── Appliquer
+  const result = { client: clientTrouve, lignes, remise: remiseVal, validite, delai_paiement: delai };
+  remplirDepuisVoice(result);
+
+  const nbLignes = lignes.length;
+  statusEl.textContent = nbLignes > 0
+    ? `✅ ${nbLignes} ligne(s) détectée(s)${clientTrouve ? " · " + clientTrouve : ""}`
+    : `⚠️ Aucune ligne reconnue — essayez : "3 tables à 50 euros"`;
 }
-  // ── Lignes
+
+function capitaliser(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function trouverClientDansListe(candidat) {
+  const c = candidat.toLowerCase();
+  for (let cl of clientsList) {
+    const base = cl.toLowerCase();
+    if (base.includes(c) || c.includes(base)) return cl;
+    const mots = c.split(" ");
+    if (mots.some(m => m.length > 2 && base.includes(m))) return cl;
+  }
+  return null;
+}
+
+function remplirDepuisVoice(data) {
+  // Client
+  if (data.client && data.client.trim()) {
+    if (documentActif === "devis") document.getElementById("clientInput").value = data.client;
+    else if (documentActif === "facture") document.getElementById("clientInputFacture").value = data.client;
+    else if (documentActif === "bl") document.getElementById("clientInputBL").value = data.client;
+  }
+  // Lignes
   if (data.lignes && data.lignes.length > 0) {
     if (documentActif === "devis") {
-      devis.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix)||0, tva: String(l.tva ?? 20) }));
+      devis.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) }));
       render(); calculate();
     } else if (documentActif === "facture") {
-      devisFacture.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix)||0, tva: String(l.tva ?? 20) }));
+      devisFacture.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) }));
       renderFacture(); calculateFacture();
     } else if (documentActif === "bl") {
       devisBL.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1 }));
       renderBL();
     }
   }
-
-  // ── Remise
+  // Remise
   const remiseVal = Number(data.remise) || 0;
-  if (documentActif === "devis") {
-    document.getElementById("remise").value = remiseVal > 0 ? remiseVal : "";
-    calculate();
-  } else if (documentActif === "facture") {
-    document.getElementById("remiseFacture").value = remiseVal > 0 ? remiseVal : "";
-    calculateFacture();
+  if (documentActif === "devis") { document.getElementById("remise").value = remiseVal > 0 ? remiseVal : ""; calculate(); }
+  else if (documentActif === "facture") { document.getElementById("remiseFacture").value = remiseVal > 0 ? remiseVal : ""; calculateFacture(); }
+  // Validité
+  if (documentActif === "devis" && data.validite) document.getElementById("validiteDevis").value = data.validite;
+  // Délai
+  if (documentActif === "facture" && data.delai_paiement) document.getElementById("delaiPaiementFacture").value = data.delai_paiement;
+}
+
+// ══════════════════════════════════════════════
+// MODAL ENVOI MAIL
+// ══════════════════════════════════════════════
+let mailDocType = "";
+let mailDocData = {};
+
+async function ouvrirMailModal(type) {
+  mailDocType = type;
+  const modal = document.getElementById("mailModal");
+  const recap = document.getElementById("mailRecapContent");
+  const badge = document.getElementById("mailSentBadge");
+  badge.classList.remove("visible");
+  document.getElementById("btnSendMail").innerHTML = "📤 Envoyer";
+  document.getElementById("btnSendMail").disabled = false;
+
+  let client = "", numero = "", date = "", lignes = [], remise = 0, ttc = "0.00 €", extra = "", validite = "", delaiPaiement = "", refFacture = "";
+
+  if (type === "devis") {
+    client        = document.getElementById("clientInput").value;
+    numero        = document.getElementById("numeroDevis").value;
+    date          = document.getElementById("dateDevis").value;
+    lignes        = devis.lignes;
+    remise        = Number(document.getElementById("remise").value) || 0;
+    ttc           = document.getElementById("totalTTC").textContent;
+    validite      = document.getElementById("validiteDevis").value;
+    extra         = validite ? "Validité : " + validite : "";
+  } else if (type === "facture") {
+    client        = document.getElementById("clientInputFacture").value;
+    numero        = document.getElementById("numeroFacture").value;
+    date          = document.getElementById("dateFacture").value;
+    lignes        = devisFacture.lignes;
+    remise        = Number(document.getElementById("remiseFacture").value) || 0;
+    ttc           = document.getElementById("totalTTCFacture").textContent;
+    delaiPaiement = document.getElementById("delaiPaiementFacture").value;
+    extra         = delaiPaiement ? "Délai paiement : " + delaiPaiement + " jours" : "";
+  } else if (type === "bl") {
+    client        = document.getElementById("clientInputBL").value;
+    numero        = document.getElementById("numeroBL").value;
+    date          = document.getElementById("dateBL").value;
+    lignes        = devisBL.lignes;
+    refFacture    = document.getElementById("refFactureBL").value;
+    extra         = refFacture ? "Réf. facture : " + refFacture : "";
   }
 
-  // ── Validité devis
-  if (documentActif === "devis" && data.validite && data.validite.trim()) {
-    document.getElementById("validiteDevis").value = data.validite;
-  }
+  // Stocker pour l'envoi
+  mailDocData = { type, client, numero, date, lignes, remise, validite, delaiPaiement, refFacture };
 
-  // ── Délai paiement facture
-  if (documentActif === "facture" && data.delai_paiement && String(data.delai_paiement).trim()) {
-    document.getElementById("delaiPaiementFacture").value = data.delai_paiement;
+  const typeLabel = { devis: "Devis", facture: "Facture", bl: "Bon de Livraison" }[type] || type;
+
+  // Récupérer l'email du client depuis la base
+  let emailClient = "";
+  try {
+    const res = await fetch(WEBAPP_URL + "?clientsAll=1");
+    const clients = await res.json();
+    const found = clients.find(r => r[1] === client);
+    if (found) emailClient = found[3] || "";
+  } catch(e) {}
+
+  const lignesHtml = lignes.filter(l => l.designation && l.designation.trim())
+    .map(l => `<div class="modal-ligne">• ${l.designation}${l.quantite ? " × " + l.quantite : ""}${l.prix ? " — " + Number(l.prix).toFixed(2) + " €" : ""}</div>`)
+    .join("") || '<div class="modal-ligne" style="color:var(--text-3);font-style:italic">Aucune ligne</div>';
+
+  recap.innerHTML = `
+    <div class="modal-recap-row"><span>Type</span><strong>${typeLabel}</strong></div>
+    <div class="modal-recap-row"><span>Numéro</span><strong>${numero || "—"}</strong></div>
+    <div class="modal-recap-row"><span>Date</span><strong>${date || "—"}</strong></div>
+    <div class="modal-recap-row"><span>Destinataire</span><strong>${client || "—"}</strong></div>
+    <div class="modal-recap-row"><span>Email</span><strong style="color:var(--accent)">${emailClient || "⚠️ Non renseigné"}</strong></div>
+    ${type !== "bl" ? `<div class="modal-recap-row"><span>Total TTC</span><strong style="color:var(--accent)">${ttc}</strong></div>` : ""}
+    ${remise > 0 ? `<div class="modal-recap-row"><span>Remise</span><strong>${remise} %</strong></div>` : ""}
+    ${extra ? `<div class="modal-recap-row"><span>Info</span><strong>${extra}</strong></div>` : ""}
+    <div class="modal-lignes">${lignesHtml}</div>
+  `;
+
+  // Pré-remplir message
+  document.getElementById("mailMessageInput").value =
+    `Bonjour,\n\nVeuillez trouver ci-joint votre ${typeLabel.toLowerCase()} n° ${numero}.\n\nCordialement`;
+
+  // Pré-remplir email (modifiable si manquant)
+  document.getElementById("mailToInput").value = emailClient;
+
+  modal.classList.add("visible");
+}
+
+function closeMailModal() {
+  document.getElementById("mailModal").classList.remove("visible");
+}
+
+async function confirmerEnvoiMail() {
+  const emailTo  = document.getElementById("mailToInput").value.trim();
+  const message  = document.getElementById("mailMessageInput").value.trim();
+  const badge    = document.getElementById("mailSentBadge");
+  const sendBtn  = document.getElementById("btnSendMail");
+
+  if (!emailTo) { alert("Adresse email du destinataire manquante"); return; }
+
+  const typeLabel = { devis: "Devis", facture: "Facture", bl: "Bon de Livraison" }[mailDocType] || mailDocType;
+  const sujet = `${typeLabel} n° ${mailDocData.numero}`;
+
+  sendBtn.innerHTML = "⏳ Envoi en cours...";
+  sendBtn.disabled = true;
+
+  try {
+    const payload = {
+      type:          "envoyerMail",
+      docType:       mailDocData.type,
+      client:        mailDocData.client,
+      numero:        mailDocData.numero,
+      date:          mailDocData.date,
+      lignes:        mailDocData.lignes,
+      remise:        mailDocData.remise,
+      validite:      mailDocData.validite,
+      delaiPaiement: mailDocData.delaiPaiement,
+      refFacture:    mailDocData.refFacture,
+      emailClient:   emailTo,
+      sujet:         sujet,
+      message:       message
+    };
+
+    const res = await fetch(WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      badge.textContent = "✅ Mail envoyé à " + (data.emailEnvoye || emailTo);
+      badge.classList.add("visible");
+      sendBtn.innerHTML = "✅ Envoyé !";
+      setTimeout(() => {
+        badge.classList.remove("visible");
+        sendBtn.innerHTML = "📤 Envoyer";
+        sendBtn.disabled = false;
+        closeMailModal();
+      }, 3000);
+    } else {
+      throw new Error(data.error || "Erreur inconnue");
+    }
+  } catch(err) {
+    console.error(err);
+    alert("❌ Erreur envoi : " + err.message);
+    sendBtn.innerHTML = "📤 Envoyer";
+    sendBtn.disabled = false;
   }
 }
 
@@ -1055,7 +1208,7 @@ async function genererPDF(docData) {
   let simY = drawPage(1);
   simY = drawTableHeader(simY, hasTVA, docData.docType) + 1;
   let simPages = 1;
-  lignes.forEach((l) => {
+  lignes.forEach(() => {
     if (simY+7 > pageH-marginB-60) { simPages++; simY = marginT+10; }
     simY += 7;
   });
@@ -1123,7 +1276,7 @@ function showPage(id) {
   if (id==="clientPage")     { loadClientsTable(); }
   if (id==="historiquePage") { loadHistorique(); }
   if (id==="blPage")         { documentActif="bl"; setDateBL(); loadNumeroBL(); }
-  if (id==="statsPage")     { loadStats(); }
+  if (id==="statsPage")      { loadStats(); }
   window.scrollTo({ top:0, behavior:"smooth" });
 }
 
@@ -1283,7 +1436,7 @@ function render() {
 }
 function addLine()     { devis.lignes.push({designation:"",quantite:1,prix:0,tva:""}); render(); }
 function deleteLine(i) { devis.lignes.splice(i,1); render(); }
-function clearAll()    { devis={lignes:[]}; clientInput.value=""; remise.value=""; validiteDevis.value=""; render(); }
+function clearAll()    { devis={lignes:[]}; clientInput.value=""; remise.value=""; validiteDevis.value=""; render(); const mailBtn=document.getElementById("btnMailDevis"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
 function setDateDevis() {
   const d=new Date();
   dateDevis.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
@@ -1302,7 +1455,6 @@ function calculate() {
   totalHT.textContent=ht.toFixed(2)+" €"; montantRemise.textContent=remVal.toFixed(2)+" €";
   totalApresRemise.textContent=htA.toFixed(2)+" €"; montantTVA.textContent=totalTVA.toFixed(2)+" €"; totalTTC.textContent=ttc.toFixed(2)+" €";
 }
-// Enregistrement avec timeout 2s max
 function saveFireAndForget(payload, successMsg, btn) {
   const old = btn ? btn.innerHTML : null;
   if (btn) { btn.innerHTML = "⏳..."; btn.disabled = true; }
@@ -1313,9 +1465,10 @@ function saveFireAndForget(payload, successMsg, btn) {
     alert(successMsg);
   });
 }
-
 function saveDevis(btn) {
   saveFireAndForget({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}, "Devis enregistré ✅", btn);
+  const mailBtn = document.getElementById("btnMailDevis");
+  mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 function transformerEnFacture() {
   devisFacture.lignes=JSON.parse(JSON.stringify(devis.lignes));
@@ -1343,7 +1496,7 @@ function renderFacture() {
 }
 function addLineFacture()     { devisFacture.lignes.push({designation:"",quantite:1,prix:0,tva:""}); renderFacture(); }
 function deleteLineFacture(i) { devisFacture.lignes.splice(i,1); renderFacture(); }
-function clearAllFacture()    { devisFacture={lignes:[]}; clientInputFacture.value=""; remiseFacture.value=""; delaiPaiementFacture.value=""; renderFacture(); }
+function clearAllFacture()    { devisFacture={lignes:[]}; clientInputFacture.value=""; remiseFacture.value=""; delaiPaiementFacture.value=""; renderFacture(); const mailBtn=document.getElementById("btnMailFacture"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
 function setDateFacture() {
   const d=new Date();
   dateFacture.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
@@ -1364,6 +1517,8 @@ function calculateFacture() {
 }
 function saveFacture(btn) {
   saveFireAndForget({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}, "Facture enregistrée ✅", btn);
+  const mailBtn = document.getElementById("btnMailFacture");
+  mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 function transformerEnBL() {
   devisBL.lignes=devisFacture.lignes.map(l=>({designation:l.designation,quantite:l.quantite}));
@@ -1386,7 +1541,7 @@ function renderBL() {
 }
 function addLineBL()     { devisBL.lignes.push({designation:"",quantite:1}); renderBL(); }
 function deleteLineBL(i) { devisBL.lignes.splice(i,1); renderBL(); }
-function clearAllBL()    { devisBL={lignes:[]}; clientInputBL.value=""; refFactureBL.value=""; renderBL(); }
+function clearAllBL()    { devisBL={lignes:[]}; clientInputBL.value=""; refFactureBL.value=""; renderBL(); const mailBtn=document.getElementById("btnMailBL"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
 function setDateBL() {
   const d=new Date();
   dateBL.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
@@ -1400,6 +1555,8 @@ function loadNumeroBL() {
 }
 function saveBL(btn) {
   saveFireAndForget({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}, "BL enregistré ✅", btn);
+  const mailBtn = document.getElementById("btnMailBL");
+  mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 
 const HISTO_CONFIG = {
@@ -1436,7 +1593,6 @@ function loadHistorique() {
     });
 }
 
-
 // ══════════════════════════════════════════════
 // STATS PAGE
 // ══════════════════════════════════════════════
@@ -1471,14 +1627,12 @@ function populateFiltresAnnee() {
   sel.innerHTML = '<option value="">Toutes années</option>';
   annees.forEach(a => { const o = document.createElement("option"); o.value = a; o.textContent = a; sel.appendChild(o); });
 }
-
 function populateFiltresClient() {
   const clients = [...new Set(statsData.map(d => d.client))].filter(Boolean).sort();
   const sel = document.getElementById("statsClient");
   sel.innerHTML = '<option value="">Tous les clients</option>';
   clients.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); });
 }
-
 function getFiltredData() {
   const annee = document.getElementById("statsAnnee").value;
   const mois = document.getElementById("statsMois").value;
@@ -1489,9 +1643,7 @@ function getFiltredData() {
     (!client || d.client === client)
   );
 }
-
 function appliquerFiltresStats() { renderStats(); }
-
 function resetFiltresStats() {
   document.getElementById("statsAnnee").value = "";
   document.getElementById("statsMois").value = "";
@@ -1501,44 +1653,27 @@ function resetFiltresStats() {
 
 function renderStats() {
   const data = getFiltredData();
-
-  // ── KPIs
   const caTotal = data.reduce((s,d) => s+d.ttc, 0);
   const nb = data.length;
   const moyen = nb > 0 ? caTotal / nb : 0;
-
-  // Meilleur mois
   const byMois = {};
-  data.forEach(d => {
-    const k = `${MOIS_LABELS[d.mois-1]} ${d.annee}`;
-    byMois[k] = (byMois[k] || 0) + d.ttc;
-  });
+  data.forEach(d => { const k = `${MOIS_LABELS[d.mois-1]} ${d.annee}`; byMois[k] = (byMois[k] || 0) + d.ttc; });
   const bestMois = Object.entries(byMois).sort((a,b) => b[1]-a[1])[0];
-
   document.getElementById("kpiCA").textContent = caTotal.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0}) + " €";
   document.getElementById("kpiNb").textContent = nb;
   document.getElementById("kpiMoyen").textContent = moyen.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0}) + " €";
   document.getElementById("kpiBestMonth").textContent = bestMois ? bestMois[0] : "—";
 
-  // ── Courbe CA mensuel
-  // Construire les labels mois dans l'ordre chronologique
-  const anneeFiltre = document.getElementById("statsAnnee").value;
   const moisFiltre = document.getElementById("statsMois").value;
-
   let labels = [], values = [];
   if (moisFiltre) {
-    // Un seul mois sélectionné : afficher par année
     const byAnnee = {};
     data.forEach(d => { byAnnee[d.annee] = (byAnnee[d.annee]||0)+d.ttc; });
     labels = Object.keys(byAnnee).sort();
     values = labels.map(a => byAnnee[a]);
   } else {
-    // Afficher par mois
     const byKey = {};
-    data.forEach(d => {
-      const k = `${d.annee}-${String(d.mois).padStart(2,"0")}`;
-      byKey[k] = (byKey[k]||0)+d.ttc;
-    });
+    data.forEach(d => { const k = `${d.annee}-${String(d.mois).padStart(2,"0")}`; byKey[k] = (byKey[k]||0)+d.ttc; });
     const sorted = Object.keys(byKey).sort();
     labels = sorted.map(k => { const [a,m] = k.split("-"); return MOIS_LABELS[parseInt(m)-1]+" "+a; });
     values = sorted.map(k => byKey[k]);
@@ -1551,63 +1686,36 @@ function renderStats() {
     data: {
       labels,
       datasets: [{
-        label: "CA TTC (€)",
-        data: values,
-        borderColor: "#34d399",
-        backgroundColor: "rgba(52,211,153,0.08)",
-        borderWidth: 2.5,
-        pointBackgroundColor: "#34d399",
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        tension: 0.35,
-        fill: true
+        label: "CA TTC (€)", data: values,
+        borderColor: "#34d399", backgroundColor: "rgba(52,211,153,0.08)",
+        borderWidth: 2.5, pointBackgroundColor: "#34d399",
+        pointRadius: 5, pointHoverRadius: 7, tension: 0.35, fill: true
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(14,24,18,0.95)",
-          borderColor: "rgba(52,211,153,0.3)",
-          borderWidth: 1,
-          titleColor: "#8fbfa0",
-          bodyColor: "#e8f5ee",
-          callbacks: {
-            label: ctx => " " + ctx.parsed.y.toLocaleString("fr-FR",{minimumFractionDigits:2}) + " €"
-          }
+          backgroundColor: "rgba(14,24,18,0.95)", borderColor: "rgba(52,211,153,0.3)", borderWidth: 1,
+          titleColor: "#8fbfa0", bodyColor: "#e8f5ee",
+          callbacks: { label: ctx => " " + ctx.parsed.y.toLocaleString("fr-FR",{minimumFractionDigits:2}) + " €" }
         }
       },
       scales: {
-        x: {
-          grid: { color: "rgba(52,211,153,0.06)" },
-          ticks: { color: "#4d7a5e", font: { size: 11 } }
-        },
-        y: {
-          grid: { color: "rgba(52,211,153,0.06)" },
-          ticks: {
-            color: "#4d7a5e", font: { size: 11 },
-            callback: v => v.toLocaleString("fr-FR",{maximumFractionDigits:0}) + " €"
-          },
-          beginAtZero: true
-        }
+        x: { grid: { color: "rgba(52,211,153,0.06)" }, ticks: { color: "#4d7a5e", font: { size: 11 } } },
+        y: { grid: { color: "rgba(52,211,153,0.06)" }, ticks: { color: "#4d7a5e", font: { size: 11 }, callback: v => v.toLocaleString("fr-FR",{maximumFractionDigits:0}) + " €" }, beginAtZero: true }
       }
     }
   });
 
-  // ── Top 5 clients
   const byClient = {};
   data.forEach(d => { byClient[d.client] = (byClient[d.client]||0)+d.ttc; });
   const top5 = Object.entries(byClient).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const maxVal = top5[0] ? top5[0][1] : 1;
   const medals = ["🥇","🥈","🥉","4️⃣","5️⃣"];
-
   const top5El = document.getElementById("statsTop5");
-  if (top5.length === 0) {
-    top5El.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Aucune donnée</div>';
-    return;
-  }
+  if (top5.length === 0) { top5El.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Aucune donnée</div>'; return; }
   top5El.innerHTML = top5.map(([client, ca], i) => `
     <div style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
@@ -1688,5 +1796,3 @@ if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
 
 </body>
 </html>
-
-
