@@ -1327,7 +1327,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 // PWA INSTALL BANNER
 // ══════════════════════════════════════════════
 let deferredPrompt = null;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const isAndroid = /android/i.test(navigator.userAgent);
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
@@ -1339,81 +1338,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
   }
 });
 
-function showPWABanner(type) {
-  const sub = document.getElementById("pwaBannerSub");
-  if (isIOS) sub.textContent = "Appuyez sur Partager puis 'Sur l'écran d'accueil'";
-  else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
-  else sub.textContent = "Installez l'app sur votre bureau";
-  document.getElementById("pwaBanner").style.display = "block";
-}
-
-function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      document.getElementById("pwaBanner").style.display = "none";
-    });
-  } else if (isIOS) {
-    alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter");
-    document.getElementById("pwaBanner").style.display = "none";
-  }
-}
-
-function dismissPWA() {
-  sessionStorage.setItem("pwaDismissed", "1");
-  document.getElementById("pwaBanner").style.display = "none";
-}
-
-// Sur iOS afficher quand même si pas standalone
-if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-  setTimeout(() => {
-    document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment";
-    showPWABanner("ios");
-  }, 3000);
-}
-
-</script>
-
-<!-- PWA INSTALL BANNER -->
-<div id="pwaBanner">
-  <div class="pwa-icon">📲</div>
-  <div class="pwa-text">
-    <strong>Installer INVOICEO</strong>
-    <span id="pwaBannerSub">Ajoutez l'app sur votre écran d'accueil</span>
-  </div>
-  <div class="pwa-actions">
-    <button class="btn btn-primary" id="pwaBannerBtn" onclick="installPWA()" style="padding:8px 14px;font-size:12px">Installer</button>
-    <button class="btn btn-ghost" onclick="dismissPWA()" style="padding:8px 12px;font-size:12px">Plus tard</button>
-  </div>
-</div>
-
-<script>
-let deferredPrompt = null;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isAndroid = /android/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem('pwaDismissed')) {
-    setTimeout(() => showPWABanner(), 3000);
-  }
-});
-
 function showPWABanner() {
-  const sub = document.getElementById('pwaBannerSub');
-  if (isIOS) {
-    sub.textContent = "Appuyez sur Partager puis 'Sur l’écran d’accueil'";
-    document.getElementById('pwaBannerBtn').textContent = 'Voir comment';
-    document.getElementById('pwaBannerBtn').onclick = () => {
-      alert("Sur iPhone/iPad :
-1. Appuyez sur l'icône Partager ⧆
-2. Faites défiler et appuyez sur 'Sur l'écran d'accueil'
-3. Appuyez sur 'Ajouter'");
-    };
-  }
   document.getElementById('pwaBanner').classList.add('visible');
 }
 
@@ -1429,10 +1354,7 @@ function dismissPWA() {
   document.getElementById('pwaBanner').classList.remove('visible');
 }
 
-// iOS : afficher si pas standalone et pas dismissé
-if (isIOS && !isStandalone && !sessionStorage.getItem('pwaDismissed')) {
-  setTimeout(() => showPWABanner(), 3000);
-}
+
 </script>
 
 </body>
