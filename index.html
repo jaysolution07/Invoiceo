@@ -1327,35 +1327,41 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 // PWA INSTALL BANNER
 // ══════════════════════════════════════════════
 let deferredPrompt = null;
-const isAndroid = /android/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+const isStandalone = 
+  window.matchMedia("(display-mode: standalone)").matches || 
+  window.navigator.standalone === true;
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-    setTimeout(() => showPWABanner("desktop"), 3000);
+    setTimeout(() => showPWABanner(), 3000);
   }
 });
 
 function showPWABanner() {
-  document.getElementById('pwaBanner').classList.add('visible');
+  const banner = document.getElementById('pwaBanner');
+  banner.style.transform = 'translateX(-50%) translateY(0)';
+}
+
+function dismissPWA() {
+  sessionStorage.setItem('pwaDismissed', '1');
+  const banner = document.getElementById('pwaBanner');
+  banner.style.transform = 'translateX(-50%) translateY(200%)';
 }
 
 function installPWA() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPWA(); });
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      dismissPWA();
+    });
   }
 }
-
-function dismissPWA() {
-  sessionStorage.setItem('pwaDismissed', '1');
-  document.getElementById('pwaBanner').classList.remove('visible');
-}
-
 
 </script>
 
 </body>
 </html>
+
