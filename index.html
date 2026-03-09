@@ -530,33 +530,72 @@ async function doLogin(btn) {
   errEl.classList.remove("visible");
   if (!email || !password) { errEl.textContent = "Veuillez remplir tous les champs"; errEl.classList.add("visible"); return; }
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
-  const cbName = "cb_" + Date.now();
-  const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
-  new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 12000);
-    window[cbName] = (data) => { cleanup(); resolve(data); };
-    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
-    script.onerror = () => { cleanup(); reject(new Error("Script error")); };
-    script.src = url;
-    document.head.appendChild(script);
-  }).then(data => {
-    if (data.success && data.webapp_url) {
+
+  // Tentative JSONP (fonctionne partout sauf Safari strict)
+  function tryJSONP(email, password) {
+    return new Promise((resolve, reject) => {
+      const cbName = "cb_" + Date.now();
+      const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=${cbName}`;
+      const script = document.createElement("script");
+      const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 10000);
+      window[cbName] = (data) => { cleanup(); resolve(data); };
+      function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+      script.onerror = () => { cleanup(); reject(new Error("Script error")); };
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
+  // Fallback fetch direct (fonctionne si GAS a les bons headers CORS)
+  async function tryFetch(email, password) {
+    const url = `${MASTER_URL}?login=1&email=${encodeURIComponent(email)}&mdp=${encodeURIComponent(password)}&callback=_`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      const text = await res.text();
+      // GAS répond avec _({...}) — on extrait le JSON
+      const json = text.replace(/^[^(]+\(/, "").replace(/\);?\s*$/, "");
+      return JSON.parse(json);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  const handleSuccess = (data) => {
+    if (data && data.success && data.webapp_url) {
       WEBAPP_URL = data.webapp_url;
       sessionStorage.setItem("invoiceo_url", WEBAPP_URL);
       sessionStorage.setItem("invoiceo_email", email);
       sessionStorage.setItem("invoiceo_name", data.name || email);
       onLoginSuccess(data.name || email);
-    } else {
-      errEl.textContent = "Email ou mot de passe incorrect";
-      errEl.classList.add("visible");
-      btn.innerHTML = old; btn.disabled = false;
+      return true;
     }
-  }).catch(() => {
-    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
+    return false;
+  };
+
+  const handleError = (msg) => {
+    errEl.textContent = msg;
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
-  });
+  };
+
+  // 1. Essai JSONP
+  try {
+    const data = await tryJSONP(email, password);
+    if (handleSuccess(data)) return;
+    handleError("Email ou mot de passe incorrect");
+  } catch(e1) {
+    // JSONP a échoué (Safari, blocage réseau...) → fallback fetch
+    try {
+      const data = await tryFetch(email, password);
+      if (handleSuccess(data)) return;
+      handleError("Email ou mot de passe incorrect");
+    } catch(e2) {
+      handleError("Erreur de connexion — vérifiez votre réseau et réessayez");
+    }
+  }
 }
 
 function onLoginSuccess(name) {
@@ -1036,9 +1075,7 @@ function showPage(id) {
 }
 
 function saveInfos(btn) {
-  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"infos",nom:info_nom.value,adresse:info_adresse.value,siret:info_siret.value,tva:info_tva.value}),mode:"no-cors"})
-    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("✅ Infos enregistrées"); });
+  saveFireAndForget({type:"infos",nom:info_nom.value,adresse:info_adresse.value,siret:info_siret.value,tva:info_tva.value}, "✅ Infos enregistrées", btn);
 }
 
 function uploadLogo(btn) {
@@ -1212,10 +1249,20 @@ function calculate() {
   totalHT.textContent=ht.toFixed(2)+" €"; montantRemise.textContent=remVal.toFixed(2)+" €";
   totalApresRemise.textContent=htA.toFixed(2)+" €"; montantTVA.textContent=totalTVA.toFixed(2)+" €"; totalTTC.textContent=ttc.toFixed(2)+" €";
 }
+// Enregistrement avec timeout 2s max
+function saveFireAndForget(payload, successMsg, btn) {
+  const old = btn ? btn.innerHTML : null;
+  if (btn) { btn.innerHTML = "⏳..."; btn.disabled = true; }
+  const timeout = new Promise(r => setTimeout(r, 2000));
+  const request = fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify(payload), mode:"no-cors" }).catch(()=>{});
+  Promise.race([request, timeout]).finally(() => {
+    if (btn) { btn.innerHTML = old; btn.disabled = false; }
+    alert(successMsg);
+  });
+}
+
 function saveDevis(btn) {
-  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}),mode:"no-cors"})
-    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Devis enregistré ✅"); });
+  saveFireAndForget({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}, "Devis enregistré ✅", btn);
 }
 function transformerEnFacture() {
   devisFacture.lignes=JSON.parse(JSON.stringify(devis.lignes));
@@ -1263,9 +1310,7 @@ function calculateFacture() {
   totalApresRemiseFacture.textContent=htA.toFixed(2)+" €"; montantTVAFacture.textContent=totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent=ttc.toFixed(2)+" €";
 }
 function saveFacture(btn) {
-  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}),mode:"no-cors"})
-    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("Facture enregistrée ✅"); });
+  saveFireAndForget({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}, "Facture enregistrée ✅", btn);
 }
 function transformerEnBL() {
   devisBL.lignes=devisFacture.lignes.map(l=>({designation:l.designation,quantite:l.quantite}));
@@ -1301,9 +1346,7 @@ function loadNumeroBL() {
   }).catch(()=>{numeroBL.value=`BL-${new Date().getFullYear()}-1`;});
 }
 function saveBL(btn) {
-  const old=btn.innerHTML; btn.innerHTML="⏳ Enregistrement..."; btn.disabled=true;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}),mode:"no-cors"})
-    .finally(()=>{ btn.innerHTML=old; btn.disabled=false; alert("BL enregistré ✅"); });
+  saveFireAndForget({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}, "BL enregistré ✅", btn);
 }
 
 const HISTO_CONFIG = {
