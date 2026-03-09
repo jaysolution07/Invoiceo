@@ -713,21 +713,37 @@ Règles STRICTES :
 - Si le client dit "modifier", "changer", "mettre à jour" : traite quand même les nouvelles informations normalement`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
-        })
-      }
-    );
-    const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-    remplirDepuisGemini(parsed);
+const res = await fetch(
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body:JSON.stringify({
+    contents:[{ parts:[{ text:prompt }] }],
+    generationConfig:{
+      temperature:0.1,
+      maxOutputTokens:1000
+    }
+  })
+});
+
+const data = await res.json();
+
+if (!data.candidates) {
+  throw new Error("Réponse Gemini invalide");
+}
+
+const raw = data.candidates[0].content.parts[0].text;
+
+let jsonMatch = raw.match(/\{[\s\S]*\}/);
+
+if (!jsonMatch) {
+  throw new Error("JSON introuvable");
+}
+
+const parsed = JSON.parse(jsonMatch[0]);
+
+remplirDepuisGemini(parsed);
     statusEl.textContent = "✅ Champs remplis avec succès !";
   } catch(err) {
     console.error(err);
@@ -738,13 +754,54 @@ Règles STRICTES :
 }
 
 function remplirDepuisGemini(data) {
-  // ── Client
-  if (data.client && data.client.trim()) {
-    if (documentActif === "devis") document.getElementById("clientInput").value = data.client;
-    else if (documentActif === "facture") document.getElementById("clientInputFacture").value = data.client;
-    else if (documentActif === "bl") document.getElementById("clientInputBL").value = data.client;
+// ── Client
+if (data.client && data.client.trim()) {
+
+  const clientGemini = data.client.trim().toLowerCase();
+
+  let clientTrouve = null;
+
+  for (let c of clientsList) {
+
+    const base = c.toLowerCase();
+
+    // match direct
+    if (base.includes(clientGemini) || clientGemini.includes(base)) {
+      clientTrouve = c;
+      break;
+    }
+
+    // match par mots (fabien botté vs botté fabien)
+    const motsGemini = clientGemini.split(" ");
+    const motsBase = base.split(" ");
+
+    const match = motsGemini.some(m =>
+      motsBase.includes(m)
+    );
+
+    if (match) {
+      clientTrouve = c;
+      break;
+    }
+
   }
 
+  const clientFinal = clientTrouve || data.client;
+
+  if (documentActif === "devis")
+    document.getElementById("clientInput").value = clientFinal;
+
+  else if (documentActif === "facture")
+    document.getElementById("clientInputFacture").value = clientFinal;
+
+  else if (documentActif === "bl")
+    document.getElementById("clientInputBL").value = clientFinal;
+
+  if (!clientTrouve) {
+    document.getElementById(getActiveStatusId()).textContent =
+      "⚠️ Nouveau client détecté";
+  }
+}
   // ── Lignes
   if (data.lignes && data.lignes.length > 0) {
     if (documentActif === "devis") {
@@ -1631,4 +1688,5 @@ if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
 
 </body>
 </html>
+
 
