@@ -500,7 +500,7 @@ async function doLogin(btn) {
     if (isIOSDevice) {
       // iOS Safari bloque JSONP cross-origin → proxy
       const target = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password);
-      const proxy = "https://corsproxy.io/?" + encodeURIComponent(target);
+      const proxy = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(target);
       fetch(proxy).then(r => r.json()).then(resolve).catch(reject);
     } else {
       // Autres navigateurs → JSONP
