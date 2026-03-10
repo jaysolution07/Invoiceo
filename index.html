@@ -164,9 +164,96 @@
   .modal-close:hover { color:var(--text); }
   .mail-sent-badge { background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--accent); margin-top:14px; display:none; text-align:center; }
   .mail-sent-badge.visible { display:block; }
+
+  /* ══ SKELETON LOADER ══ */
+  @keyframes shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position:  600px 0; }
+  }
+  .skeleton-wrap { padding: 4px 0; }
+  .skeleton-row {
+    display: flex; gap: 12px; margin-bottom: 10px;
+  }
+  .skel {
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+    flex-shrink: 0;
+  }
+  .skel-full  { height: 36px; flex: 1; }
+  .skel-short { height: 36px; width: 80px; }
+  .skel-line  { height: 14px; flex: 1; border-radius: 6px; }
+  .skel-line-sm { height: 12px; width: 60%; border-radius: 6px; }
+  .skel-header { height: 20px; width: 40%; margin-bottom: 14px; border-radius: 8px;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
+
+  /* ══ TOAST ══ */
+  #toastContainer { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:500; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+  .toast { background:rgba(14,24,18,0.96); backdrop-filter:blur(16px); border:1px solid var(--border2); border-radius:30px; padding:10px 20px; font-size:13px; color:var(--text); box-shadow:0 8px 30px rgba(0,0,0,0.5); display:flex; align-items:center; gap:8px; animation: toast-in 0.3s cubic-bezier(0.4,0,0.2,1); white-space:nowrap; }
+  .toast.success { border-color:rgba(52,211,153,0.4); }
+  .toast.error   { border-color:rgba(244,63,94,0.4); color:#fca5a5; }
+  @keyframes toast-in { from { opacity:0; transform:translateY(10px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes toast-out { from { opacity:1; transform:translateY(0) scale(1); } to { opacity:0; transform:translateY(10px) scale(0.95); } }
+  .toast.leaving { animation: toast-out 0.25s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+  /* ══ CLIENT INPUT LOADING STATE ══ */
+  .client-input-wrap { position: relative; }
+  .client-loading-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background-size: 200% 100%;
+    animation: client-bar 1.2s ease-in-out infinite;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .client-loading-bar.visible { opacity: 1; }
+  @keyframes client-bar {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .client-count-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--text-3); margin-top: 4px;
+    transition: opacity 0.3s;
+  }
+  .client-count-badge.loaded { color: var(--accent); }
+
+  /* ══ SKELETON BLOCS (cards, chart, KPI) ══ */
+  .skel-block {
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
+  .skel-kpi { height: 32px; width: 70%; margin: 0 auto; }
+  .skel-chart { height: 200px; width: 100%; border-radius: 8px; }
+  .skel-bar { height: 14px; border-radius: 6px; margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
+  .skel-input { height: 38px; width: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
+
+  /* ══ NEW ROW FLASH ══ */
+  @keyframes row-flash {
+    0%   { background:rgba(52,211,153,0.18); }
+    100% { background:transparent; }
+  }
+  .row-new td { animation: row-flash 1.2s ease forwards; }
 </style>
 </head>
 <body>
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div id="toastContainer"></div>
 
 <!-- ══ LOGIN PAGE ══ -->
 <div id="loginShell" class="login-shell">
@@ -354,7 +441,6 @@
         <div><label>N° Devis</label><input id="numeroDevis" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDot"></div>
         <div style="flex:1">
@@ -364,7 +450,11 @@
         <button class="btn btn-primary" id="btnMicro" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
-      <input id="clientInput" placeholder="Tapez pour rechercher un client...">
+      <div class="client-input-wrap">
+        <input id="clientInput" placeholder="Chargement des clients...">
+        <div class="client-loading-bar" id="clientLoadingBarDevis"></div>
+      </div>
+      <div class="client-count-badge" id="clientCountDevis">⏳ Chargement...</div>
       <div id="clientSuggestions"></div>
       <div class="section-label">Lignes de commande</div>
       <div id="lines"></div>
@@ -403,7 +493,6 @@
         <div><label>N° Facture</label><input id="numeroFacture" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDotFacture"></div>
         <div style="flex:1">
@@ -413,7 +502,11 @@
         <button class="btn btn-primary" id="btnMicroFacture" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
-      <input id="clientInputFacture" placeholder="Tapez pour rechercher un client...">
+      <div class="client-input-wrap">
+        <input id="clientInputFacture" placeholder="Chargement des clients...">
+        <div class="client-loading-bar" id="clientLoadingBarFacture"></div>
+      </div>
+      <div class="client-count-badge" id="clientCountFacture">⏳ Chargement...</div>
       <div id="clientSuggestionsFacture"></div>
       <div class="section-label">Lignes de facturation</div>
       <div id="linesFacture"></div>
@@ -531,7 +624,6 @@
         <div><label>N° BL</label><input id="numeroBL" readonly></div>
       </div>
       <div class="divider"></div>
-      <!-- ══ VOICE CARD ══ -->
       <div class="voice-card">
         <div class="voice-dot" id="voiceDotBL"></div>
         <div style="flex:1">
@@ -541,7 +633,11 @@
         <button class="btn btn-primary" id="btnMicroBL" onclick="startVoice()" style="padding:8px 12px;font-size:12px">🎤 Parler</button>
       </div>
       <label>Client</label>
-      <input id="clientInputBL" placeholder="Tapez pour rechercher un client...">
+      <div class="client-input-wrap">
+        <input id="clientInputBL" placeholder="Chargement des clients...">
+        <div class="client-loading-bar" id="clientLoadingBarBL"></div>
+      </div>
+      <div class="client-count-badge" id="clientCountBL">⏳ Chargement...</div>
       <div id="clientSuggestionsBL"></div>
       <label style="margin-top:12px">Référence Facture associée</label>
       <input id="refFactureBL" placeholder="FAC-2026-1">
@@ -564,6 +660,40 @@ const MASTER_URL = "https://script.google.com/macros/s/AKfycbxjdreF1iCdeRu2IiCgs
 let WEBAPP_URL = "";
 
 // ══════════════════════════════════════════════
+// TOAST SYSTEM
+// ══════════════════════════════════════════════
+function showToast(msg, type = "success", duration = 2800) {
+  const container = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("leaving");
+    el.addEventListener("animationend", () => el.remove(), { once: true });
+  }, duration);
+}
+
+// ══════════════════════════════════════════════
+// SKELETON HELPERS
+// ══════════════════════════════════════════════
+function skeletonRows(n, cols) {
+  let html = "";
+  for (let i = 0; i < n; i++) {
+    html += "<tr>";
+    for (let j = 0; j < cols; j++) {
+      html += `<td><div class="skel skel-line${j === 0 ? "" : "-sm"}"></div></td>`;
+    }
+    html += "</tr>";
+  }
+  return html;
+}
+
+function showTableSkeleton(tbodyId, cols, rows = 4) {
+  document.getElementById(tbodyId).innerHTML = skeletonRows(rows, cols);
+}
+
+// ══════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════
 async function doLogin(btn) {
@@ -580,19 +710,10 @@ async function doLogin(btn) {
       const url = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password) + "&callback=" + cbName;
       const script = document.createElement("script");
       let done = false;
-      const timer = setTimeout(() => {
-        if (done) return; done = true; cleanup(); reject(new Error("Timeout"));
-      }, timeoutMs);
-      window[cbName] = (data) => {
-        if (done) return; done = true; cleanup(); resolve(data);
-      };
-      function cleanup() {
-        clearTimeout(timer); delete window[cbName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-      }
-      script.onerror = () => {
-        if (done) return; done = true; cleanup(); reject(new Error("Script error"));
-      };
+      const timer = setTimeout(() => { if (done) return; done = true; cleanup(); reject(new Error("Timeout")); }, timeoutMs);
+      window[cbName] = (data) => { if (done) return; done = true; cleanup(); resolve(data); };
+      function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+      script.onerror = () => { if (done) return; done = true; cleanup(); reject(new Error("Script error")); };
       document.head.appendChild(script);
       setTimeout(() => { script.src = url; }, 50);
     });
@@ -651,7 +772,7 @@ function doLogout() {
 })();
 
 // ══════════════════════════════════════════════
-// COMMANDE VOCALE NATIVE (sans IA)
+// COMMANDE VOCALE NATIVE
 // ══════════════════════════════════════════════
 let voiceRecognition = null;
 let isRecording = false;
@@ -692,10 +813,7 @@ function startVoice() {
     stopVoice();
     parserVoice(transcript);
   };
-  voiceRecognition.onerror = () => {
-    stopVoice();
-    document.getElementById(getActiveStatusId()).textContent = "Erreur micro — réessayez";
-  };
+  voiceRecognition.onerror = () => { stopVoice(); document.getElementById(getActiveStatusId()).textContent = "Erreur micro — réessayez"; };
   voiceRecognition.onend = () => stopVoice();
   voiceRecognition.start();
 }
@@ -709,99 +827,64 @@ function stopVoice() {
   if (btnEl) btnEl.innerHTML = "🎤 Parler";
 }
 
-// ── Parser vocal natif : extrait client, lignes, remise, TVA, validité, délai
 function parserVoice(texte) {
   const t = texte.toLowerCase();
   const statusEl = document.getElementById(getActiveStatusId());
-
-  // ── 1. Client : cherche "pour [nom]" ou "client [nom]" ou match direct dans la liste
   let clientTrouve = "";
   const matchPour = t.match(/(?:pour|client|destinataire)\s+([a-zàâäéèêëîïôùûü\s\-]+?)(?:\s+(?:livraison|facture|devis|article|produit|quantit|prix|\d|remise|tva|valable|paiement|$))/i);
   if (matchPour) {
     const candidat = matchPour[1].trim();
     clientTrouve = trouverClientDansListe(candidat) || candidat;
   } else {
-    // Tentative de match direct dans la liste des clients
     for (let c of clientsList) {
       if (t.includes(c.toLowerCase())) { clientTrouve = c; break; }
     }
   }
-
-  // ── 2. Lignes : parse "X [produit] à Y euros" / "Y euros de [produit]" / "[quantité] [produit] à [prix]"
   const lignes = [];
-  // Pattern principal : (quantité) description (à/pour/au prix de) prix (euros/€) (tva X%)
   const regexLigne = /(\d+(?:[.,]\d+)?)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]+?)\s+(?:à|au prix de|pour)\s+(\d+(?:[.,]\d+)?)\s*(?:euros?|€)?(?:\s+tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?)?/gi;
   let m;
   while ((m = regexLigne.exec(t)) !== null) {
-    const qte = parseFloat(m[1].replace(",","."));
-    const desc = capitaliser(m[2].trim());
-    const prix = parseFloat(m[3].replace(",","."));
-    const tva = m[4] ? parseFloat(m[4].replace(",",".")) : (t.includes("sans tva") || t.includes("tva 0") ? 0 : 20);
+    const qte = parseFloat(m[1].replace(",",".")), desc = capitaliser(m[2].trim()), prix = parseFloat(m[3].replace(",","."));
+    const tva = m[4] ? parseFloat(m[4].replace(",",".")) : (t.includes("sans tva")||t.includes("tva 0") ? 0 : 20);
     if (desc && !isNaN(prix)) lignes.push({ designation: desc, quantite: qte||1, prix, tva: String(tva) });
   }
-
-  // Pattern secondaire : "[prix] euros de [description]"
   if (lignes.length === 0) {
     const regexAlt = /(\d+(?:[.,]\d+)?)\s*(?:euros?|€)\s+(?:de|d'|pour)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]+?)(?:\s+tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?)?(?:\s|$)/gi;
     while ((m = regexAlt.exec(t)) !== null) {
-      const prix = parseFloat(m[1].replace(",","."));
-      const desc = capitaliser(m[2].trim());
+      const prix = parseFloat(m[1].replace(",",".")), desc = capitaliser(m[2].trim());
       const tva = m[3] ? parseFloat(m[3].replace(",",".")) : (t.includes("sans tva") ? 0 : 20);
       if (desc && !isNaN(prix)) lignes.push({ designation: desc, quantite: 1, prix, tva: String(tva) });
     }
   }
-
-  // Pattern BL simple : "X [produit]" sans prix
   if (documentActif === "bl" && lignes.length === 0) {
     const regexBL = /(\d+)\s+([a-zàâäéèêëîïôùûü][a-zàâäéèêëîïôùûü\s\-\/]{2,30}?)(?:\s+(?:et|,|\d|$))/gi;
     while ((m = regexBL.exec(t)) !== null) {
-      const qte = parseInt(m[1]);
-      const desc = capitaliser(m[2].trim());
+      const qte = parseInt(m[1]), desc = capitaliser(m[2].trim());
       if (desc.length > 2) lignes.push({ designation: desc, quantite: qte||1 });
     }
   }
-
-  // ── 3. Remise
   let remiseVal = 0;
   const matchRemise = t.match(/(\d+(?:[.,]\d+)?)\s*%?\s*(?:de\s+)?remise/);
   if (matchRemise) remiseVal = parseFloat(matchRemise[1].replace(",","."));
-
-  // ── 4. TVA globale
   let tvaGlobale = null;
-  if (t.includes("sans tva") || t.includes("tva 0") || t.includes("tva zéro")) tvaGlobale = "0";
+  if (t.includes("sans tva")||t.includes("tva 0")||t.includes("tva zéro")) tvaGlobale = "0";
   else { const mt = t.match(/tva\s+(?:à\s+)?(\d+(?:[.,]\d+)?)%?/); if (mt) tvaGlobale = mt[1].replace(",","."); }
   if (tvaGlobale !== null && lignes.length > 0) lignes.forEach(l => { l.tva = tvaGlobale; });
-
-  // ── 5. Validité (devis)
   let validite = "";
   const matchVal = t.match(/valable?\s+(?:jusqu'?au?\s+)?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
   if (matchVal) validite = matchVal[1].replace(/-/g,"/");
-  else {
-    const matchJours = t.match(/valable?\s+(\d+)\s+jours?/);
-    if (matchJours) {
-      const d = new Date(); d.setDate(d.getDate() + parseInt(matchJours[1]));
-      validite = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-    }
-  }
-
-  // ── 6. Délai paiement (facture)
+  else { const matchJours = t.match(/valable?\s+(\d+)\s+jours?/); if (matchJours) { const d = new Date(); d.setDate(d.getDate()+parseInt(matchJours[1])); validite = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; } }
   let delai = "";
   const matchDelai = t.match(/(?:paiement|régl[a-z]+)\s+(?:à\s+)?(\d+)\s+jours?/);
   if (matchDelai) delai = matchDelai[1];
-
-  // ── Appliquer
   const result = { client: clientTrouve, lignes, remise: remiseVal, validite, delai_paiement: delai };
   remplirDepuisVoice(result);
-
-  const nbLignes = lignes.length;
-  statusEl.textContent = nbLignes > 0
-    ? `✅ ${nbLignes} ligne(s) détectée(s)${clientTrouve ? " · " + clientTrouve : ""}`
+  statusEl.textContent = lignes.length > 0
+    ? `✅ ${lignes.length} ligne(s) détectée(s)${clientTrouve ? " · " + clientTrouve : ""}`
     : `⚠️ Aucune ligne reconnue — essayez : "3 tables à 50 euros"`;
 }
 
-function capitaliser(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
+function capitaliser(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 
 function trouverClientDansListe(candidat) {
   const c = candidat.toLowerCase();
@@ -815,32 +898,20 @@ function trouverClientDansListe(candidat) {
 }
 
 function remplirDepuisVoice(data) {
-  // Client
   if (data.client && data.client.trim()) {
     if (documentActif === "devis") document.getElementById("clientInput").value = data.client;
     else if (documentActif === "facture") document.getElementById("clientInputFacture").value = data.client;
     else if (documentActif === "bl") document.getElementById("clientInputBL").value = data.client;
   }
-  // Lignes
   if (data.lignes && data.lignes.length > 0) {
-    if (documentActif === "devis") {
-      devis.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) }));
-      render(); calculate();
-    } else if (documentActif === "facture") {
-      devisFacture.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) }));
-      renderFacture(); calculateFacture();
-    } else if (documentActif === "bl") {
-      devisBL.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1 }));
-      renderBL();
-    }
+    if (documentActif === "devis") { devis.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) })); render(); calculate(); }
+    else if (documentActif === "facture") { devisFacture.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1, prix: Number(l.prix||0), tva: String(l.tva ?? 20) })); renderFacture(); calculateFacture(); }
+    else if (documentActif === "bl") { devisBL.lignes = data.lignes.map(l => ({ designation: l.designation||"", quantite: Number(l.quantite)||1 })); renderBL(); }
   }
-  // Remise
   const remiseVal = Number(data.remise) || 0;
   if (documentActif === "devis") { document.getElementById("remise").value = remiseVal > 0 ? remiseVal : ""; calculate(); }
   else if (documentActif === "facture") { document.getElementById("remiseFacture").value = remiseVal > 0 ? remiseVal : ""; calculateFacture(); }
-  // Validité
   if (documentActif === "devis" && data.validite) document.getElementById("validiteDevis").value = data.validite;
-  // Délai
   if (documentActif === "facture" && data.delai_paiement) document.getElementById("delaiPaiementFacture").value = data.delai_paiement;
 }
 
@@ -858,146 +929,50 @@ async function ouvrirMailModal(type) {
   badge.classList.remove("visible");
   document.getElementById("btnSendMail").innerHTML = "📤 Envoyer";
   document.getElementById("btnSendMail").disabled = false;
-
   let client = "", numero = "", date = "", lignes = [], remise = 0, ttc = "0.00 €", extra = "", validite = "", delaiPaiement = "", refFacture = "";
-
-  if (type === "devis") {
-    client        = document.getElementById("clientInput").value;
-    numero        = document.getElementById("numeroDevis").value;
-    date          = document.getElementById("dateDevis").value;
-    lignes        = devis.lignes;
-    remise        = Number(document.getElementById("remise").value) || 0;
-    ttc           = document.getElementById("totalTTC").textContent;
-    validite      = document.getElementById("validiteDevis").value;
-    extra         = validite ? "Validité : " + validite : "";
-  } else if (type === "facture") {
-    client        = document.getElementById("clientInputFacture").value;
-    numero        = document.getElementById("numeroFacture").value;
-    date          = document.getElementById("dateFacture").value;
-    lignes        = devisFacture.lignes;
-    remise        = Number(document.getElementById("remiseFacture").value) || 0;
-    ttc           = document.getElementById("totalTTCFacture").textContent;
-    delaiPaiement = document.getElementById("delaiPaiementFacture").value;
-    extra         = delaiPaiement ? "Délai paiement : " + delaiPaiement + " jours" : "";
-  } else if (type === "bl") {
-    client        = document.getElementById("clientInputBL").value;
-    numero        = document.getElementById("numeroBL").value;
-    date          = document.getElementById("dateBL").value;
-    lignes        = devisBL.lignes;
-    refFacture    = document.getElementById("refFactureBL").value;
-    extra         = refFacture ? "Réf. facture : " + refFacture : "";
-  }
-
-  // Stocker pour l'envoi
+  if (type === "devis") { client = document.getElementById("clientInput").value; numero = document.getElementById("numeroDevis").value; date = document.getElementById("dateDevis").value; lignes = devis.lignes; remise = Number(document.getElementById("remise").value)||0; ttc = document.getElementById("totalTTC").textContent; validite = document.getElementById("validiteDevis").value; extra = validite ? "Validité : "+validite : ""; }
+  else if (type === "facture") { client = document.getElementById("clientInputFacture").value; numero = document.getElementById("numeroFacture").value; date = document.getElementById("dateFacture").value; lignes = devisFacture.lignes; remise = Number(document.getElementById("remiseFacture").value)||0; ttc = document.getElementById("totalTTCFacture").textContent; delaiPaiement = document.getElementById("delaiPaiementFacture").value; extra = delaiPaiement ? "Délai paiement : "+delaiPaiement+" jours" : ""; }
+  else if (type === "bl") { client = document.getElementById("clientInputBL").value; numero = document.getElementById("numeroBL").value; date = document.getElementById("dateBL").value; lignes = devisBL.lignes; refFacture = document.getElementById("refFactureBL").value; extra = refFacture ? "Réf. facture : "+refFacture : ""; }
   mailDocData = { type, client, numero, date, lignes, remise, validite, delaiPaiement, refFacture };
-
   const typeLabel = { devis: "Devis", facture: "Facture", bl: "Bon de Livraison" }[type] || type;
-
-  // Récupérer l'email du client depuis la base
   let emailClient = "";
-  try {
-    const res = await fetch(WEBAPP_URL + "?clientsAll=1");
-    const clients = await res.json();
-    const found = clients.find(r => r[1] === client);
-    if (found) emailClient = found[3] || "";
-  } catch(e) {}
-
+  try { const res = await fetch(WEBAPP_URL+"?clientsAll=1"); const clients = await res.json(); const found = clients.find(r => r[1] === client); if (found) emailClient = found[3]||""; } catch(e) {}
   const lignesHtml = lignes.filter(l => l.designation && l.designation.trim())
-    .map(l => `<div class="modal-ligne">• ${l.designation}${l.quantite ? " × " + l.quantite : ""}${l.prix ? " — " + Number(l.prix).toFixed(2) + " €" : ""}</div>`)
+    .map(l => `<div class="modal-ligne">• ${l.designation}${l.quantite ? " × "+l.quantite : ""}${l.prix ? " — "+Number(l.prix).toFixed(2)+" €" : ""}</div>`)
     .join("") || '<div class="modal-ligne" style="color:var(--text-3);font-style:italic">Aucune ligne</div>';
-
-  recap.innerHTML = `
-    <div class="modal-recap-row"><span>Type</span><strong>${typeLabel}</strong></div>
-    <div class="modal-recap-row"><span>Numéro</span><strong>${numero || "—"}</strong></div>
-    <div class="modal-recap-row"><span>Date</span><strong>${date || "—"}</strong></div>
-    <div class="modal-recap-row"><span>Destinataire</span><strong>${client || "—"}</strong></div>
-    <div class="modal-recap-row"><span>Email</span><strong style="color:var(--accent)">${emailClient || "⚠️ Non renseigné"}</strong></div>
-    ${type !== "bl" ? `<div class="modal-recap-row"><span>Total TTC</span><strong style="color:var(--accent)">${ttc}</strong></div>` : ""}
-    ${remise > 0 ? `<div class="modal-recap-row"><span>Remise</span><strong>${remise} %</strong></div>` : ""}
-    ${extra ? `<div class="modal-recap-row"><span>Info</span><strong>${extra}</strong></div>` : ""}
-    <div class="modal-lignes">${lignesHtml}</div>
-  `;
-
-  // Pré-remplir message
-  document.getElementById("mailMessageInput").value =
-    `Bonjour,\n\nVeuillez trouver ci-joint votre ${typeLabel.toLowerCase()} n° ${numero}.\n\nCordialement`;
-
-  // Pré-remplir email (modifiable si manquant)
+  recap.innerHTML = `<div class="modal-recap-row"><span>Type</span><strong>${typeLabel}</strong></div><div class="modal-recap-row"><span>Numéro</span><strong>${numero||"—"}</strong></div><div class="modal-recap-row"><span>Date</span><strong>${date||"—"}</strong></div><div class="modal-recap-row"><span>Destinataire</span><strong>${client||"—"}</strong></div><div class="modal-recap-row"><span>Email</span><strong style="color:var(--accent)">${emailClient||"⚠️ Non renseigné"}</strong></div>${type!=="bl"?`<div class="modal-recap-row"><span>Total TTC</span><strong style="color:var(--accent)">${ttc}</strong></div>`:""}${remise>0?`<div class="modal-recap-row"><span>Remise</span><strong>${remise} %</strong></div>`:""}${extra?`<div class="modal-recap-row"><span>Info</span><strong>${extra}</strong></div>`:""}><div class="modal-lignes">${lignesHtml}</div>`;
+  document.getElementById("mailMessageInput").value = `Bonjour,\n\nVeuillez trouver ci-joint votre ${typeLabel.toLowerCase()} n° ${numero}.\n\nCordialement`;
   document.getElementById("mailToInput").value = emailClient;
-
   modal.classList.add("visible");
 }
 
-function closeMailModal() {
-  document.getElementById("mailModal").classList.remove("visible");
-}
+function closeMailModal() { document.getElementById("mailModal").classList.remove("visible"); }
 
 async function confirmerEnvoiMail() {
-  const emailTo  = document.getElementById("mailToInput").value.trim();
-  const message  = document.getElementById("mailMessageInput").value.trim();
-  const badge    = document.getElementById("mailSentBadge");
-  const sendBtn  = document.getElementById("btnSendMail");
-
+  const emailTo = document.getElementById("mailToInput").value.trim();
+  const message = document.getElementById("mailMessageInput").value.trim();
+  const badge = document.getElementById("mailSentBadge");
+  const sendBtn = document.getElementById("btnSendMail");
   if (!emailTo) { alert("Adresse email du destinataire manquante"); return; }
-
   const typeLabel = { devis: "Devis", facture: "Facture", bl: "Bon de Livraison" }[mailDocType] || mailDocType;
   const sujet = `${typeLabel} n° ${mailDocData.numero}`;
-
-  sendBtn.innerHTML = "⏳ Génération PDF...";
-  sendBtn.disabled = true;
-
+  sendBtn.innerHTML = "⏳ Génération PDF..."; sendBtn.disabled = true;
   try {
-    // ✅ Générer le PDF jsPDF côté HTML (celui que l'utilisateur voit)
-    const pdfDoc = await genererPDF({
-      docType:       mailDocData.type,
-      numero:        mailDocData.numero,
-      date:          mailDocData.date,
-      client:        mailDocData.client,
-      lignes:        mailDocData.lignes,
-      remise:        mailDocData.remise,
-      validite:      mailDocData.validite,
-      delaiPaiement: mailDocData.delaiPaiement,
-      refFacture:    mailDocData.refFacture
-    });
-
-    // ✅ Convertir en base64 pour l'envoyer au GAS
+    const pdfDoc = await genererPDF({ docType: mailDocData.type, numero: mailDocData.numero, date: mailDocData.date, client: mailDocData.client, lignes: mailDocData.lignes, remise: mailDocData.remise, validite: mailDocData.validite, delaiPaiement: mailDocData.delaiPaiement, refFacture: mailDocData.refFacture });
     const pdfBase64 = pdfDoc.output("datauristring").split(",")[1];
-
     sendBtn.innerHTML = "⏳ Envoi en cours...";
-
-    const payload = {
-      type:        "envoyerMail",
-      emailClient: emailTo,
-      sujet:       sujet,
-      message:     message,
-      pdfBase64:   pdfBase64,
-      filename:    `${mailDocData.client} - ${mailDocData.numero}.pdf`
-    };
-
-    const res = await fetch(WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
+    const payload = { type: "envoyerMail", emailClient: emailTo, sujet, message, pdfBase64, filename: `${mailDocData.client} - ${mailDocData.numero}.pdf` };
+    const res = await fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(payload) });
     const data = await res.json();
-
     if (data.success) {
-      badge.textContent = "✅ Mail envoyé à " + (data.emailEnvoye || emailTo);
+      badge.textContent = "✅ Mail envoyé à "+(data.emailEnvoye||emailTo);
       badge.classList.add("visible");
       sendBtn.innerHTML = "✅ Envoyé !";
-      setTimeout(() => {
-        badge.classList.remove("visible");
-        sendBtn.innerHTML = "📤 Envoyer";
-        sendBtn.disabled = false;
-        closeMailModal();
-      }, 3000);
-    } else {
-      throw new Error(data.error || "Erreur inconnue");
-    }
+      setTimeout(() => { badge.classList.remove("visible"); sendBtn.innerHTML = "📤 Envoyer"; sendBtn.disabled = false; closeMailModal(); }, 3000);
+    } else { throw new Error(data.error || "Erreur inconnue"); }
   } catch(err) {
-    console.error(err);
-    alert("❌ Erreur envoi : " + err.message);
-    sendBtn.innerHTML = "📤 Envoyer";
-    sendBtn.disabled = false;
+    console.error(err); alert("❌ Erreur envoi : "+err.message);
+    sendBtn.innerHTML = "📤 Envoyer"; sendBtn.disabled = false;
   }
 }
 
@@ -1007,416 +982,412 @@ async function confirmerEnvoiMail() {
 async function genererPDF(docData) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const pageW = 210, pageH = 297;
-  const marginL = 15, marginR = 15, marginT = 15, marginB = 20;
-  const contentW = pageW - marginL - marginR;
-  const noir = [26, 26, 26], gris = [100, 100, 100], grisClair = [220, 220, 220], grisUltra = [248, 248, 248];
+  const pageW = 210, pageH = 297, marginL = 15, marginR = 15, marginT = 15, marginB = 20, contentW = pageW-marginL-marginR;
+  const noir=[26,26,26], gris=[100,100,100], grisClair=[220,220,220], grisUltra=[248,248,248];
+  let logoBase64=null,logoW=0,logoH=0;
+  try { const res=await fetch(WEBAPP_URL+"?logoBase64=1"); const d=await res.json(); if(d&&d.logo){logoBase64=d.logo;await new Promise((resolve)=>{const tmpImg=new Image();tmpImg.onload=()=>{const maxW=35,maxH=20,ratio=tmpImg.naturalWidth/tmpImg.naturalHeight;if(ratio>=1){logoW=Math.min(maxW,maxH*ratio);logoH=logoW/ratio;}else{logoH=Math.min(maxH,maxW/ratio);logoW=logoH*ratio;}resolve();};tmpImg.onerror=()=>resolve();tmpImg.src=logoBase64;});}} catch(e){}
+  let entreprise={nom:"",adresse:"",siret:"",tva:""};
+  try{const res=await fetch(WEBAPP_URL+"?infos=1");entreprise=await res.json();}catch(e){}
+  let clientInfos={adresse:"",email:"",tel:""};
+  try{const res=await fetch(WEBAPP_URL+"?clientsAll=1");const clients=await res.json();const found=clients.find(r=>r[1]===docData.client);if(found){clientInfos.adresse=found[2]||"";clientInfos.email=found[3]||"";clientInfos.tel=found[4]||"";}}catch(e){}
+  const lignes=(docData.lignes||[]).filter(l=>l.designation&&l.designation.toString().trim()!=="");
+  const remise=Number(docData.remise)||0,totalHT=lignes.reduce((s,l)=>s+Number(l.quantite||0)*Number(l.prix||0),0),remiseVal=totalHT*(remise/100),htApres=totalHT-remiseVal,totalTVA=lignes.reduce((s,l)=>{const ht=Number(l.quantite||0)*Number(l.prix||0);return s+ht*(Number(l.tva||0)/100);},0),totalTTC=htApres+totalTVA,hasTVA=totalTVA>0;
+  const titres={devis:"DEVIS",facture:"FACTURE",bl:"BON DE LIVRAISON"};
+  const titre=titres[docData.docType]||"DOCUMENT";
+  let currentPage=1,totalPages=1;
 
-  let logoBase64 = null, logoW = 0, logoH = 0;
-  try {
-    const res = await fetch(WEBAPP_URL + "?logoBase64=1");
-    const d = await res.json();
-    if (d && d.logo) {
-      logoBase64 = d.logo;
-      await new Promise((resolve) => {
-        const tmpImg = new Image();
-        tmpImg.onload = () => {
-          const maxW = 35, maxH = 20;
-          const ratio = tmpImg.naturalWidth / tmpImg.naturalHeight;
-          if (ratio >= 1) { logoW = Math.min(maxW, maxH * ratio); logoH = logoW / ratio; }
-          else { logoH = Math.min(maxH, maxW / ratio); logoW = logoH * ratio; }
-          resolve();
-        };
-        tmpImg.onerror = () => resolve();
-        tmpImg.src = logoBase64;
-      });
-    }
-  } catch(e) {}
+  const drawPage=(pageNum)=>{let y=marginT,headerLogoH=0;if(logoBase64&&logoW>0){try{const ext=logoBase64.startsWith("data:image/png")?"PNG":"JPEG";doc.addImage(logoBase64,ext,marginL,y,logoW,logoH,undefined,'FAST');headerLogoH=logoH;}catch(e){doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}}else{doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);doc.text(titre,pageW-marginR,y+8,{align:"right"});doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);doc.text(`N° ${docData.numero||""}`,pageW-marginR,y+14,{align:"right"});doc.text(`Date : ${docData.date||""}`,pageW-marginR,y+19,{align:"right"});y+=Math.max(headerLogoH,22)+4;const boxH=28,halfW=(contentW-6)/2;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("ÉMETTEUR",marginL+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(marginL+4,y+6.5,marginL+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(entreprise.nom||"",marginL+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(entreprise.adresse||"",marginL+4,y+16,{maxWidth:halfW-8});doc.text(`SIRET : ${entreprise.siret||""}`,marginL+4,y+22);if(entreprise.tva)doc.text(`N° TVA : ${entreprise.tva}`,marginL+4,y+26);const cx=marginL+halfW+6;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(cx,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("CLIENT",cx+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(cx+4,y+6.5,cx+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(docData.client||"",cx+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let cy2=y+16;if(clientInfos.adresse){doc.text(clientInfos.adresse,cx+4,cy2,{maxWidth:halfW-8});cy2+=5;}if(clientInfos.email){doc.text(`Email : ${clientInfos.email}`,cx+4,cy2,{maxWidth:halfW-8});cy2+=4;}if(clientInfos.tel){doc.text(`Tél : ${clientInfos.tel}`,cx+4,cy2);}y+=boxH+6;if(docData.docType==="devis"){doc.setFont("helvetica","italic").setFontSize(8).setTextColor(...gris);doc.text("Ce document n'est pas une facture.",marginL,y);y+=5;}return y;};
+  const drawTableHeader=(y,hasTVA,docType)=>{doc.setFillColor(...noir).setDrawColor(...noir);doc.rect(marginL,y,contentW,7,'F');doc.setFont("helvetica","bold").setFontSize(8).setTextColor(255,255,255);if(docType==="bl"){doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+contentW-20,y+5,{align:"center"});}else if(hasTVA){doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+80,y+5,{align:"center"});doc.text("PU HT",marginL+115,y+5,{align:"right"});doc.text("TVA",marginL+140,y+5,{align:"center"});doc.text("Total HT",marginL+contentW-2,y+5,{align:"right"});}else{doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+85,y+5,{align:"center"});doc.text("PU HT",marginL+130,y+5,{align:"right"});doc.text("Total HT",marginL+contentW-2,y+5,{align:"right"});}return y+7;};
+  const drawLine=(y,ligne,idx,hasTVA,docType)=>{const rowH=7,ht=Number(ligne.quantite||0)*Number(ligne.prix||0);if(idx%2===1){doc.setFillColor(...grisUltra);doc.rect(marginL,y,contentW,rowH,'F');}doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...noir);if(docType==="bl"){doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:130});doc.text(String(Number(ligne.quantite||0)),marginL+contentW-20,y+5,{align:"center"});}else if(hasTVA){doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:72});doc.text(String(Number(ligne.quantite||0)),marginL+80,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+115,y+5,{align:"right"});doc.text((Number(ligne.tva||0))+" %",marginL+140,y+5,{align:"center"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}else{doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:77});doc.text(String(Number(ligne.quantite||0)),marginL+85,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+130,y+5,{align:"right"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}doc.setDrawColor(...grisClair).setLineWidth(0.1);doc.line(marginL,y+rowH,marginL+contentW,y+rowH);return y+rowH;};
+  const drawTotaux=(y,totalHT,remise,remiseVal,htApres,totalTVA,totalTTC,hasTVA)=>{if(docData.docType==="bl")return y;const boxW=75,bx=pageW-marginR-boxW;let by=y+4;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(bx,by,boxW,hasTVA?(remise>0?32:22):(remise>0?28:18),2,2,'S');doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text("Total HT",bx+4,by+6);doc.setTextColor(...noir);doc.text(totalHT.toFixed(2)+" €",bx+boxW-4,by+6,{align:"right"});let ty=by+6;if(remise>0){ty+=6;doc.setTextColor(...gris).text(`Remise (${remise} %)`,bx+4,ty);doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});ty+=6;doc.setTextColor(...gris).text("HT après remise",bx+4,ty);doc.setTextColor(...noir).text(htApres.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}if(hasTVA){ty+=6;doc.setTextColor(...gris).text("TVA",bx+4,ty);doc.setTextColor(...noir).text(totalTVA.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}ty+=4;doc.setFillColor(...noir);doc.roundedRect(bx,ty,boxW,10,2,2,'F');doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);doc.text("Total TTC",bx+4,ty+6.5);doc.text(totalTTC.toFixed(2)+" €",bx+boxW-4,ty+6.5,{align:"right"});return ty+14;};
+  const drawPied=(y,docData,entreprise,pageNum,totalPages)=>{doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);if(docData.docType==="facture"&&docData.delaiPaiement)doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`,marginL,y);else if(docData.docType==="devis"&&docData.validite)doc.text(`Devis valable jusqu'au : ${docData.validite}`,marginL,y);else if(docData.docType==="bl"&&docData.refFacture)doc.text(`Référence facture : ${docData.refFacture}`,marginL,y);y+=6;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.line(marginL,y,marginL+contentW,y);y+=5;doc.setFont("helvetica","normal").setFontSize(7).setTextColor(170,170,170);if(docData.docType==="facture"){doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur",marginL,y,{maxWidth:130});doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).",marginL,y+4,{maxWidth:130});}if((docData.docType==="devis"||docData.docType==="facture")&&!entreprise.tva)doc.text("TVA non applicable, article 293 B du CGI.",marginL,y+(docData.docType==="facture"?9:0));doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL+contentW-55,y-2,55,18,2,2,'S');doc.setFont("helvetica","normal").setFontSize(7).setTextColor(...gris);doc.text(docData.docType==="devis"?"Signature client — bon pour accord :":"Signature :",marginL+contentW-53,y+3);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(`Page ${pageNum} / ${totalPages}`,pageW/2,pageH-8,{align:"center"});};
 
-  let entreprise = { nom: "", adresse: "", siret: "", tva: "" };
-  try { const res = await fetch(WEBAPP_URL + "?infos=1"); entreprise = await res.json(); } catch(e) {}
-
-  let clientInfos = { adresse: "", email: "", tel: "" };
-  try {
-    const res = await fetch(WEBAPP_URL + "?clientsAll=1");
-    const clients = await res.json();
-    const found = clients.find(r => r[1] === docData.client);
-    if (found) { clientInfos.adresse = found[2]||""; clientInfos.email = found[3]||""; clientInfos.tel = found[4]||""; }
-  } catch(e) {}
-
-  const lignes = (docData.lignes || []).filter(l => l.designation && l.designation.toString().trim() !== "");
-  const remise = Number(docData.remise) || 0;
-  const totalHT = lignes.reduce((s, l) => s + Number(l.quantite||0) * Number(l.prix||0), 0);
-  const remiseVal = totalHT * (remise / 100);
-  const htApres = totalHT - remiseVal;
-  const totalTVA = lignes.reduce((s, l) => { const ht = Number(l.quantite||0)*Number(l.prix||0); return s + ht*(Number(l.tva||0)/100); }, 0);
-  const totalTTC = htApres + totalTVA;
-  const hasTVA = totalTVA > 0;
-  const titres = { devis: "DEVIS", facture: "FACTURE", bl: "BON DE LIVRAISON" };
-  const titre = titres[docData.docType] || "DOCUMENT";
-  let currentPage = 1, totalPages = 1;
-
-  const drawPage = (pageNum) => {
-    let y = marginT;
-    let headerLogoH = 0;
-    if (logoBase64 && logoW > 0) {
-      try {
-        const ext = logoBase64.startsWith("data:image/png") ? "PNG" : "JPEG";
-        doc.addImage(logoBase64, ext, marginL, y, logoW, logoH, undefined, 'FAST');
-        headerLogoH = logoH;
-      } catch(e) {
-        doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);
-        doc.text(entreprise.nom||"", marginL, y+12); headerLogoH = 12;
-      }
-    } else {
-      doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);
-      doc.text(entreprise.nom||"", marginL, y+12); headerLogoH = 12;
-    }
-    doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);
-    doc.text(titre, pageW-marginR, y+8, { align:"right" });
-    doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);
-    doc.text(`N° ${docData.numero||""}`, pageW-marginR, y+14, { align:"right" });
-    doc.text(`Date : ${docData.date||""}`, pageW-marginR, y+19, { align:"right" });
-    y += Math.max(headerLogoH, 22) + 4;
-    const boxH = 28, halfW = (contentW-6)/2;
-    doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(marginL, y, halfW, boxH, 2, 2, 'FD');
-    doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);
-    doc.text("ÉMETTEUR", marginL+4, y+5);
-    doc.setDrawColor(...grisClair).setLineWidth(0.2);
-    doc.line(marginL+4, y+6.5, marginL+halfW-4, y+6.5);
-    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);
-    doc.text(entreprise.nom||"", marginL+4, y+11);
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
-    doc.text(entreprise.adresse||"", marginL+4, y+16, { maxWidth: halfW-8 });
-    doc.text(`SIRET : ${entreprise.siret||""}`, marginL+4, y+22);
-    if (entreprise.tva) doc.text(`N° TVA : ${entreprise.tva}`, marginL+4, y+26);
-    const cx = marginL+halfW+6;
-    doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(cx, y, halfW, boxH, 2, 2, 'FD');
-    doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);
-    doc.text("CLIENT", cx+4, y+5);
-    doc.setDrawColor(...grisClair).setLineWidth(0.2);
-    doc.line(cx+4, y+6.5, cx+halfW-4, y+6.5);
-    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);
-    doc.text(docData.client||"", cx+4, y+11);
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
-    let cy2 = y+16;
-    if (clientInfos.adresse) { doc.text(clientInfos.adresse, cx+4, cy2, { maxWidth: halfW-8 }); cy2+=5; }
-    if (clientInfos.email)   { doc.text(`Email : ${clientInfos.email}`, cx+4, cy2, { maxWidth: halfW-8 }); cy2+=4; }
-    if (clientInfos.tel)     { doc.text(`Tél : ${clientInfos.tel}`, cx+4, cy2); }
-    y += boxH+6;
-    if (docData.docType === "devis") {
-      doc.setFont("helvetica","italic").setFontSize(8).setTextColor(...gris);
-      doc.text("Ce document n'est pas une facture.", marginL, y); y += 5;
-    }
-    return y;
-  };
-
-  const drawTableHeader = (y, hasTVA, docType) => {
-    doc.setFillColor(...noir).setDrawColor(...noir);
-    doc.rect(marginL, y, contentW, 7, 'F');
-    doc.setFont("helvetica","bold").setFontSize(8).setTextColor(255,255,255);
-    if (docType === "bl") {
-      doc.text("Désignation", marginL+3, y+5);
-      doc.text("Qté", marginL+contentW-20, y+5, { align:"center" });
-    } else if (hasTVA) {
-      doc.text("Désignation", marginL+3, y+5);
-      doc.text("Qté", marginL+80, y+5, { align:"center" });
-      doc.text("PU HT", marginL+115, y+5, { align:"right" });
-      doc.text("TVA", marginL+140, y+5, { align:"center" });
-      doc.text("Total HT", marginL+contentW-2, y+5, { align:"right" });
-    } else {
-      doc.text("Désignation", marginL+3, y+5);
-      doc.text("Qté", marginL+85, y+5, { align:"center" });
-      doc.text("PU HT", marginL+130, y+5, { align:"right" });
-      doc.text("Total HT", marginL+contentW-2, y+5, { align:"right" });
-    }
-    return y+7;
-  };
-
-  const drawLine = (y, ligne, idx, hasTVA, docType) => {
-    const rowH = 7;
-    const ht = Number(ligne.quantite||0)*Number(ligne.prix||0);
-    if (idx%2===1) { doc.setFillColor(...grisUltra); doc.rect(marginL, y, contentW, rowH, 'F'); }
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...noir);
-    if (docType === "bl") {
-      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:130 });
-      doc.text(String(Number(ligne.quantite||0)), marginL+contentW-20, y+5, { align:"center" });
-    } else if (hasTVA) {
-      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:72 });
-      doc.text(String(Number(ligne.quantite||0)), marginL+80, y+5, { align:"center" });
-      doc.text(Number(ligne.prix||0).toFixed(2)+" €", marginL+115, y+5, { align:"right" });
-      doc.text((Number(ligne.tva||0))+" %", marginL+140, y+5, { align:"center" });
-      doc.text(ht.toFixed(2)+" €", marginL+contentW-2, y+5, { align:"right" });
-    } else {
-      doc.text(ligne.designation||"", marginL+3, y+5, { maxWidth:77 });
-      doc.text(String(Number(ligne.quantite||0)), marginL+85, y+5, { align:"center" });
-      doc.text(Number(ligne.prix||0).toFixed(2)+" €", marginL+130, y+5, { align:"right" });
-      doc.text(ht.toFixed(2)+" €", marginL+contentW-2, y+5, { align:"right" });
-    }
-    doc.setDrawColor(...grisClair).setLineWidth(0.1);
-    doc.line(marginL, y+rowH, marginL+contentW, y+rowH);
-    return y+rowH;
-  };
-
-  const drawTotaux = (y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA) => {
-    if (docData.docType === "bl") return y;
-    const boxW = 75, bx = pageW-marginR-boxW;
-    let by = y+4;
-    doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(bx, by, boxW, hasTVA ? (remise>0?32:22) : (remise>0?28:18), 2, 2, 'S');
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
-    doc.text("Total HT", bx+4, by+6);
-    doc.setTextColor(...noir);
-    doc.text(totalHT.toFixed(2)+" €", bx+boxW-4, by+6, { align:"right" });
-    let ty = by+6;
-    if (remise > 0) {
-      ty+=6; doc.setTextColor(...gris).text(`Remise (${remise} %)`, bx+4, ty);
-      doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
-      ty+=6; doc.setTextColor(...gris).text("HT après remise", bx+4, ty);
-      doc.setTextColor(...noir).text(htApres.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
-    }
-    if (hasTVA) {
-      ty+=6; doc.setTextColor(...gris).text("TVA", bx+4, ty);
-      doc.setTextColor(...noir).text(totalTVA.toFixed(2)+" €", bx+boxW-4, ty, { align:"right" });
-    }
-    ty+=4;
-    doc.setFillColor(...noir);
-    doc.roundedRect(bx, ty, boxW, 10, 2, 2, 'F');
-    doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);
-    doc.text("Total TTC", bx+4, ty+6.5);
-    doc.text(totalTTC.toFixed(2)+" €", bx+boxW-4, ty+6.5, { align:"right" });
-    return ty+14;
-  };
-
-  const drawPied = (y, docData, entreprise, pageNum, totalPages) => {
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
-    if (docData.docType==="facture" && docData.delaiPaiement)
-      doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`, marginL, y);
-    else if (docData.docType==="devis" && docData.validite)
-      doc.text(`Devis valable jusqu'au : ${docData.validite}`, marginL, y);
-    else if (docData.docType==="bl" && docData.refFacture)
-      doc.text(`Référence facture : ${docData.refFacture}`, marginL, y);
-    y+=6;
-    doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.line(marginL, y, marginL+contentW, y); y+=5;
-    doc.setFont("helvetica","normal").setFontSize(7).setTextColor(170,170,170);
-    if (docData.docType==="facture") {
-      doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur", marginL, y, { maxWidth:130 });
-      doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).", marginL, y+4, { maxWidth:130 });
-    }
-    if ((docData.docType==="devis"||docData.docType==="facture") && !entreprise.tva)
-      doc.text("TVA non applicable, article 293 B du CGI.", marginL, y+(docData.docType==="facture"?9:0));
-    doc.setDrawColor(...grisClair).setLineWidth(0.3);
-    doc.roundedRect(marginL+contentW-55, y-2, 55, 18, 2, 2, 'S');
-    doc.setFont("helvetica","normal").setFontSize(7).setTextColor(...gris);
-    doc.text(docData.docType==="devis" ? "Signature client — bon pour accord :" : "Signature :", marginL+contentW-53, y+3);
-    doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);
-    doc.text(`Page ${pageNum} / ${totalPages}`, pageW/2, pageH-8, { align:"center" });
-  };
-
-  let simY = drawPage(1);
-  simY = drawTableHeader(simY, hasTVA, docData.docType) + 1;
-  let simPages = 1;
-  lignes.forEach(() => {
-    if (simY+7 > pageH-marginB-60) { simPages++; simY = marginT+10; }
-    simY += 7;
-  });
-  totalPages = simPages;
-
-  let y = drawPage(1);
-  y = drawTableHeader(y, hasTVA, docData.docType) + 1;
-  lignes.forEach((l, i) => {
-    if (y+7 > pageH-marginB-60) {
-      drawPied(y+4, docData, entreprise, currentPage, totalPages);
-      doc.addPage(); currentPage++;
-      y = marginT+10;
-      y = drawTableHeader(y, hasTVA, docData.docType) + 1;
-    }
-    y = drawLine(y, l, i, hasTVA, docData.docType);
-  });
-  y += 4;
-  y = drawTotaux(y, totalHT, remise, remiseVal, htApres, totalTVA, totalTTC, hasTVA);
-  drawPied(y, docData, entreprise, currentPage, totalPages);
+  let simY=drawPage(1);simY=drawTableHeader(simY,hasTVA,docData.docType)+1;let simPages=1;
+  lignes.forEach(()=>{if(simY+7>pageH-marginB-60){simPages++;simY=marginT+10;}simY+=7;});
+  totalPages=simPages;
+  let y=drawPage(1);y=drawTableHeader(y,hasTVA,docData.docType)+1;
+  lignes.forEach((l,i)=>{if(y+7>pageH-marginB-60){drawPied(y+4,docData,entreprise,currentPage,totalPages);doc.addPage();currentPage++;y=marginT+10;y=drawTableHeader(y,hasTVA,docData.docType)+1;}y=drawLine(y,l,i,hasTVA,docData.docType);});
+  y+=4;y=drawTotaux(y,totalHT,remise,remiseVal,htApres,totalTVA,totalTTC,hasTVA);
+  drawPied(y,docData,entreprise,currentPage,totalPages);
   return doc;
 }
 
 async function telechargerPDFDevis(e) {
-  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
-  try { const doc=await genererPDF({docType:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}); doc.save(`${clientInput.value} - ${numeroDevis.value}.pdf`); }
-  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML=old; btn.disabled=false; }
+  const btn=e.currentTarget,old=btn.innerHTML;btn.innerHTML="⏳...";btn.disabled=true;
+  try{const doc=await genererPDF({docType:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value});doc.save(`${clientInput.value} - ${numeroDevis.value}.pdf`);}
+  catch(err){console.error(err);alert("❌ Erreur PDF");}
+  finally{btn.innerHTML=old;btn.disabled=false;}
 }
 async function telechargerPDFFacture(e) {
-  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
-  try { const doc=await genererPDF({docType:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}); doc.save(`${clientInputFacture.value} - ${numeroFacture.value}.pdf`); }
-  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML=old; btn.disabled=false; }
+  const btn=e.currentTarget,old=btn.innerHTML;btn.innerHTML="⏳...";btn.disabled=true;
+  try{const doc=await genererPDF({docType:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value});doc.save(`${clientInputFacture.value} - ${numeroFacture.value}.pdf`);}
+  catch(err){console.error(err);alert("❌ Erreur PDF");}
+  finally{btn.innerHTML=old;btn.disabled=false;}
 }
 async function telechargerPDFBL(e) {
-  const btn=e.currentTarget; const old=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;
-  try { const doc=await genererPDF({docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes,refFacture:refFactureBL.value}); doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`); }
-  catch(err) { console.error(err); alert("❌ Erreur PDF"); }
-  finally { btn.innerHTML=old; btn.disabled=false; }
+  const btn=e.currentTarget,old=btn.innerHTML;btn.innerHTML="⏳...";btn.disabled=true;
+  try{const doc=await genererPDF({docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes,refFacture:refFactureBL.value});doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`);}
+  catch(err){console.error(err);alert("❌ Erreur PDF");}
+  finally{btn.innerHTML=old;btn.disabled=false;}
 }
-async function chargerDepuisHistorique(type, doc, tr) {
-  if (tr) {
-    tr.style.opacity="0.5"; tr.style.pointerEvents="none";
-    const orig=tr.innerHTML; const cols=tr.querySelectorAll("td").length;
-    tr.innerHTML=`<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;
-    try { const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""}); pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`); }
-    catch(err) { console.error(err); alert("Erreur PDF"); }
-    tr.innerHTML=orig; tr.style.opacity=""; tr.style.pointerEvents="";
-  } else {
-    try { const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""}); pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`); }
-    catch(err) { console.error(err); alert("Erreur PDF"); }
-  }
+async function chargerDepuisHistorique(type,doc,tr) {
+  if(tr){tr.style.opacity="0.5";tr.style.pointerEvents="none";const orig=tr.innerHTML,cols=tr.querySelectorAll("td").length;tr.innerHTML=`<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}tr.innerHTML=orig;tr.style.opacity="";tr.style.pointerEvents="";}
+  else{try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:doc.validite||"",delaiPaiement:doc.delai||"",refFacture:doc.refFacture||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}}
 }
 
 // ══════════════════════════════════════════════
-// NAVIGATION
+// NAVIGATION — avec skeleton loader à l'entrée
 // ══════════════════════════════════════════════
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => { p.classList.remove("active"); p.classList.add("hidden"); });
   const target = document.getElementById(id);
   if (target) { target.classList.remove("hidden"); target.classList.add("active"); }
-  if (id==="devisPage")      { documentActif="devis";   setDateDevis();   loadNumeroDevis(); }
-  if (id==="facturePage")    { documentActif="facture"; setDateFacture(); loadNumeroFacture(); }
-  if (id==="infosPage")      { loadInfos(); }
-  if (id==="clientPage")     { loadClientsTable(); }
-  if (id==="historiquePage") { loadHistorique(); }
-  if (id==="blPage")         { documentActif="bl"; setDateBL(); loadNumeroBL(); }
-  if (id==="statsPage")      { loadStats(); }
-  window.scrollTo({ top:0, behavior:"smooth" });
+
+  if (id === "devisPage") {
+    documentActif = "devis"; setDateDevis();
+    // Skeleton sur le numéro pendant le fetch
+    document.getElementById("numeroDevis").value = "";
+    document.getElementById("numeroDevis").placeholder = "Chargement…";
+    loadNumeroDevis();
+    loadClients();
+  }
+  if (id === "facturePage") {
+    documentActif = "facture"; setDateFacture();
+    document.getElementById("numeroFacture").value = "";
+    document.getElementById("numeroFacture").placeholder = "Chargement…";
+    loadNumeroFacture();
+    loadClients();
+  }
+  if (id === "blPage") {
+    documentActif = "bl"; setDateBL();
+    document.getElementById("numeroBL").value = "";
+    document.getElementById("numeroBL").placeholder = "Chargement…";
+    loadNumeroBL();
+    loadClients();
+  }
+
+  // Pages avec tableaux backend
+  if (id === "infosPage") {
+    document.getElementById("infosTableBody").innerHTML = skeletonRows(1, 4);
+    loadInfos();
+  }
+  if (id === "clientPage") {
+    showTableSkeleton("clientsTableBody", 5, 5);
+    document.getElementById("clientsTableHead").innerHTML = "<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
+    loadClientsTable();
+  }
+  if (id === "historiquePage") { loadHistorique(); }
+
+  // Stats — skeleton immédiat sur tous les blocs
+  if (id === "statsPage") {
+    statsData = [];
+    // KPI cards
+    ["kpiCA","kpiNb","kpiMoyen","kpiBestMonth"].forEach(id => {
+      document.getElementById(id).innerHTML = '<div class="skel-block skel-kpi"></div>';
+    });
+    // Chart area
+    const chartWrap = document.getElementById("statsChart").parentElement;
+    chartWrap.innerHTML = '<div class="skel-block skel-chart"></div>';
+    // Top5
+    document.getElementById("statsTop5").innerHTML = [1,2,3,4,5].map(() =>
+      `<div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <div class="skel-bar" style="width:40%"></div>
+          <div class="skel-bar" style="width:20%"></div>
+        </div>
+        <div class="skel-bar" style="width:100%;height:6px"></div>
+      </div>`
+    ).join("");
+    loadStats();
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ══════════════════════════════════════════════
+// MES INFOS — mise à jour optimiste du tableau
+// ══════════════════════════════════════════════
 function saveInfos(btn) {
-  saveFireAndForget({type:"infos",nom:info_nom.value,adresse:info_adresse.value,siret:info_siret.value,tva:info_tva.value}, "✅ Infos enregistrées", btn);
+  const nom     = document.getElementById("info_nom").value;
+  const adresse = document.getElementById("info_adresse").value;
+  const siret   = document.getElementById("info_siret").value;
+  const tva     = document.getElementById("info_tva").value;
+
+  // ✅ Mise à jour optimiste immédiate du tableau
+  const tbody = document.getElementById("infosTableBody");
+  tbody.innerHTML = "";
+  const tr = document.createElement("tr");
+  tr.className = "row-new";
+  tr.innerHTML = `<td>${nom}</td><td>${adresse}</td><td>${siret}</td><td>${tva}</td>`;
+  tr.onclick = () => {
+    document.getElementById("info_nom").value     = nom;
+    document.getElementById("info_adresse").value = adresse;
+    document.getElementById("info_siret").value   = siret;
+    document.getElementById("info_tva").value     = tva;
+  };
+  tbody.appendChild(tr);
+
+  saveFireAndForget({ type: "infos", nom, adresse, siret, tva }, null, btn);
+  showToast("✅ Infos entreprise enregistrées");
 }
 
 function uploadLogo(btn) {
   const file=document.getElementById("logoInput").files[0];
-  if (!file) { alert("Sélectionne une image"); return; }
-  const old=btn.innerHTML; btn.disabled=true;
+  if(!file){alert("Sélectionne une image");return;}
+  const old=btn.innerHTML;btn.disabled=true;
   const reader=new FileReader();
-  reader.onload=function(ev) {
+  reader.onload=function(ev){
     const img=new Image();
-    img.onload=async function() {
-      try {
-        const LIMIT=38000;
-        let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
-        if (w===0||h===0) throw new Error("Dimensions image invalides");
-        const canvas=document.createElement("canvas"); const ctx=canvas.getContext("2d");
-        let base64="", maxDim=300;
-        for (let attempt=0; attempt<8; attempt++) {
-          const ratio=Math.min(1,maxDim/w,maxDim/h);
-          const cw=Math.max(1,Math.floor(w*ratio)), ch=Math.max(1,Math.floor(h*ratio));
-          canvas.width=cw; canvas.height=ch; ctx.clearRect(0,0,cw,ch); ctx.drawImage(img,0,0,cw,ch);
+    img.onload=async function(){
+      try{
+        const LIMIT=38000;let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+        if(w===0||h===0)throw new Error("Dimensions image invalides");
+        const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+        let base64="",maxDim=300;
+        for(let attempt=0;attempt<8;attempt++){
+          const ratio=Math.min(1,maxDim/w,maxDim/h),cw=Math.max(1,Math.floor(w*ratio)),ch=Math.max(1,Math.floor(h*ratio));
+          canvas.width=cw;canvas.height=ch;ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,0,0,cw,ch);
           const isTransparent=file.type==="image/png"||file.type==="image/webp";
-          if (isTransparent&&attempt===0) base64=canvas.toDataURL("image/png");
-          else { const quality=Math.max(0.3,0.85-attempt*0.1); base64=canvas.toDataURL("image/jpeg",quality); }
+          if(isTransparent&&attempt===0)base64=canvas.toDataURL("image/png");
+          else{const quality=Math.max(0.3,0.85-attempt*0.1);base64=canvas.toDataURL("image/jpeg",quality);}
           btn.innerHTML=`⏳ Compression… (${base64.length} chars)`;
-          if (base64.length<=LIMIT) break;
+          if(base64.length<=LIMIT)break;
           maxDim=Math.floor(maxDim*0.7);
         }
-        if (base64.length>LIMIT) throw new Error(`Image trop lourde même après compression. Essaie une image plus petite.`);
+        if(base64.length>LIMIT)throw new Error(`Image trop lourde même après compression. Essaie une image plus petite.`);
         btn.innerHTML=`⏳ Upload…`;
         await fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"logoChunk",chunk:base64,index:0,last:true}),mode:"no-cors"});
         await new Promise(r=>setTimeout(r,500));
         btn.innerHTML="✅ Uploadé !";
-        setTimeout(()=>{ btn.innerHTML=old; btn.disabled=false; },2000);
-      } catch(err) { console.error(err); alert("❌ "+err.message); btn.innerHTML=old; btn.disabled=false; }
+        showToast("✅ Logo uploadé !");
+        setTimeout(()=>{btn.innerHTML=old;btn.disabled=false;},2000);
+      }catch(err){console.error(err);alert("❌ "+err.message);btn.innerHTML=old;btn.disabled=false;}
     };
-    img.onerror=()=>{ alert("❌ Image illisible"); btn.innerHTML=old; btn.disabled=false; };
+    img.onerror=()=>{alert("❌ Image illisible");btn.innerHTML=old;btn.disabled=false;};
     img.src=ev.target.result;
   };
-  reader.onerror=()=>{ alert("❌ Lecture fichier impossible"); btn.innerHTML=old; btn.disabled=false; };
+  reader.onerror=()=>{alert("❌ Lecture fichier impossible");btn.innerHTML=old;btn.disabled=false;};
   btn.innerHTML="⏳ Lecture…";
   reader.readAsDataURL(file);
 }
 
 function loadInfos() {
-  fetch(WEBAPP_URL+"?infos=1").then(r=>r.json()).then(data=>{
-    const tbody=infosTableBody; tbody.innerHTML="";
+  fetch(WEBAPP_URL + "?infos=1").then(r => r.json()).then(data => {
+    const tbody = document.getElementById("infosTableBody");
+    tbody.innerHTML = "";
     if (!data) return;
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
-    tr.onclick=()=>{ info_nom.value=data.nom||""; info_adresse.value=data.adresse||""; info_siret.value=data.siret||""; info_tva.value=data.tva||""; };
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.nom||""}</td><td>${data.adresse||""}</td><td>${data.siret||""}</td><td>${data.tva||""}</td>`;
+    tr.onclick = () => {
+      document.getElementById("info_nom").value     = data.nom || "";
+      document.getElementById("info_adresse").value = data.adresse || "";
+      document.getElementById("info_siret").value   = data.siret || "";
+      document.getElementById("info_tva").value     = data.tva || "";
+    };
     tbody.appendChild(tr);
+    // Pré-remplir les champs avec les données actuelles
+    document.getElementById("info_nom").value     = data.nom || "";
+    document.getElementById("info_adresse").value = data.adresse || "";
+    document.getElementById("info_siret").value   = data.siret || "";
+    document.getElementById("info_tva").value     = data.tva || "";
+  }).catch(() => {
+    document.getElementById("infosTableBody").innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger);padding:16px">Erreur de chargement</td></tr>`;
   });
 }
 
-let clientsList=[];
-function loadClients() {
-  if (!WEBAPP_URL) return;
-  fetch(WEBAPP_URL+"?clients=1").then(r=>r.json()).then(data=>{ clientsList=data||[]; }).catch(()=>{});
+// ══════════════════════════════════════════════
+// CLIENTS — cache local + mise à jour optimiste
+// ══════════════════════════════════════════════
+let clientsList = [];
+let clientsLoadedOnce = false;
+
+function setClientsLoading() {
+  // Barre de chargement animée sur les 3 pages
+  ["Devis","Facture","BL"].forEach(suffix => {
+    const bar   = document.getElementById("clientLoadingBar" + suffix);
+    const badge = document.getElementById("clientCount" + suffix);
+    const input = document.getElementById("clientInput" + (suffix === "Devis" ? "" : suffix));
+    if (bar)   bar.classList.add("visible");
+    if (badge) { badge.textContent = "⏳ Chargement des clients..."; badge.classList.remove("loaded"); }
+    if (input) { input.placeholder = "Chargement des clients..."; input.disabled = true; }
+  });
 }
 
-let allClientsData=[];
+function setClientsReady(count) {
+  ["Devis","Facture","BL"].forEach(suffix => {
+    const bar   = document.getElementById("clientLoadingBar" + suffix);
+    const badge = document.getElementById("clientCount" + suffix);
+    const input = document.getElementById("clientInput" + (suffix === "Devis" ? "" : suffix));
+    if (bar)   bar.classList.remove("visible");
+    if (badge) { badge.textContent = `✓ ${count} client${count > 1 ? "s" : ""} chargé${count > 1 ? "s" : ""}`; badge.classList.add("loaded"); }
+    if (input) { input.placeholder = "Tapez pour rechercher un client..."; input.disabled = false; }
+  });
+}
+
+function loadClients() {
+  if (!WEBAPP_URL) return;
+  setClientsLoading();
+  fetch(WEBAPP_URL + "?clients=1")
+    .then(r => r.json())
+    .then(data => {
+      clientsList = data || [];
+      clientsLoadedOnce = true;
+      setClientsReady(clientsList.length);
+    })
+    .catch(() => {
+      ["Devis","Facture","BL"].forEach(suffix => {
+        const bar   = document.getElementById("clientLoadingBar" + suffix);
+        const badge = document.getElementById("clientCount" + suffix);
+        const input = document.getElementById("clientInput" + (suffix === "Devis" ? "" : suffix));
+        if (bar)   bar.classList.remove("visible");
+        if (badge) { badge.textContent = "⚠️ Erreur de chargement"; badge.classList.remove("loaded"); }
+        if (input) { input.placeholder = "Tapez pour rechercher un client..."; input.disabled = false; }
+      });
+    });
+}
+
+let allClientsData = [];
+
 function loadClientsTable() {
-  fetch(WEBAPP_URL+"?clientsAll=1").then(r=>r.json())
-    .then(data=>{ allClientsData=data||[]; renderClientsTable(allClientsData); })
-    .catch(()=>{ document.getElementById("clientsTableBody").innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`; });
+  fetch(WEBAPP_URL + "?clientsAll=1").then(r => r.json())
+    .then(data => {
+      allClientsData = data || [];
+      renderClientsTable(allClientsData);
+      // Synchronise aussi la liste de noms pour l'autocomplete
+      clientsList = allClientsData.map(r => r[1]).filter(Boolean);
+    })
+    .catch(() => {
+      document.getElementById("clientsTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px">Erreur de chargement</td></tr>`;
+    });
 }
+
 function renderClientsTable(rows) {
-  const head=document.getElementById("clientsTableHead"), body=document.getElementById("clientsTableBody");
-  head.innerHTML="<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
-  if (!rows||rows.length===0) { body.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`; return; }
-  body.innerHTML="";
-  rows.forEach((row,i)=>{ const tr=document.createElement("tr"); tr.style.cursor="pointer"; tr.innerHTML=row.map(cell=>`<td>${cell||""}</td>`).join(""); tr.onclick=()=>chargerClientDansFormulaire(row,i); body.appendChild(tr); });
+  const head = document.getElementById("clientsTableHead"), body = document.getElementById("clientsTableBody");
+  head.innerHTML = "<tr><th>Date</th><th>Nom</th><th>Adresse</th><th>Email</th><th>Téléphone</th></tr>";
+  if (!rows || rows.length === 0) { body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:20px">Aucun client</td></tr>`; return; }
+  body.innerHTML = "";
+  rows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.style.cursor = "pointer";
+    tr.innerHTML = row.map(cell => `<td>${cell||""}</td>`).join("");
+    tr.onclick = () => chargerClientDansFormulaire(row, i);
+    body.appendChild(tr);
+  });
 }
+
 function filterClients() {
-  const q=document.getElementById("clientSearchInput").value.toLowerCase();
-  renderClientsTable(allClientsData.filter(row=>row.some(cell=>String(cell).toLowerCase().includes(q))));
+  const q = document.getElementById("clientSearchInput").value.toLowerCase();
+  renderClientsTable(allClientsData.filter(row => row.some(cell => String(cell).toLowerCase().includes(q))));
 }
-function chargerClientDansFormulaire(row,idx) {
-  document.getElementById("c_row").value=idx;
-  document.getElementById("c_nom").value=row[1]||"";
-  document.getElementById("c_mail").value=row[3]||"";
-  document.getElementById("c_adresse").value=row[2]||"";
-  document.getElementById("c_tel").value=row[4]||"";
-  document.getElementById("clientFormTitle").textContent="Modifier le client";
+
+function chargerClientDansFormulaire(row, idx) {
+  document.getElementById("c_row").value = idx;
+  document.getElementById("c_nom").value = row[1] || "";
+  document.getElementById("c_mail").value = row[3] || "";
+  document.getElementById("c_adresse").value = row[2] || "";
+  document.getElementById("c_tel").value = row[4] || "";
+  document.getElementById("clientFormTitle").textContent = "Modifier le client";
   document.getElementById("btnSaveClient").classList.add("hidden");
   document.getElementById("btnModifierClient").classList.remove("hidden");
   document.getElementById("btnSupprimerClient").classList.remove("hidden");
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 function resetClientForm() {
-  document.getElementById("c_row").value="";
-  document.getElementById("c_nom").value="";
-  document.getElementById("c_mail").value="";
-  document.getElementById("c_adresse").value="";
-  document.getElementById("c_tel").value="";
-  document.getElementById("clientFormTitle").textContent="Nouveau client";
+  document.getElementById("c_row").value = "";
+  document.getElementById("c_nom").value = "";
+  document.getElementById("c_mail").value = "";
+  document.getElementById("c_adresse").value = "";
+  document.getElementById("c_tel").value = "";
+  document.getElementById("clientFormTitle").textContent = "Nouveau client";
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
   document.getElementById("btnSupprimerClient").classList.add("hidden");
 }
+
 function saveClient() {
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"client",nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),mode:"no-cors"});
-  alert("Client ajouté"); resetClientForm(); setTimeout(loadClientsTable,1500);
+  const nom     = document.getElementById("c_nom").value.trim();
+  const mail    = document.getElementById("c_mail").value.trim();
+  const adresse = document.getElementById("c_adresse").value.trim();
+  const tel     = document.getElementById("c_tel").value.trim();
+  if (!nom) { showToast("⚠️ Le nom est requis", "error"); return; }
+
+  // ✅ Injection optimiste immédiate dans le tableau
+  const today = new Date();
+  const dateStr = `${String(today.getDate()).padStart(2,"0")}/${String(today.getMonth()+1).padStart(2,"0")}/${today.getFullYear()}`;
+  const newRow = [dateStr, nom, adresse, mail, tel];
+  allClientsData.unshift(newRow);  // Ajouter en tête pour le voir immédiatement
+  clientsList.unshift(nom);
+
+  const body = document.getElementById("clientsTableBody");
+  const tr = document.createElement("tr");
+  tr.className = "row-new";
+  tr.style.cursor = "pointer";
+  tr.innerHTML = newRow.map(cell => `<td>${cell||""}</td>`).join("");
+  tr.onclick = () => chargerClientDansFormulaire(newRow, 0);
+  // Insérer en première position
+  body.insertBefore(tr, body.firstChild);
+
+  resetClientForm();
+  showToast(`✅ Client "${nom}" ajouté`);
+
+  // Envoi silencieux au backend, puis refresh discret pour avoir la vraie ligne avec la date Google
+  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ type: "client", nom, adresse, mail, tel }), mode: "no-cors" })
+    .catch(() => {});
+  // Rafraîchissement en arrière-plan pour synchroniser avec le serveur
+  setTimeout(() => loadClientsTable(), 2500);
 }
+
 function modifierClient() {
-  const idx=Number(document.getElementById("c_row").value);
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"modifierClient",rowIndex:idx+2,nom:c_nom.value,adresse:c_adresse.value,mail:c_mail.value,tel:c_tel.value}),mode:"no-cors"});
-  alert("Client modifié"); resetClientForm(); setTimeout(loadClientsTable,1500);
+  const idx     = Number(document.getElementById("c_row").value);
+  const nom     = document.getElementById("c_nom").value.trim();
+  const mail    = document.getElementById("c_mail").value.trim();
+  const adresse = document.getElementById("c_adresse").value.trim();
+  const tel     = document.getElementById("c_tel").value.trim();
+
+  // ✅ Mise à jour optimiste dans le cache local
+  if (allClientsData[idx]) {
+    allClientsData[idx][1] = nom;
+    allClientsData[idx][2] = adresse;
+    allClientsData[idx][3] = mail;
+    allClientsData[idx][4] = tel;
+    renderClientsTable(allClientsData);
+    // Flash sur la ligne modifiée
+    const rows = document.getElementById("clientsTableBody").querySelectorAll("tr");
+    if (rows[idx]) rows[idx].className = "row-new";
+  }
+
+  resetClientForm();
+  showToast(`✅ Client "${nom}" modifié`);
+
+  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ type: "modifierClient", rowIndex: idx + 2, nom, adresse, mail, tel }), mode: "no-cors" }).catch(() => {});
+  setTimeout(() => loadClientsTable(), 2500);
 }
+
 function supprimerClient() {
-  const idx=Number(document.getElementById("c_row").value);
-  const nom=document.getElementById("c_nom").value;
+  const idx = Number(document.getElementById("c_row").value);
+  const nom = document.getElementById("c_nom").value;
   if (!confirm(`Supprimer le client "${nom}" ? Cette action est irréversible.`)) return;
-  fetch(WEBAPP_URL,{method:"POST",body:JSON.stringify({type:"supprimerClient",rowIndex:idx+2}),mode:"no-cors"});
-  alert("Client supprimé"); resetClientForm(); setTimeout(loadClientsTable,1500);
+
+  // ✅ Suppression optimiste dans le cache local
+  allClientsData.splice(idx, 1);
+  renderClientsTable(allClientsData);
+
+  resetClientForm();
+  showToast(`🗑 Client "${nom}" supprimé`);
+
+  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ type: "supprimerClient", rowIndex: idx + 2 }), mode: "no-cors" }).catch(() => {});
+  setTimeout(() => loadClientsTable(), 2500);
 }
-function setupClientSearch(inputId,suggestionsId) {
-  const input=document.getElementById(inputId), suggestions=document.getElementById(suggestionsId);
-  input.addEventListener("input",()=>{
-    const value=input.value.toLowerCase(); suggestions.innerHTML="";
+
+function setupClientSearch(inputId, suggestionsId) {
+  const input = document.getElementById(inputId), suggestions = document.getElementById(suggestionsId);
+  input.addEventListener("input", () => {
+    const value = input.value.toLowerCase(); suggestions.innerHTML = "";
     if (!value) return;
-    clientsList.filter(c=>c.toLowerCase().includes(value)).forEach(c=>{
-      const div=document.createElement("div"); div.textContent=c; div.className="suggestion";
-      div.onclick=()=>{ input.value=c; suggestions.innerHTML=""; };
+    clientsList.filter(c => c.toLowerCase().includes(value)).forEach(c => {
+      const div = document.createElement("div"); div.textContent = c; div.className = "suggestion";
+      div.onclick = () => { input.value = c; suggestions.innerHTML = ""; };
       suggestions.appendChild(div);
     });
   });
@@ -1425,12 +1396,12 @@ setupClientSearch("clientInput","clientSuggestions");
 setupClientSearch("clientInputFacture","clientSuggestionsFacture");
 setupClientSearch("clientInputBL","clientSuggestionsBL");
 
-let devis={lignes:[]}, devisFacture={lignes:[]}, documentActif="devis";
+let devis = { lignes: [] }, devisFacture = { lignes: [] }, documentActif = "devis";
 
 function render() {
-  lines.innerHTML="";
-  devis.lignes.forEach((l,i)=>{
-    lines.innerHTML+=`<div class="line">
+  lines.innerHTML = "";
+  devis.lignes.forEach((l, i) => {
+    lines.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devis.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
@@ -1445,52 +1416,54 @@ function render() {
   });
   calculate();
 }
-function addLine()     { devis.lignes.push({designation:"",quantite:1,prix:0,tva:""}); render(); }
-function deleteLine(i) { devis.lignes.splice(i,1); render(); }
-function clearAll()    { devis={lignes:[]}; clientInput.value=""; remise.value=""; validiteDevis.value=""; render(); const mailBtn=document.getElementById("btnMailDevis"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
+function addLine()     { devis.lignes.push({ designation: "", quantite: 1, prix: 0, tva: "" }); render(); }
+function deleteLine(i) { devis.lignes.splice(i, 1); render(); }
+function clearAll()    { devis = { lignes: [] }; clientInput.value = ""; remise.value = ""; validiteDevis.value = ""; render(); const m = document.getElementById("btnMailDevis"); m.disabled = true; m.classList.add("disabled"); }
 function setDateDevis() {
-  const d=new Date();
-  dateDevis.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  const d = new Date();
+  dateDevis.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 function loadNumeroDevis() {
-  fetch(WEBAPP_URL+"?lastDevis=1").then(r=>r.json()).then(data=>{
-    const annee=new Date().getFullYear(); let next=1;
-    if(data&&data.numero){const p=data.numero.split("-");next=Number(p[1])+1;}
-    numeroDevis.value=`DEV-${annee}-${next}`;
-  }).catch(()=>{numeroDevis.value=`DEV-${new Date().getFullYear()}-1`;});
+  fetch(WEBAPP_URL + "?lastDevis=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]) + 1; }
+    numeroDevis.placeholder = ""; numeroDevis.value = `DEV-${annee}-${next}`;
+  }).catch(() => { numeroDevis.placeholder = ""; numeroDevis.value = `DEV-${new Date().getFullYear()}-1`; });
 }
 function calculate() {
-  let ht=0,totalTVA=0;
-  devis.lignes.forEach(l=>{const lHT=Number(l.quantite||0)*Number(l.prix||0);ht+=lHT;totalTVA+=lHT*(Number(l.tva||0)/100);});
-  const r=Number(remise.value)||0,remVal=ht*(r/100),htA=ht-remVal,ttc=htA+totalTVA;
-  totalHT.textContent=ht.toFixed(2)+" €"; montantRemise.textContent=remVal.toFixed(2)+" €";
-  totalApresRemise.textContent=htA.toFixed(2)+" €"; montantTVA.textContent=totalTVA.toFixed(2)+" €"; totalTTC.textContent=ttc.toFixed(2)+" €";
+  let ht = 0, totalTVA = 0;
+  devis.lignes.forEach(l => { const lHT = Number(l.quantite||0)*Number(l.prix||0); ht += lHT; totalTVA += lHT*(Number(l.tva||0)/100); });
+  const r = Number(remise.value)||0, remVal = ht*(r/100), htA = ht-remVal, ttc = htA+totalTVA;
+  totalHT.textContent = ht.toFixed(2)+" €"; montantRemise.textContent = remVal.toFixed(2)+" €";
+  totalApresRemise.textContent = htA.toFixed(2)+" €"; montantTVA.textContent = totalTVA.toFixed(2)+" €"; totalTTC.textContent = ttc.toFixed(2)+" €";
 }
+
 function saveFireAndForget(payload, successMsg, btn) {
   const old = btn ? btn.innerHTML : null;
   if (btn) { btn.innerHTML = "⏳..."; btn.disabled = true; }
   const timeout = new Promise(r => setTimeout(r, 2000));
-  const request = fetch(WEBAPP_URL, { method:"POST", body:JSON.stringify(payload), mode:"no-cors" }).catch(()=>{});
+  const request = fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify(payload), mode: "no-cors" }).catch(() => {});
   Promise.race([request, timeout]).finally(() => {
     if (btn) { btn.innerHTML = old; btn.disabled = false; }
-    alert(successMsg);
+    if (successMsg) showToast(successMsg);
   });
 }
+
 function saveDevis(btn) {
-  saveFireAndForget({type:"devis",numero:numeroDevis.value,date:dateDevis.value,client:clientInput.value,lignes:devis.lignes,remise:remise.value,validite:validiteDevis.value}, "Devis enregistré ✅", btn);
+  saveFireAndForget({ type:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value, lignes:devis.lignes, remise:remise.value, validite:validiteDevis.value }, "💾 Devis enregistré", btn);
   const mailBtn = document.getElementById("btnMailDevis");
   mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 function transformerEnFacture() {
-  devisFacture.lignes=JSON.parse(JSON.stringify(devis.lignes));
-  clientInputFacture.value=clientInput.value; remiseFacture.value=remise.value;
+  devisFacture.lignes = JSON.parse(JSON.stringify(devis.lignes));
+  clientInputFacture.value = clientInput.value; remiseFacture.value = remise.value;
   renderFacture(); calculateFacture(); showPage("facturePage");
 }
 
 function renderFacture() {
-  linesFacture.innerHTML="";
-  devisFacture.lignes.forEach((l,i)=>{
-    linesFacture.innerHTML+=`<div class="line">
+  linesFacture.innerHTML = "";
+  devisFacture.lignes.forEach((l, i) => {
+    linesFacture.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisFacture.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
@@ -1505,42 +1478,42 @@ function renderFacture() {
   });
   calculateFacture();
 }
-function addLineFacture()     { devisFacture.lignes.push({designation:"",quantite:1,prix:0,tva:""}); renderFacture(); }
-function deleteLineFacture(i) { devisFacture.lignes.splice(i,1); renderFacture(); }
-function clearAllFacture()    { devisFacture={lignes:[]}; clientInputFacture.value=""; remiseFacture.value=""; delaiPaiementFacture.value=""; renderFacture(); const mailBtn=document.getElementById("btnMailFacture"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
+function addLineFacture()      { devisFacture.lignes.push({ designation: "", quantite: 1, prix: 0, tva: "" }); renderFacture(); }
+function deleteLineFacture(i)  { devisFacture.lignes.splice(i, 1); renderFacture(); }
+function clearAllFacture()     { devisFacture = { lignes: [] }; clientInputFacture.value = ""; remiseFacture.value = ""; delaiPaiementFacture.value = ""; renderFacture(); const m = document.getElementById("btnMailFacture"); m.disabled = true; m.classList.add("disabled"); }
 function setDateFacture() {
-  const d=new Date();
-  dateFacture.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  const d = new Date();
+  dateFacture.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 function loadNumeroFacture() {
-  fetch(WEBAPP_URL+"?lastFacture=1").then(r=>r.json()).then(data=>{
-    const annee=new Date().getFullYear(); let next=1;
-    if(data&&data.numero){const p=data.numero.split("-");next=Number(p[1])+1;}
-    numeroFacture.value=`FAC-${annee}-${next}`;
-  }).catch(()=>{numeroFacture.value=`FAC-${new Date().getFullYear()}-1`;});
+  fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]) + 1; }
+    numeroFacture.placeholder = ""; numeroFacture.value = `FAC-${annee}-${next}`;
+  }).catch(() => { numeroFacture.placeholder = ""; numeroFacture.value = `FAC-${new Date().getFullYear()}-1`; });
 }
 function calculateFacture() {
-  let ht=0,totalTVA=0;
-  devisFacture.lignes.forEach(l=>{const lHT=Number(l.quantite||0)*Number(l.prix||0);ht+=lHT;totalTVA+=lHT*(Number(l.tva||0)/100);});
-  const r=Number(remiseFacture.value)||0,remVal=ht*(r/100),htA=ht-remVal,ttc=htA+totalTVA;
-  totalHTFacture.textContent=ht.toFixed(2)+" €"; montantRemiseFacture.textContent=remVal.toFixed(2)+" €";
-  totalApresRemiseFacture.textContent=htA.toFixed(2)+" €"; montantTVAFacture.textContent=totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent=ttc.toFixed(2)+" €";
+  let ht = 0, totalTVA = 0;
+  devisFacture.lignes.forEach(l => { const lHT = Number(l.quantite||0)*Number(l.prix||0); ht += lHT; totalTVA += lHT*(Number(l.tva||0)/100); });
+  const r = Number(remiseFacture.value)||0, remVal = ht*(r/100), htA = ht-remVal, ttc = htA+totalTVA;
+  totalHTFacture.textContent = ht.toFixed(2)+" €"; montantRemiseFacture.textContent = remVal.toFixed(2)+" €";
+  totalApresRemiseFacture.textContent = htA.toFixed(2)+" €"; montantTVAFacture.textContent = totalTVA.toFixed(2)+" €"; totalTTCFacture.textContent = ttc.toFixed(2)+" €";
 }
 function saveFacture(btn) {
-  saveFireAndForget({type:"facture",numero:numeroFacture.value,date:dateFacture.value,client:clientInputFacture.value,lignes:devisFacture.lignes,remise:remiseFacture.value,delaiPaiement:delaiPaiementFacture.value}, "Facture enregistrée ✅", btn);
+  saveFireAndForget({ type:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value, lignes:devisFacture.lignes, remise:remiseFacture.value, delaiPaiement:delaiPaiementFacture.value }, "💾 Facture enregistrée", btn);
   const mailBtn = document.getElementById("btnMailFacture");
   mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 function transformerEnBL() {
-  devisBL.lignes=devisFacture.lignes.map(l=>({designation:l.designation,quantite:l.quantite}));
-  clientInputBL.value=clientInputFacture.value; renderBL(); showPage("blPage");
+  devisBL.lignes = devisFacture.lignes.map(l => ({ designation: l.designation, quantite: l.quantite }));
+  clientInputBL.value = clientInputFacture.value; renderBL(); showPage("blPage");
 }
 
-let devisBL={lignes:[]};
+let devisBL = { lignes: [] };
 function renderBL() {
-  linesBL.innerHTML="";
-  devisBL.lignes.forEach((l,i)=>{
-    linesBL.innerHTML+=`<div class="line">
+  linesBL.innerHTML = "";
+  devisBL.lignes.forEach((l, i) => {
+    linesBL.innerHTML += `<div class="line">
       <input value="${l.designation}" placeholder="Description" oninput="devisBL.lignes[${i}].designation=this.value">
       <div style="display:grid;grid-template-columns:1fr 36px;gap:8px;align-items:end">
         <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTÉ</span>
@@ -1550,84 +1523,95 @@ function renderBL() {
     </div>`;
   });
 }
-function addLineBL()     { devisBL.lignes.push({designation:"",quantite:1}); renderBL(); }
-function deleteLineBL(i) { devisBL.lignes.splice(i,1); renderBL(); }
-function clearAllBL()    { devisBL={lignes:[]}; clientInputBL.value=""; refFactureBL.value=""; renderBL(); const mailBtn=document.getElementById("btnMailBL"); mailBtn.disabled=true; mailBtn.classList.add("disabled"); }
+function addLineBL()     { devisBL.lignes.push({ designation: "", quantite: 1 }); renderBL(); }
+function deleteLineBL(i) { devisBL.lignes.splice(i, 1); renderBL(); }
+function clearAllBL()    { devisBL = { lignes: [] }; clientInputBL.value = ""; refFactureBL.value = ""; renderBL(); const m = document.getElementById("btnMailBL"); m.disabled = true; m.classList.add("disabled"); }
 function setDateBL() {
-  const d=new Date();
-  dateBL.value=`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  const d = new Date();
+  dateBL.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 function loadNumeroBL() {
-  fetch(WEBAPP_URL+"?lastFacture=1").then(r=>r.json()).then(data=>{
-    const annee=new Date().getFullYear(); let next=1;
-    if(data&&data.numero){const p=data.numero.split("-");next=Number(p[1]);}
-    numeroBL.value=`BL-${annee}-${next}`; refFactureBL.value=`FAC-${annee}-${next}`;
-  }).catch(()=>{numeroBL.value=`BL-${new Date().getFullYear()}-1`;});
+  fetch(WEBAPP_URL + "?lastFacture=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]); }
+    numeroBL.placeholder = ""; numeroBL.value = `BL-${annee}-${next}`; refFactureBL.value = `FAC-${annee}-${next}`;
+  }).catch(() => { numeroBL.placeholder = ""; numeroBL.value = `BL-${new Date().getFullYear()}-1`; });
 }
 function saveBL(btn) {
-  saveFireAndForget({type:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,refFacture:refFactureBL.value,lignes:devisBL.lignes}, "BL enregistré ✅", btn);
+  saveFireAndForget({ type:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value, refFacture:refFactureBL.value, lignes:devisBL.lignes }, "💾 BL enregistré", btn);
   const mailBtn = document.getElementById("btnMailBL");
   mailBtn.disabled = false; mailBtn.classList.remove("disabled");
 }
 
+// ══════════════════════════════════════════════
+// HISTORIQUE
+// ══════════════════════════════════════════════
 const HISTO_CONFIG = {
-  devis:   { param:"historiqueDevis",   cols:["Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
-  facture: { param:"historiqueFacture", cols:["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
-  bl:      { param:"historiqueBL",      cols:["Date","Client","N° BL"] },
+  devis:   { param: "historiqueDevis",   cols: ["Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
+  facture: { param: "historiqueFacture", cols: ["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  bl:      { param: "historiqueBL",      cols: ["Date","Client","N° BL"] },
 };
-let histoAbortController=null;
+let histoAbortController = null;
 function loadHistorique() {
-  const type=document.getElementById("histoType").value, cfg=HISTO_CONFIG[type];
-  const head=document.getElementById("histoHead"), body=document.getElementById("histoBody"), loading=document.getElementById("histoLoading");
-  if(histoAbortController) histoAbortController.abort();
-  histoAbortController=new AbortController();
-  head.innerHTML="<tr>"+cfg.cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
-  body.innerHTML=""; loading.classList.remove("hidden");
-  fetch(WEBAPP_URL+"?"+cfg.param+"=1",{signal:histoAbortController.signal})
-    .then(r=>r.json()).then(docs=>{
-      loading.classList.add("hidden");
-      if(!docs||docs.length===0){body.innerHTML=`<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`;return;}
-      docs.forEach(doc=>{
-        const tr=document.createElement("tr"); tr.style.cursor="pointer";
-        if(type==="bl"){
-          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
+  const type = document.getElementById("histoType").value, cfg = HISTO_CONFIG[type];
+  const head = document.getElementById("histoHead"), body = document.getElementById("histoBody"), loading = document.getElementById("histoLoading");
+  if (histoAbortController) histoAbortController.abort();
+  histoAbortController = new AbortController();
+  head.innerHTML = "<tr>"+cfg.cols.map(c => `<th>${c}</th>`).join("")+"</tr>";
+  // ✅ Skeleton pendant le chargement
+  showTableSkeleton("histoBody", cfg.cols.length, 5);
+  loading.classList.add("hidden");
+  fetch(WEBAPP_URL + "?" + cfg.param + "=1", { signal: histoAbortController.signal })
+    .then(r => r.json()).then(docs => {
+      if (!docs || docs.length === 0) { body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--text-3);padding:30px">Aucune donnée</td></tr>`; return; }
+      body.innerHTML = "";
+      docs.forEach(doc => {
+        const tr = document.createElement("tr"); tr.style.cursor = "pointer";
+        if (type === "bl") {
+          tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
         } else {
-          const fmtDate=v=>{ if(!v) return ""; const d=new Date(v); return isNaN(d)?v:d.toLocaleDateString("fr-FR"); };
-          tr.innerHTML=`<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+          const fmtDate = v => { if (!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
+          tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         }
-        tr.onclick=()=>chargerDepuisHistorique(type,doc,tr); body.appendChild(tr);
+        tr.onclick = () => chargerDepuisHistorique(type, doc, tr);
+        body.appendChild(tr);
       });
-    }).catch(err=>{
-      if(err.name==="AbortError") return;
-      loading.classList.add("hidden");
-      body.innerHTML=`<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
+    }).catch(err => {
+      if (err.name === "AbortError") return;
+      body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
     });
 }
 
 // ══════════════════════════════════════════════
-// STATS PAGE
+// STATS
 // ══════════════════════════════════════════════
 let statsData = [];
 let statsChart = null;
 const MOIS_LABELS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
 
+function restoreStatsCanvas() {
+  // Le skeleton a remplacé le canvas — on le recrée
+  const wrap = document.querySelector('[style*="height:230px"]');
+  if (wrap && !wrap.querySelector("canvas")) {
+    wrap.innerHTML = '<canvas id="statsChart"></canvas>';
+  }
+}
+
 async function loadStats() {
-  if (statsData.length > 0) { renderStats(); return; }
-  document.getElementById("statsTop5").innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3)">⏳ Chargement...</div>';
   try {
     const res = await fetch(WEBAPP_URL + "?historiqueFacture=1");
     const docs = await res.json();
     statsData = (docs || []).map(d => {
-      const ttc = parseFloat(String(d.totalTTC || "0").replace(/[^0-9.,]/g,"").replace(",",".")) || 0;
-      const parts = (d.date || "").split("/");
+      const ttc = parseFloat(String(d.totalTTC||"0").replace(/[^0-9.,]/g,"").replace(",",".")) || 0;
+      const parts = (d.date||"").split("/");
       const mois = parts.length === 3 ? parseInt(parts[1]) : 0;
       const annee = parts.length === 3 ? parseInt(parts[2]) : 0;
-      return { client: d.client || "", ttc, mois, annee, date: d.date || "" };
+      return { client: d.client||"", ttc, mois, annee, date: d.date||"" };
     }).filter(d => d.ttc > 0 && d.annee > 0);
-    populateFiltresAnnee();
-    populateFiltresClient();
-    renderStats();
+    restoreStatsCanvas();
+    populateFiltresAnnee(); populateFiltresClient(); renderStats();
   } catch(e) {
+    restoreStatsCanvas();
     document.getElementById("statsTop5").innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger)">Erreur de chargement</div>';
   }
 }
@@ -1645,84 +1629,41 @@ function populateFiltresClient() {
   clients.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); });
 }
 function getFiltredData() {
-  const annee = document.getElementById("statsAnnee").value;
-  const mois = document.getElementById("statsMois").value;
-  const client = document.getElementById("statsClient").value;
-  return statsData.filter(d =>
-    (!annee || d.annee === parseInt(annee)) &&
-    (!mois || d.mois === parseInt(mois)) &&
-    (!client || d.client === client)
-  );
+  const annee = document.getElementById("statsAnnee").value, mois = document.getElementById("statsMois").value, client = document.getElementById("statsClient").value;
+  return statsData.filter(d => (!annee||d.annee===parseInt(annee)) && (!mois||d.mois===parseInt(mois)) && (!client||d.client===client));
 }
 function appliquerFiltresStats() { renderStats(); }
-function resetFiltresStats() {
-  document.getElementById("statsAnnee").value = "";
-  document.getElementById("statsMois").value = "";
-  document.getElementById("statsClient").value = "";
-  renderStats();
-}
+function resetFiltresStats() { document.getElementById("statsAnnee").value = ""; document.getElementById("statsMois").value = ""; document.getElementById("statsClient").value = ""; renderStats(); }
 
 function renderStats() {
   const data = getFiltredData();
-  const caTotal = data.reduce((s,d) => s+d.ttc, 0);
-  const nb = data.length;
-  const moyen = nb > 0 ? caTotal / nb : 0;
-  const byMois = {};
-  data.forEach(d => { const k = `${MOIS_LABELS[d.mois-1]} ${d.annee}`; byMois[k] = (byMois[k] || 0) + d.ttc; });
+  const caTotal = data.reduce((s,d) => s+d.ttc, 0), nb = data.length, moyen = nb > 0 ? caTotal/nb : 0;
+  const byMois = {}; data.forEach(d => { const k = `${MOIS_LABELS[d.mois-1]} ${d.annee}`; byMois[k] = (byMois[k]||0)+d.ttc; });
   const bestMois = Object.entries(byMois).sort((a,b) => b[1]-a[1])[0];
-  document.getElementById("kpiCA").textContent = caTotal.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0}) + " €";
-  document.getElementById("kpiNb").textContent = nb;
-  document.getElementById("kpiMoyen").textContent = moyen.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0}) + " €";
+  document.getElementById("kpiCA").textContent      = caTotal.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})+" €";
+  document.getElementById("kpiNb").textContent      = nb;
+  document.getElementById("kpiMoyen").textContent   = moyen.toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:0})+" €";
   document.getElementById("kpiBestMonth").textContent = bestMois ? bestMois[0] : "—";
-
   const moisFiltre = document.getElementById("statsMois").value;
   let labels = [], values = [];
   if (moisFiltre) {
-    const byAnnee = {};
-    data.forEach(d => { byAnnee[d.annee] = (byAnnee[d.annee]||0)+d.ttc; });
-    labels = Object.keys(byAnnee).sort();
-    values = labels.map(a => byAnnee[a]);
+    const byAnnee = {}; data.forEach(d => { byAnnee[d.annee] = (byAnnee[d.annee]||0)+d.ttc; });
+    labels = Object.keys(byAnnee).sort(); values = labels.map(a => byAnnee[a]);
   } else {
-    const byKey = {};
-    data.forEach(d => { const k = `${d.annee}-${String(d.mois).padStart(2,"0")}`; byKey[k] = (byKey[k]||0)+d.ttc; });
+    const byKey = {}; data.forEach(d => { const k = `${d.annee}-${String(d.mois).padStart(2,"0")}`; byKey[k] = (byKey[k]||0)+d.ttc; });
     const sorted = Object.keys(byKey).sort();
     labels = sorted.map(k => { const [a,m] = k.split("-"); return MOIS_LABELS[parseInt(m)-1]+" "+a; });
     values = sorted.map(k => byKey[k]);
   }
-
   const ctx = document.getElementById("statsChart").getContext("2d");
   if (statsChart) statsChart.destroy();
   statsChart = new Chart(ctx, {
     type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "CA TTC (€)", data: values,
-        borderColor: "#34d399", backgroundColor: "rgba(52,211,153,0.08)",
-        borderWidth: 2.5, pointBackgroundColor: "#34d399",
-        pointRadius: 5, pointHoverRadius: 7, tension: 0.35, fill: true
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "rgba(14,24,18,0.95)", borderColor: "rgba(52,211,153,0.3)", borderWidth: 1,
-          titleColor: "#8fbfa0", bodyColor: "#e8f5ee",
-          callbacks: { label: ctx => " " + ctx.parsed.y.toLocaleString("fr-FR",{minimumFractionDigits:2}) + " €" }
-        }
-      },
-      scales: {
-        x: { grid: { color: "rgba(52,211,153,0.06)" }, ticks: { color: "#4d7a5e", font: { size: 11 } } },
-        y: { grid: { color: "rgba(52,211,153,0.06)" }, ticks: { color: "#4d7a5e", font: { size: 11 }, callback: v => v.toLocaleString("fr-FR",{maximumFractionDigits:0}) + " €" }, beginAtZero: true }
-      }
-    }
+    data: { labels, datasets: [{ label:"CA TTC (€)", data:values, borderColor:"#34d399", backgroundColor:"rgba(52,211,153,0.08)", borderWidth:2.5, pointBackgroundColor:"#34d399", pointRadius:5, pointHoverRadius:7, tension:0.35, fill:true }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:"rgba(14,24,18,0.95)", borderColor:"rgba(52,211,153,0.3)", borderWidth:1, titleColor:"#8fbfa0", bodyColor:"#e8f5ee", callbacks:{label: ctx => " "+ctx.parsed.y.toLocaleString("fr-FR",{minimumFractionDigits:2})+" €"} } }, scales:{ x:{grid:{color:"rgba(52,211,153,0.06)"},ticks:{color:"#4d7a5e",font:{size:11}}}, y:{grid:{color:"rgba(52,211,153,0.06)"},ticks:{color:"#4d7a5e",font:{size:11},callback: v => v.toLocaleString("fr-FR",{maximumFractionDigits:0})+" €"},beginAtZero:true} } }
   });
-
-  const byClient = {};
-  data.forEach(d => { byClient[d.client] = (byClient[d.client]||0)+d.ttc; });
-  const top5 = Object.entries(byClient).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const byClient = {}; data.forEach(d => { byClient[d.client] = (byClient[d.client]||0)+d.ttc; });
+  const top5 = Object.entries(byClient).sort((a,b) => b[1]-a[1]).slice(0,5);
   const maxVal = top5[0] ? top5[0][1] : 1;
   const medals = ["🥇","🥈","🥉","4️⃣","5️⃣"];
   const top5El = document.getElementById("statsTop5");
@@ -1730,10 +1671,7 @@ function renderStats() {
   top5El.innerHTML = top5.map(([client, ca], i) => `
     <div style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">${medals[i]}</span>
-          <span style="font-size:13px;font-weight:500;color:var(--text)">${client}</span>
-        </div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">${medals[i]}</span><span style="font-size:13px;font-weight:500;color:var(--text)">${client}</span></div>
         <span style="font-size:13px;font-weight:700;color:var(--accent)">${ca.toLocaleString("fr-FR",{minimumFractionDigits:2})} €</span>
       </div>
       <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
@@ -1743,10 +1681,10 @@ function renderStats() {
   `).join("");
 }
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 // ══════════════════════════════════════════════
-// PWA INSTALL BANNER
+// PWA
 // ══════════════════════════════════════════════
 let deferredPrompt = null;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -1754,11 +1692,8 @@ const isAndroid = /android/i.test(navigator.userAgent);
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-    setTimeout(() => showPWABanner(), 3000);
-  }
+  e.preventDefault(); deferredPrompt = e;
+  if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) setTimeout(() => showPWABanner(), 3000);
 });
 
 function showPWABanner() {
@@ -1770,25 +1705,14 @@ function showPWABanner() {
 }
 
 function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPWA(); });
-  } else if (isIOS) {
-    alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter");
-    dismissPWA();
-  }
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPWA(); }); }
+  else if (isIOS) { alert("Pour installer sur iPhone/iPad :\n1. Appuyez sur l'icône Partager (□↑)\n2. Faites défiler et appuyez sur \"Sur l'écran d'accueil\"\n3. Appuyez sur Ajouter"); dismissPWA(); }
 }
 
-function dismissPWA() {
-  sessionStorage.setItem("pwaDismissed", "1");
-  document.getElementById("pwaBanner").classList.remove("visible");
-}
+function dismissPWA() { sessionStorage.setItem("pwaDismissed", "1"); document.getElementById("pwaBanner").classList.remove("visible"); }
 
 if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
-  setTimeout(() => {
-    document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment";
-    showPWABanner();
-  }, 3000);
+  setTimeout(() => { document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment"; showPWABanner(); }, 3000);
 }
 </script>
 
