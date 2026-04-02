@@ -376,6 +376,11 @@
         <div><label>Adresse</label><input id="c_adresse" placeholder="15 rue de la Paix, Paris"></div>
         <div><label>Téléphone</label><input id="c_tel" placeholder="+33 6 12 34 56 78"></div>
       </div>
+<div class="section-label">Informations légales client</div>
+<div id="legalLines"></div>
+<button class="btn btn-ghost" type="button" onclick="addLegalLine()">
+  ➕ Ajouter ligne légale
+</button>
       <div class="btn-row">
         <button id="btnSaveClient" class="btn btn-primary" onclick="saveClient()">💾 Enregistrer</button>
         <button id="btnModifierClient" class="btn btn-ghost hidden" onclick="modifierClient()">✏️ Modifier</button>
@@ -988,15 +993,78 @@ async function genererPDF(docData) {
   try { const res=await fetch(WEBAPP_URL+"?logoBase64=1"); const d=await res.json(); if(d&&d.logo){logoBase64=d.logo;await new Promise((resolve)=>{const tmpImg=new Image();tmpImg.onload=()=>{const maxW=35,maxH=20,ratio=tmpImg.naturalWidth/tmpImg.naturalHeight;if(ratio>=1){logoW=Math.min(maxW,maxH*ratio);logoH=logoW/ratio;}else{logoH=Math.min(maxH,maxW/ratio);logoW=logoH*ratio;}resolve();};tmpImg.onerror=()=>resolve();tmpImg.src=logoBase64;});}} catch(e){}
   let entreprise={nom:"",adresse:"",siret:"",tva:""};
   try{const res=await fetch(WEBAPP_URL+"?infos=1");entreprise=await res.json();}catch(e){}
-  let clientInfos={adresse:"",email:"",tel:""};
-  try{const res=await fetch(WEBAPP_URL+"?clientsAll=1");const clients=await res.json();const found=clients.find(r=>r[1]===docData.client);if(found){clientInfos.adresse=found[2]||"";clientInfos.email=found[3]||"";clientInfos.tel=found[4]||"";}}catch(e){}
+ let clientInfos = {
+  adresse: "",
+  email: "",
+  tel: "",
+  champsLegaux: []
+};
+
+try {
+  const res = await fetch(WEBAPP_URL + "?clientsAll=1");
+  const clients = await res.json();
+  const found = clients.find(r => r[1] === docData.client);
+
+  if (found) {
+    clientInfos.adresse = found[2] || "";
+    clientInfos.email   = found[3] || "";
+    clientInfos.tel     = found[4] || "";
+
+    try {
+      clientInfos.champsLegaux = JSON.parse(found[5] || "[]");
+    } catch {
+      clientInfos.champsLegaux = [];
+    }
+  }
+} catch(e) {}
   const lignes=(docData.lignes||[]).filter(l=>l.designation&&l.designation.toString().trim()!=="");
   const remise=Number(docData.remise)||0,totalHT=lignes.reduce((s,l)=>s+Number(l.quantite||0)*Number(l.prix||0),0),remiseVal=totalHT*(remise/100),htApres=totalHT-remiseVal,totalTVA=lignes.reduce((s,l)=>{const ht=Number(l.quantite||0)*Number(l.prix||0);return s+ht*(Number(l.tva||0)/100);},0),totalTTC=htApres+totalTVA,hasTVA=totalTVA>0;
   const titres={devis:"DEVIS",facture:"FACTURE",bl:"BON DE LIVRAISON"};
   const titre=titres[docData.docType]||"DOCUMENT";
   let currentPage=1,totalPages=1;
 
-  const drawPage=(pageNum)=>{let y=marginT,headerLogoH=0;if(logoBase64&&logoW>0){try{const ext=logoBase64.startsWith("data:image/png")?"PNG":"JPEG";doc.addImage(logoBase64,ext,marginL,y,logoW,logoH,undefined,'FAST');headerLogoH=logoH;}catch(e){doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}}else{doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);doc.text(titre,pageW-marginR,y+8,{align:"right"});doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);doc.text(`N° ${docData.numero||""}`,pageW-marginR,y+14,{align:"right"});doc.text(`Date : ${docData.date||""}`,pageW-marginR,y+19,{align:"right"});y+=Math.max(headerLogoH,22)+4;const boxH=28,halfW=(contentW-6)/2;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("ÉMETTEUR",marginL+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(marginL+4,y+6.5,marginL+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(entreprise.nom||"",marginL+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(entreprise.adresse||"",marginL+4,y+16,{maxWidth:halfW-8});doc.text(`SIRET : ${entreprise.siret||""}`,marginL+4,y+22);if(entreprise.tva)doc.text(`N° TVA : ${entreprise.tva}`,marginL+4,y+26);const cx=marginL+halfW+6;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(cx,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("CLIENT",cx+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(cx+4,y+6.5,cx+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(docData.client||"",cx+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let cy2=y+16;if(clientInfos.adresse){doc.text(clientInfos.adresse,cx+4,cy2,{maxWidth:halfW-8});cy2+=5;}if(clientInfos.email){doc.text(`Email : ${clientInfos.email}`,cx+4,cy2,{maxWidth:halfW-8});cy2+=4;}if(clientInfos.tel){doc.text(`Tél : ${clientInfos.tel}`,cx+4,cy2);}y+=boxH+6;if(docData.docType==="devis"){doc.setFont("helvetica","italic").setFontSize(8).setTextColor(...gris);doc.text("Ce document n'est pas une facture.",marginL,y);y+=5;}return y;};
+  const drawPage=(pageNum)=>{let y=marginT,headerLogoH=0;if(logoBase64&&logoW>0){try{const ext=logoBase64.startsWith("data:image/png")?"PNG":"JPEG";doc.addImage(logoBase64,ext,marginL,y,logoW,logoH,undefined,'FAST');headerLogoH=logoH;}catch(e){doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}}else{doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);doc.text(titre,pageW-marginR,y+8,{align:"right"});doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);doc.text(`N° ${docData.numero||""}`,pageW-marginR,y+14,{align:"right"});doc.text(`Date : ${docData.date||""}`,pageW-marginR,y+19,{align:"right"});y+=Math.max(headerLogoH,22)+4;const halfW = (contentW - 6) / 2;
+
+// ✅ calcul hauteur dynamique box client
+let clientLines = 2; // nom + adresse de base
+if (clientInfos.email) clientLines++;
+if (clientInfos.tel) clientLines++;
+if (clientInfos.champsLegaux) clientLines += clientInfos.champsLegaux.length;
+
+const clientBoxH = Math.max(28, 12 + (clientLines * 4));
+
+// ✅ box émetteur reste fixe ou minimum aligné
+const emitterBoxH = Math.max(28, clientBoxH);
+
+const boxH = Math.max(emitterBoxH, clientBoxH);doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("ÉMETTEUR",marginL+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(marginL+4,y+6.5,marginL+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(entreprise.nom||"",marginL+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(entreprise.adresse||"",marginL+4,y+16,{maxWidth:halfW-8});doc.text(`SIRET : ${entreprise.siret||""}`,marginL+4,y+22);if(entreprise.tva)doc.text(`N° TVA : ${entreprise.tva}`,marginL+4,y+26);const cx=marginL+halfW+6;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(cx,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("CLIENT",cx+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(cx+4,y+6.5,cx+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(docData.client||"",cx+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let cy2 = y + 16;
+
+if (clientInfos.adresse) {
+  doc.text(clientInfos.adresse, cx + 4, cy2, { maxWidth: halfW - 8 });
+  cy2 += 5;
+}
+
+if (clientInfos.email) {
+  doc.text(`Email : ${clientInfos.email}`, cx + 4, cy2, { maxWidth: halfW - 8 });
+  cy2 += 4;
+}
+
+if (clientInfos.tel) {
+  doc.text(`Tél : ${clientInfos.tel}`, cx + 4, cy2, { maxWidth: halfW - 8 });
+  cy2 += 4;
+}
+
+// ✅ AJOUT DES CHAMPS LÉGAUX DYNAMIQUES
+if (clientInfos.champsLegaux && clientInfos.champsLegaux.length) {
+  clientInfos.champsLegaux.forEach(champ => {
+    doc.text(
+      `${champ.label} : ${champ.value}`,
+      cx + 4,
+      cy2,
+      { maxWidth: halfW - 8 }
+    );
+    cy2 += 4;
+  });
+}y+=boxH+6;if(docData.docType==="devis"){doc.setFont("helvetica","italic").setFontSize(8).setTextColor(...gris);doc.text("Ce document n'est pas une facture.",marginL,y);y+=5;}return y;};
   const drawTableHeader=(y,hasTVA,docType)=>{doc.setFillColor(...noir).setDrawColor(...noir);doc.rect(marginL,y,contentW,7,'F');doc.setFont("helvetica","bold").setFontSize(8).setTextColor(255,255,255);if(docType==="bl"){doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+contentW-20,y+5,{align:"center"});}else if(hasTVA){doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+80,y+5,{align:"center"});doc.text("PU HT",marginL+115,y+5,{align:"right"});doc.text("TVA",marginL+140,y+5,{align:"center"});doc.text("Total HT",marginL+contentW-2,y+5,{align:"right"});}else{doc.text("Désignation",marginL+3,y+5);doc.text("Qté",marginL+85,y+5,{align:"center"});doc.text("PU HT",marginL+130,y+5,{align:"right"});doc.text("Total HT",marginL+contentW-2,y+5,{align:"right"});}return y+7;};
   const drawLine=(y,ligne,idx,hasTVA,docType)=>{const rowH=7,ht=Number(ligne.quantite||0)*Number(ligne.prix||0);if(idx%2===1){doc.setFillColor(...grisUltra);doc.rect(marginL,y,contentW,rowH,'F');}doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...noir);if(docType==="bl"){doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:130});doc.text(String(Number(ligne.quantite||0)),marginL+contentW-20,y+5,{align:"center"});}else if(hasTVA){doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:72});doc.text(String(Number(ligne.quantite||0)),marginL+80,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+115,y+5,{align:"right"});doc.text((Number(ligne.tva||0))+" %",marginL+140,y+5,{align:"center"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}else{doc.text(ligne.designation||"",marginL+3,y+5,{maxWidth:77});doc.text(String(Number(ligne.quantite||0)),marginL+85,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+130,y+5,{align:"right"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}doc.setDrawColor(...grisClair).setLineWidth(0.1);doc.line(marginL,y+rowH,marginL+contentW,y+rowH);return y+rowH;};
   const drawTotaux=(y,totalHT,remise,remiseVal,htApres,totalTVA,totalTTC,hasTVA)=>{if(docData.docType==="bl")return y;const boxW=75,bx=pageW-marginR-boxW;let by=y+4;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(bx,by,boxW,hasTVA?(remise>0?32:22):(remise>0?28:18),2,2,'S');doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text("Total HT",bx+4,by+6);doc.setTextColor(...noir);doc.text(totalHT.toFixed(2)+" €",bx+boxW-4,by+6,{align:"right"});let ty=by+6;if(remise>0){ty+=6;doc.setTextColor(...gris).text(`Remise (${remise} %)`,bx+4,ty);doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});ty+=6;doc.setTextColor(...gris).text("HT après remise",bx+4,ty);doc.setTextColor(...noir).text(htApres.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}if(hasTVA){ty+=6;doc.setTextColor(...gris).text("TVA",bx+4,ty);doc.setTextColor(...noir).text(totalTVA.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}ty+=4;doc.setFillColor(...noir);doc.roundedRect(bx,ty,boxW,10,2,2,'F');doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);doc.text("Total TTC",bx+4,ty+6.5);doc.text(totalTTC.toFixed(2)+" €",bx+boxW-4,ty+6.5,{align:"right"});return ty+14;};
@@ -1269,7 +1337,7 @@ function renderClientsTable(rows) {
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
     tr.style.cursor = "pointer";
-    tr.innerHTML = row.map(cell => `<td>${cell||""}</td>`).join("");
+    tr.innerHTML = row.slice(0, 5).map(cell => `<td>${cell||""}</td>`).join("");
     tr.onclick = () => chargerClientDansFormulaire(row, i);
     body.appendChild(tr);
   });
@@ -1290,6 +1358,12 @@ function chargerClientDansFormulaire(row, idx) {
   document.getElementById("btnSaveClient").classList.add("hidden");
   document.getElementById("btnModifierClient").classList.remove("hidden");
   document.getElementById("btnSupprimerClient").classList.remove("hidden");
+document.getElementById("legalLines").innerHTML = "";
+
+try {
+  const champs = JSON.parse(row[5] || "[]");
+  champs.forEach(ch => addLegalLine(ch.label, ch.value));
+} catch(e) {}
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -1303,6 +1377,8 @@ function resetClientForm() {
   document.getElementById("btnSaveClient").classList.remove("hidden");
   document.getElementById("btnModifierClient").classList.add("hidden");
   document.getElementById("btnSupprimerClient").classList.add("hidden");
+
+  document.getElementById("legalLines").innerHTML = "";
 }
 
 function saveClient() {
@@ -1330,9 +1406,23 @@ function saveClient() {
 
   resetClientForm();
   showToast(`✅ Client "${nom}" ajouté`);
+const champsLegaux = [...document.querySelectorAll("#legalLines .grid-2")]
+  .map(row => ({
+    label: row.querySelector(".legal-label").value.trim(),
+    value: row.querySelector(".legal-value").value.trim()
+  }))
+  .filter(x => x.label && x.value);
 
   // Envoi silencieux au backend, puis refresh discret pour avoir la vraie ligne avec la date Google
-  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ type: "client", nom, adresse, mail, tel }), mode: "no-cors" })
+  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({
+  type: "client",
+  nom,
+  adresse,
+  mail,
+  tel,
+  champsLegaux
+})
+, mode: "no-cors" })
     .catch(() => {});
   // Rafraîchissement en arrière-plan pour synchroniser avec le serveur
   setTimeout(() => loadClientsTable(), 2500);
@@ -1345,22 +1435,42 @@ function modifierClient() {
   const adresse = document.getElementById("c_adresse").value.trim();
   const tel     = document.getElementById("c_tel").value.trim();
 
-  // ✅ Mise à jour optimiste dans le cache local
+  const champsLegaux = [...document.querySelectorAll("#legalLines .grid-2")]
+    .map(row => ({
+      label: row.querySelector(".legal-label").value.trim(),
+      value: row.querySelector(".legal-value").value.trim()
+    }))
+    .filter(x => x.label && x.value);
+
+  // ✅ Mise à jour optimiste locale
   if (allClientsData[idx]) {
     allClientsData[idx][1] = nom;
     allClientsData[idx][2] = adresse;
     allClientsData[idx][3] = mail;
     allClientsData[idx][4] = tel;
+    allClientsData[idx][5] = JSON.stringify(champsLegaux);
     renderClientsTable(allClientsData);
-    // Flash sur la ligne modifiée
+
     const rows = document.getElementById("clientsTableBody").querySelectorAll("tr");
     if (rows[idx]) rows[idx].className = "row-new";
   }
 
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "modifierClient",
+      rowIndex: idx + 2,
+      nom,
+      adresse,
+      mail,
+      tel,
+      champsLegaux
+    }),
+    mode: "no-cors"
+  }).catch(() => {});
+
   resetClientForm();
   showToast(`✅ Client "${nom}" modifié`);
-
-  fetch(WEBAPP_URL, { method: "POST", body: JSON.stringify({ type: "modifierClient", rowIndex: idx + 2, nom, adresse, mail, tel }), mode: "no-cors" }).catch(() => {});
   setTimeout(() => loadClientsTable(), 2500);
 }
 
@@ -1713,6 +1823,18 @@ function dismissPWA() { sessionStorage.setItem("pwaDismissed", "1"); document.ge
 
 if (isIOS && !isStandalone && !sessionStorage.getItem("pwaDismissed")) {
   setTimeout(() => { document.getElementById("pwaBannerBtn").textContent = "📲 Voir comment"; showPWABanner(); }, 3000);
+}
+function addLegalLine(label = "", value = "") {
+  const div = document.createElement("div");
+  div.className = "grid-2";
+  div.style.marginTop = "10px";
+
+  div.innerHTML = `
+    <input class="legal-label" placeholder="Nom du champ" value="${label}">
+    <input class="legal-value" placeholder="Valeur" value="${value}">
+  `;
+
+  document.getElementById("legalLines").appendChild(div);
 }
 </script>
 
