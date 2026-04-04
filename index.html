@@ -709,6 +709,25 @@ async function doLogin(btn) {
   if (!email || !password) { errEl.textContent = "Veuillez remplir tous les champs"; errEl.classList.add("visible"); return; }
   const old = btn.innerHTML; btn.innerHTML = "⏳ Connexion..."; btn.disabled = true;
 
+  async function fetchLogin(timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const url = MASTER_URL + "?login=1&email=" + encodeURIComponent(email) + "&mdp=" + encodeURIComponent(password);
+      const res = await fetch(url, { method: "GET", cache: "no-store", redirect: "follow", signal: controller.signal });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch(_) {
+        const match = text.match(/\(\s*(\{[\s\S]*\})\s*\)\s*;?\s*$/);
+        if (match) return JSON.parse(match[1]);
+        throw new Error("Invalid login payload");
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   function jsonpLogin(timeoutMs) {
     return new Promise((resolve, reject) => {
       const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*9999);
@@ -737,14 +756,21 @@ async function doLogin(btn) {
   };
 
   try {
-    const data = await jsonpLogin(15000);
+    let data = null;
+    try {
+      data = await fetchLogin(12000);
+    } catch(fetchErr) {
+      console.warn("Login fetch failed, fallback JSONP", fetchErr);
+      data = await jsonpLogin(15000);
+    }
     if (!handleResult(data)) {
       errEl.textContent = "Email ou mot de passe incorrect";
       errEl.classList.add("visible");
       btn.innerHTML = old; btn.disabled = false;
     }
   } catch(err) {
-    errEl.textContent = "Erreur de connexion — vérifiez votre réseau";
+    console.error("Login failed", err);
+    errEl.textContent = "Erreur de connexion - verifiez votre reseau ou reessayez sur Chrome";
     errEl.classList.add("visible");
     btn.innerHTML = old; btn.disabled = false;
   }
@@ -1797,19 +1823,22 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 // PWA
 // ══════════════════════════════════════════════
 let deferredPrompt = null;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isAndroid = /android/i.test(navigator.userAgent);
+const ua = navigator.userAgent || "";
+const isIOS = /iphone|ipad|ipod/i.test(ua);
+const isAndroid = /android/i.test(ua);
+const isChromeOS = /\bCrOS\b/i.test(ua);
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault(); deferredPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem("pwaDismissed")) setTimeout(() => showPWABanner(), 3000);
+  if (!isStandalone && !isChromeOS && !sessionStorage.getItem("pwaDismissed")) setTimeout(() => showPWABanner(), 3000);
 });
 
 function showPWABanner() {
   const sub = document.getElementById("pwaBannerSub");
   if (isIOS) sub.textContent = "Appuyez sur Partager puis 'Sur l'écran d'accueil'";
   else if (isAndroid) sub.textContent = "Ajoutez l'app sur votre écran d'accueil";
+  else if (isChromeOS) sub.textContent = "Ouvrez l'app dans Chrome pour une compatibilite maximale";
   else sub.textContent = "Installez l'app sur votre bureau";
   document.getElementById("pwaBanner").classList.add("visible");
 }
