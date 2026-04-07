@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="INVOICEO">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="logo2.png">
-<link rel="apple-touch-icon" href="logo2.png">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" type="image/png" href="../logo2.png">
+<link rel="apple-touch-icon" href="../logo2.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -258,7 +258,7 @@
 <!-- ══ LOGIN PAGE ══ -->
 <div id="loginShell" class="login-shell">
   <div class="login-box">
-    <div class="login-logo"><img src="logo.png" alt="INVOICEO"></div>
+    <div class="login-logo"><img src="../logo.png" alt="INVOICEO"></div>
     <div class="login-title">Invoice<span>O</span></div>
     <div class="login-sub">Connectez-vous à votre espace</div>
     <div class="login-card">
@@ -305,7 +305,7 @@
 
 <div class="nav-shell">
   <nav class="nav">
-    <div class="logo-full"><img src="logo.png" alt="logo"></div>
+    <div class="logo-full"><img src="../logo.png" alt="logo"></div>
     <div class="nav-user" id="navUser" style="display:none">
       <div class="user-badge">
         <div class="user-dot"></div>
@@ -416,6 +416,12 @@
         <div><label>N° TVA Intracom.</label><input id="info_tva" placeholder="FRXX XXXXXXXXX"></div>
       </div>
       <div class="divider"></div>
+<div class="section-label">Informations légales entreprise</div>
+<div id="companyLegalLines"></div>
+
+<button class="btn btn-ghost" type="button" onclick="addCompanyLegalLine()">
+  ➕ Ajouter ligne légale
+</button>
       <label>Logo entreprise</label>
       <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
         <input type="file" id="logoInput" accept="image/*" style="flex:1">
@@ -1207,21 +1213,29 @@ function saveInfos(btn) {
   const siret   = document.getElementById("info_siret").value;
   const tva     = document.getElementById("info_tva").value;
 
-  // ✅ Mise à jour optimiste immédiate du tableau
+  const champsLegauxEntreprise = [...document.querySelectorAll("#companyLegalLines .grid-2")]
+    .map(row => ({
+      label: row.querySelector(".company-legal-label").value.trim(),
+      value: row.querySelector(".company-legal-value").value.trim()
+    }))
+    .filter(x => x.label && x.value);
+
   const tbody = document.getElementById("infosTableBody");
   tbody.innerHTML = "";
   const tr = document.createElement("tr");
   tr.className = "row-new";
   tr.innerHTML = `<td>${nom}</td><td>${adresse}</td><td>${siret}</td><td>${tva}</td>`;
-  tr.onclick = () => {
-    document.getElementById("info_nom").value     = nom;
-    document.getElementById("info_adresse").value = adresse;
-    document.getElementById("info_siret").value   = siret;
-    document.getElementById("info_tva").value     = tva;
-  };
   tbody.appendChild(tr);
 
-  saveFireAndForget({ type: "infos", nom, adresse, siret, tva }, null, btn);
+  saveFireAndForget({
+    type: "infos",
+    nom,
+    adresse,
+    siret,
+    tva,
+    champsLegauxEntreprise
+  }, null, btn);
+
   showToast("✅ Infos entreprise enregistrées");
 }
 
@@ -1277,6 +1291,8 @@ function loadInfos() {
       document.getElementById("info_adresse").value = data.adresse || "";
       document.getElementById("info_siret").value   = data.siret || "";
       document.getElementById("info_tva").value     = data.tva || "";
+      document.getElementById("companyLegalLines").innerHTML = "";
+      (data.champsLegauxEntreprise || []).forEach(ch => addCompanyLegalLine(ch.label, ch.value));
     };
     tbody.appendChild(tr);
     // Pré-remplir les champs avec les données actuelles
@@ -1284,6 +1300,8 @@ function loadInfos() {
     document.getElementById("info_adresse").value = data.adresse || "";
     document.getElementById("info_siret").value   = data.siret || "";
     document.getElementById("info_tva").value     = data.tva || "";
+    document.getElementById("companyLegalLines").innerHTML = "";
+    (data.champsLegauxEntreprise || []).forEach(ch => addCompanyLegalLine(ch.label, ch.value));
   }).catch(() => {
     document.getElementById("infosTableBody").innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger);padding:16px">Erreur de chargement</td></tr>`;
   });
@@ -1817,7 +1835,7 @@ function renderStats() {
   `).join("");
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
 
 // ══════════════════════════════════════════════
 // PWA
@@ -1864,6 +1882,18 @@ function addLegalLine(label = "", value = "") {
   `;
 
   document.getElementById("legalLines").appendChild(div);
+}
+function addCompanyLegalLine(label = "", value = "") {
+  const div = document.createElement("div");
+  div.className = "grid-2";
+  div.style.marginTop = "10px";
+
+  div.innerHTML = `
+    <input class="company-legal-label" placeholder="Nom du champ" value="${label}">
+    <input class="company-legal-value" placeholder="Valeur" value="${value}">
+  `;
+
+  document.getElementById("companyLegalLines").appendChild(div);
 }
 </script>
 
