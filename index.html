@@ -1023,8 +1023,9 @@ async function genererPDF(docData) {
   const noir=[26,26,26], gris=[100,100,100], grisClair=[220,220,220], grisUltra=[248,248,248];
   let logoBase64=null,logoW=0,logoH=0;
   try { const res=await fetch(WEBAPP_URL+"?logoBase64=1"); const d=await res.json(); if(d&&d.logo){logoBase64=d.logo;await new Promise((resolve)=>{const tmpImg=new Image();tmpImg.onload=()=>{const maxW=35,maxH=20,ratio=tmpImg.naturalWidth/tmpImg.naturalHeight;if(ratio>=1){logoW=Math.min(maxW,maxH*ratio);logoH=logoW/ratio;}else{logoH=Math.min(maxH,maxW/ratio);logoW=logoH*ratio;}resolve();};tmpImg.onerror=()=>resolve();tmpImg.src=logoBase64;});}} catch(e){}
-  let entreprise={nom:"",adresse:"",siret:"",tva:""};
-  try{const res=await fetch(WEBAPP_URL+"?infos=1");entreprise=await res.json();}catch(e){}
+  let entreprise={nom:"",adresse:"",siret:"",tva:"",champsLegauxEntreprise:[]};
+  try{const res=await fetch(WEBAPP_URL+"?infos=1");entreprise=await res.json()||entreprise;}catch(e){}
+  if (!Array.isArray(entreprise.champsLegauxEntreprise)) entreprise.champsLegauxEntreprise = [];
  let clientInfos = {
   adresse: "",
   email: "",
@@ -1058,6 +1059,10 @@ try {
   const drawPage=(pageNum)=>{let y=marginT,headerLogoH=0;if(logoBase64&&logoW>0){try{const ext=logoBase64.startsWith("data:image/png")?"PNG":"JPEG";doc.addImage(logoBase64,ext,marginL,y,logoW,logoH,undefined,'FAST');headerLogoH=logoH;}catch(e){doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}}else{doc.setFont("helvetica","bold").setFontSize(14).setTextColor(...noir);doc.text(entreprise.nom||"",marginL,y+12);headerLogoH=12;}doc.setFont("helvetica","bold").setFontSize(22).setTextColor(...noir);doc.text(titre,pageW-marginR,y+8,{align:"right"});doc.setFont("helvetica","normal").setFontSize(9).setTextColor(...gris);doc.text(`N° ${docData.numero||""}`,pageW-marginR,y+14,{align:"right"});doc.text(`Date : ${docData.date||""}`,pageW-marginR,y+19,{align:"right"});y+=Math.max(headerLogoH,22)+4;const halfW = (contentW - 6) / 2;
 
 // ✅ calcul hauteur dynamique box client
+let companyLines = 3; // nom + adresse + SIRET
+if (entreprise.tva) companyLines++;
+companyLines += entreprise.champsLegauxEntreprise.length;
+
 let clientLines = 2; // nom + adresse de base
 if (clientInfos.email) clientLines++;
 if (clientInfos.tel) clientLines++;
@@ -1066,9 +1071,9 @@ if (clientInfos.champsLegaux) clientLines += clientInfos.champsLegaux.length;
 const clientBoxH = Math.max(28, 12 + (clientLines * 4));
 
 // ✅ box émetteur reste fixe ou minimum aligné
-const emitterBoxH = Math.max(28, clientBoxH);
+const emitterBoxH = Math.max(28, 12 + (companyLines * 4));
 
-const boxH = Math.max(emitterBoxH, clientBoxH);doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("ÉMETTEUR",marginL+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(marginL+4,y+6.5,marginL+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(entreprise.nom||"",marginL+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(entreprise.adresse||"",marginL+4,y+16,{maxWidth:halfW-8});doc.text(`SIRET : ${entreprise.siret||""}`,marginL+4,y+22);if(entreprise.tva)doc.text(`N° TVA : ${entreprise.tva}`,marginL+4,y+26);const cx=marginL+halfW+6;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(cx,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("CLIENT",cx+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(cx+4,y+6.5,cx+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(docData.client||"",cx+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let cy2 = y + 16;
+const boxH = Math.max(emitterBoxH, clientBoxH);doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("ÉMETTEUR",marginL+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(marginL+4,y+6.5,marginL+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(entreprise.nom||"",marginL+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let ey2=y+16;doc.text(entreprise.adresse||"",marginL+4,ey2,{maxWidth:halfW-8});ey2+=6;doc.text(`SIRET : ${entreprise.siret||""}`,marginL+4,ey2);ey2+=4;if(entreprise.tva){doc.text(`N° TVA : ${entreprise.tva}`,marginL+4,ey2);ey2+=4;}entreprise.champsLegauxEntreprise.forEach(champ=>{doc.text(`${champ.label} : ${champ.value}`,marginL+4,ey2,{maxWidth:halfW-8});ey2+=4;});const cx=marginL+halfW+6;doc.setFillColor(248,248,248).setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(cx,y,halfW,boxH,2,2,'FD');doc.setFont("helvetica","bold").setFontSize(7).setTextColor(...gris);doc.text("CLIENT",cx+4,y+5);doc.setDrawColor(...grisClair).setLineWidth(0.2);doc.line(cx+4,y+6.5,cx+halfW-4,y+6.5);doc.setFont("helvetica","bold").setFontSize(9).setTextColor(...noir);doc.text(docData.client||"",cx+4,y+11);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);let cy2 = y + 16;
 
 if (clientInfos.adresse) {
   doc.text(clientInfos.adresse, cx + 4, cy2, { maxWidth: halfW - 8 });
