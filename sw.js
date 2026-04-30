@@ -1,4 +1,4 @@
-const CACHE = 'invoiceo-v3';
+const CACHE = 'invoiceo-v4';
 const FILES = ['./', './index.html', './logo.png', './logo2.png'];
 
 self.addEventListener('install', e => {
@@ -18,25 +18,11 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Ne jamais intercepter Google Scripts
+  // on ignore Google Apps Script
   if (e.request.url.includes('script.google.com')) return;
 
-  // Pour index.html → toujours réseau en priorité, cache en fallback
-  if (e.request.url.endsWith('/') || e.request.url.includes('index.html')) {
-    e.respondWith(
-      fetch(e.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
-    return;
-  }
-
-  // Pour le reste → cache en priorité
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    fetch(e.request, { cache: "no-store" }) // 🔥 toujours version fraîche
+      .catch(() => caches.match(e.request)) // fallback offline
   );
 });
