@@ -363,6 +363,11 @@
         <h3>Créer une Facture</h3><p>Facturez vos clients rapidement</p>
         <span class="mc-arrow">↗</span>
       </div>
+      <div class="menu-card" onclick="showPage('avoirPage')">
+        <div class="mc-icon mc-red">↩</div>
+        <h3>Avoir / Annule & remplace</h3><p>Corrigez une facture existante</p>
+        <span class="mc-arrow">↗</span>
+      </div>
       <div class="menu-card" onclick="showPage('blPage')">
         <div class="mc-icon mc-gold">📦</div>
         <h3>Bon de Livraison</h3><p>Editez un bon de livraison</p>
@@ -576,6 +581,64 @@
     </div>
   </div>
 
+  <!-- AVOIR -->
+  <div id="avoirPage" class="page hidden">
+    <div class="page-header">
+      <div class="back-btn" onclick="showPage('homePage')">←</div>
+      <div class="page-title">Créer un <span>Avoir</span></div>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label>Date</label><input id="dateAvoir" readonly></div>
+        <div><label>N° Avoir</label><input id="numeroAvoir" readonly></div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid-2">
+        <div>
+          <label>Facture concernée</label>
+          <select id="factureAvoirSelect" onchange="selectFacturePourAvoir()">
+            <option value="">Chargement des factures...</option>
+          </select>
+        </div>
+        <div>
+          <label>Mode</label>
+          <select id="modeAvoir" onchange="updateAvoirMode()">
+            <option value="total">Avoir total</option>
+            <option value="partiel">Avoir partiel</option>
+            <option value="remplace">Annule et remplace</option>
+          </select>
+        </div>
+      </div>
+      <label style="margin-top:12px">Client</label>
+      <input id="clientInputAvoir" readonly placeholder="Sélectionnez une facture">
+      <label style="margin-top:12px">Référence facture d'origine</label>
+      <input id="refFactureAvoir" readonly placeholder="FAC-2026-1">
+      <label style="margin-top:12px">Motif</label>
+      <input id="motifAvoir" placeholder="Erreur de facturation, retour produit, geste commercial...">
+      <div class="section-label">Lignes à créditer</div>
+      <div id="linesAvoir"></div>
+      <button class="btn btn-ghost" onclick="addLineAvoir()">➕ Ajouter une ligne</button>
+      <div class="divider"></div>
+      <div class="grid-2">
+        <div><label>Remise d'origine (%)</label><input id="remiseAvoir" placeholder="0" oninput="calculateAvoir()"></div>
+        <div><label>Action remplacement</label><input id="remplacementAvoirInfo" readonly value="La facture de remplacement sera préparée après l'avoir"></div>
+      </div>
+      <div class="totals-card">
+        <div class="total-row"><span>Total HT crédité</span><b id="totalHTAvoir">0.00 €</b></div>
+        <div class="total-row"><span>Remise</span><b id="montantRemiseAvoir">0.00 €</b></div>
+        <div class="total-row"><span>HT après remise</span><b id="totalApresRemiseAvoir">0.00 €</b></div>
+        <div class="total-row"><span>TVA créditée</span><b id="montantTVAAvoir">0.00 €</b></div>
+        <div class="total-row highlight"><span>Total TTC à créditer</span><b id="totalTTCAvoir">0.00 €</b></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAvoir(this)">💾 Enregistrer avoir</button>
+        <button class="btn btn-purple" onclick="telechargerPDFAvoir(event)">📄 PDF</button>
+        <button class="btn btn-ghost" onclick="saveAvoirAndReplace(this)">🔁 Annuler et remplacer</button>
+        <button class="btn btn-danger" onclick="clearAllAvoir()">🧹 Effacer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- HISTORIQUE -->
   <div id="historiquePage" class="page hidden">
     <div class="page-header">
@@ -588,6 +651,7 @@
         <select id="histoType" onchange="loadHistorique()" style="max-width:180px">
           <option value="devis">Devis</option>
           <option value="facture">Facture</option>
+          <option value="avoir">Avoir</option>
           <option value="bl">Bon de Livraison</option>
         </select>
         <button class="btn btn-ghost" onclick="loadHistorique()" style="padding:8px 14px;font-size:12px;margin-left:auto">🔄 Actualiser</button>
@@ -1101,7 +1165,7 @@ try {
 } catch(e) {}
   const lignes=(docData.lignes||[]).filter(l=>l.designation&&l.designation.toString().trim()!=="");
   const remise=Number(docData.remise)||0,totalHT=lignes.reduce((s,l)=>s+Number(l.quantite||0)*Number(l.prix||0),0),remiseVal=totalHT*(remise/100),htApres=totalHT-remiseVal,totalTVA=lignes.reduce((s,l)=>{const ht=Number(l.quantite||0)*Number(l.prix||0);return s+ht*(Number(l.tva||0)/100);},0),totalTTC=htApres+totalTVA,hasTVA=totalTVA>0;
-  const titres={devis:"DEVIS",facture:"FACTURE",bl:"BON DE LIVRAISON"};
+  const titres={devis:"DEVIS",facture:"FACTURE",avoir:"AVOIR",bl:"BON DE LIVRAISON"};
   const titre=titres[docData.docType]||"DOCUMENT";
   let currentPage=1,totalPages=1;
 
@@ -1156,8 +1220,8 @@ if (clientInfos.champsLegaux && clientInfos.champsLegaux.length) {
   const getRowHeight=(ligne,hasTVA,docType)=>{doc.setFont("helvetica","normal").setFontSize(8);const lines=doc.splitTextToSize(ligne.designation||"",getDesignationWidth(hasTVA,docType));return Math.max(7,4+(lines.length*4));};
   const drawWrappedText=(text,x,y,maxWidth)=>{doc.splitTextToSize(text||"",maxWidth).forEach((line,i)=>doc.text(line,x,y+(i*4)));};
   const drawLine=(y,ligne,idx,hasTVA,docType)=>{const rowH=getRowHeight(ligne,hasTVA,docType),ht=Number(ligne.quantite||0)*Number(ligne.prix||0),designationW=getDesignationWidth(hasTVA,docType);if(idx%2===1){doc.setFillColor(...grisUltra);doc.rect(marginL,y,contentW,rowH,'F');}doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...noir);drawWrappedText(ligne.designation||"",marginL+3,y+5,designationW);if(docType==="bl"){doc.text(String(Number(ligne.quantite||0)),marginL+contentW-20,y+5,{align:"center"});}else if(hasTVA){doc.text(String(Number(ligne.quantite||0)),marginL+80,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+115,y+5,{align:"right"});doc.text((Number(ligne.tva||0))+" %",marginL+140,y+5,{align:"center"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}else{doc.text(String(Number(ligne.quantite||0)),marginL+85,y+5,{align:"center"});doc.text(Number(ligne.prix||0).toFixed(2)+" €",marginL+130,y+5,{align:"right"});doc.text(ht.toFixed(2)+" €",marginL+contentW-2,y+5,{align:"right"});}doc.setDrawColor(...grisClair).setLineWidth(0.1);doc.line(marginL,y+rowH,marginL+contentW,y+rowH);return y+rowH;};
-  const drawTotaux=(y,totalHT,remise,remiseVal,htApres,totalTVA,totalTTC,hasTVA)=>{if(docData.docType==="bl")return y;const boxW=75,bx=pageW-marginR-boxW;let by=y+4;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(bx,by,boxW,hasTVA?(remise>0?32:22):(remise>0?28:18),2,2,'S');doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text("Total HT",bx+4,by+6);doc.setTextColor(...noir);doc.text(totalHT.toFixed(2)+" €",bx+boxW-4,by+6,{align:"right"});let ty=by+6;if(remise>0){ty+=6;doc.setTextColor(...gris).text(`Remise (${remise} %)`,bx+4,ty);doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});ty+=6;doc.setTextColor(...gris).text("HT après remise",bx+4,ty);doc.setTextColor(...noir).text(htApres.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}if(hasTVA){ty+=6;doc.setTextColor(...gris).text("TVA",bx+4,ty);doc.setTextColor(...noir).text(totalTVA.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}ty+=4;doc.setFillColor(...noir);doc.roundedRect(bx,ty,boxW,10,2,2,'F');doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);doc.text("Total TTC",bx+4,ty+6.5);doc.text(totalTTC.toFixed(2)+" €",bx+boxW-4,ty+6.5,{align:"right"});return ty+14;};
-  const drawPied=(y,docData,entreprise,pageNum,totalPages)=>{doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);if(docData.docType==="facture"&&docData.delaiPaiement)doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`,marginL,y);else if(docData.docType==="devis"&&docData.validite)doc.text(`Devis valable jusqu'au : ${docData.validite}`,marginL,y);else if(docData.docType==="bl"&&docData.refFacture)doc.text(`Référence facture : ${docData.refFacture}`,marginL,y);y+=6;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.line(marginL,y,marginL+contentW,y);y+=5;doc.setFont("helvetica","normal").setFontSize(7).setTextColor(170,170,170);if(docData.docType==="facture"){doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur",marginL,y,{maxWidth:130});doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).",marginL,y+4,{maxWidth:130});}if((docData.docType==="devis"||docData.docType==="facture")&&!entreprise.tva)doc.text("TVA non applicable, article 293 B du CGI.",marginL,y+(docData.docType==="facture"?9:0));doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL+contentW-55,y-2,55,18,2,2,'S');doc.setFont("helvetica","normal").setFontSize(7).setTextColor(...gris);doc.text(docData.docType==="devis"?"Signature client — bon pour accord :":"Signature :",marginL+contentW-53,y+3);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(`Page ${pageNum} / ${totalPages}`,pageW/2,pageH-8,{align:"center"});};
+  const drawTotaux=(y,totalHT,remise,remiseVal,htApres,totalTVA,totalTTC,hasTVA)=>{if(docData.docType==="bl")return y;const isAvoir=docData.docType==="avoir",prefix=isAvoir?"- ":"",boxW=75,bx=pageW-marginR-boxW;let by=y+4;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(bx,by,boxW,hasTVA?(remise>0?32:22):(remise>0?28:18),2,2,'S');doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(isAvoir?"Total HT crédité":"Total HT",bx+4,by+6);doc.setTextColor(...noir);doc.text(prefix+totalHT.toFixed(2)+" €",bx+boxW-4,by+6,{align:"right"});let ty=by+6;if(remise>0){ty+=6;doc.setTextColor(...gris).text(`Remise (${remise} %)`,bx+4,ty);doc.setTextColor(...noir).text("- "+remiseVal.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});ty+=6;doc.setTextColor(...gris).text("HT après remise",bx+4,ty);doc.setTextColor(...noir).text(prefix+htApres.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}if(hasTVA){ty+=6;doc.setTextColor(...gris).text(isAvoir?"TVA créditée":"TVA",bx+4,ty);doc.setTextColor(...noir).text(prefix+totalTVA.toFixed(2)+" €",bx+boxW-4,ty,{align:"right"});}ty+=4;doc.setFillColor(...noir);doc.roundedRect(bx,ty,boxW,10,2,2,'F');doc.setFont("helvetica","bold").setFontSize(9).setTextColor(255,255,255);doc.text(isAvoir?"Total avoir TTC":"Total TTC",bx+4,ty+6.5);doc.text(prefix+totalTTC.toFixed(2)+" €",bx+boxW-4,ty+6.5,{align:"right"});return ty+14;};
+  const drawPied=(y,docData,entreprise,pageNum,totalPages)=>{doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);if(docData.docType==="facture"&&docData.delaiPaiement)doc.text(`Délai de paiement : ${docData.delaiPaiement} jours`,marginL,y);else if(docData.docType==="devis"&&docData.validite)doc.text(`Devis valable jusqu'au : ${docData.validite}`,marginL,y);else if((docData.docType==="bl"||docData.docType==="avoir")&&docData.refFacture)doc.text(`Référence facture : ${docData.refFacture}`,marginL,y);if(docData.docType==="avoir"&&docData.motif){y+=5;doc.text(`Motif : ${docData.motif}`,marginL,y,{maxWidth:contentW});}y+=6;doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.line(marginL,y,marginL+contentW,y);y+=5;doc.setFont("helvetica","normal").setFontSize(7).setTextColor(170,170,170);if(docData.docType==="facture"){doc.text("Tout retard de paiement entraînera l'application de pénalités calculées sur la base du taux légal en vigueur",marginL,y,{maxWidth:130});doc.text("ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).",marginL,y+4,{maxWidth:130});}if((docData.docType==="devis"||docData.docType==="facture"||docData.docType==="avoir")&&!entreprise.tva)doc.text("TVA non applicable, article 293 B du CGI.",marginL,y+(docData.docType==="facture"?9:0));doc.setDrawColor(...grisClair).setLineWidth(0.3);doc.roundedRect(marginL+contentW-55,y-2,55,18,2,2,'S');doc.setFont("helvetica","normal").setFontSize(7).setTextColor(...gris);doc.text(docData.docType==="devis"?"Signature client — bon pour accord :":"Signature :",marginL+contentW-53,y+3);doc.setFont("helvetica","normal").setFontSize(8).setTextColor(...gris);doc.text(`Page ${pageNum} / ${totalPages}`,pageW/2,pageH-8,{align:"center"});};
   const getTotalsHeight=()=>docData.docType==="bl"?0:(hasTVA?(remise>0?46:36):(remise>0?42:32));
   const getPiedHeight=()=>34;
 
@@ -1185,6 +1249,12 @@ async function telechargerPDFFacture(e) {
   catch(err){console.error(err);alert("❌ Erreur PDF");}
   finally{btn.innerHTML=old;btn.disabled=false;}
 }
+async function telechargerPDFAvoir(e) {
+  const btn=e.currentTarget,old=btn.innerHTML;btn.innerHTML="⏳...";btn.disabled=true;
+  try{const doc=await genererPDF({docType:"avoir",numero:numeroAvoir.value,date:dateAvoir.value,client:clientInputAvoir.value,lignes:devisAvoir.lignes,remise:remiseAvoir.value,refFacture:refFactureAvoir.value,motif:motifAvoir.value});doc.save(`${clientInputAvoir.value} - ${numeroAvoir.value}.pdf`);}
+  catch(err){console.error(err);alert("❌ Erreur PDF");}
+  finally{btn.innerHTML=old;btn.disabled=false;}
+}
 async function telechargerPDFBL(e) {
   const btn=e.currentTarget,old=btn.innerHTML;btn.innerHTML="⏳...";btn.disabled=true;
   try{const doc=await genererPDF({docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes,refFacture:refFactureBL.value});doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`);}
@@ -1195,8 +1265,8 @@ async function chargerDepuisHistorique(type,doc,tr) {
   const formatDateFR = v => { if (!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
   const validiteDoc = type === "devis" ? formatDateFR(doc.validite || doc.delai || "") : "";
   const delaiDoc = type === "facture" ? (doc.delaiPaiement || doc.delai || "") : "";
-  if(tr){tr.style.opacity="0.5";tr.style.pointerEvents="none";const orig=tr.innerHTML,cols=tr.querySelectorAll("td").length;tr.innerHTML=`<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:validiteDoc,delaiPaiement:delaiDoc,refFacture:doc.refFacture||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}tr.innerHTML=orig;tr.style.opacity="";tr.style.pointerEvents="";}
-  else{try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:validiteDoc,delaiPaiement:delaiDoc,refFacture:doc.refFacture||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}}
+  if(tr){tr.style.opacity="0.5";tr.style.pointerEvents="none";const orig=tr.innerHTML,cols=tr.querySelectorAll("td").length;tr.innerHTML=`<td colspan="${cols}" style="text-align:center;padding:10px;color:var(--accent)">⏳ Génération du PDF en cours…</td>`;try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:validiteDoc,delaiPaiement:delaiDoc,refFacture:doc.refFacture||"",motif:doc.motif||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}tr.innerHTML=orig;tr.style.opacity="";tr.style.pointerEvents="";}
+  else{try{const pdfDoc=await genererPDF({docType:type,numero:doc.numero,client:doc.client,date:doc.date,lignes:doc.lignes||[],remise:doc.remise||0,validite:validiteDoc,delaiPaiement:delaiDoc,refFacture:doc.refFacture||"",motif:doc.motif||""});pdfDoc.save(`${doc.client} - ${doc.numero}.pdf`);}catch(err){console.error(err);alert("Erreur PDF");}}
 }
 
 // ══════════════════════════════════════════════
@@ -1221,6 +1291,13 @@ function showPage(id) {
     document.getElementById("numeroFacture").placeholder = "Chargement…";
     loadNumeroFacture();
     loadClients();
+  }
+  if (id === "avoirPage") {
+    documentActif = "avoir"; setDateAvoir();
+    document.getElementById("numeroAvoir").value = "";
+    document.getElementById("numeroAvoir").placeholder = "Chargement…";
+    loadNumeroAvoir();
+    loadFacturesPourAvoir();
   }
   if (id === "blPage") {
     documentActif = "bl"; setDateBL();
@@ -1727,6 +1804,119 @@ function transformerEnBL() {
   clientInputBL.value = clientInputFacture.value; renderBL(); showPage("blPage");
 }
 
+let devisAvoir = { lignes: [] }, facturesAvoir = [], factureAvoirSelectionnee = null;
+
+function renderAvoir() {
+  linesAvoir.innerHTML = "";
+  devisAvoir.lignes.forEach((l, i) => {
+    linesAvoir.innerHTML += `<div class="line">
+      <input value="${l.designation}" placeholder="Description" oninput="devisAvoir.lignes[${i}].designation=this.value">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:8px;align-items:end">
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">QTT</span>
+          <input type="number" value="${l.quantite}" oninput="devisAvoir.lignes[${i}].quantite=this.value;calculateAvoir()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">PU HT</span>
+          <input type="number" value="${l.prix}" oninput="devisAvoir.lignes[${i}].prix=this.value;calculateAvoir()"></div>
+        <div><span style="font-size:10px;font-weight:600;color:#a8d8b8;letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:4px">TVA %</span>
+          <input type="number" value="${l.tva??''}" placeholder="%" oninput="devisAvoir.lignes[${i}].tva=this.value;calculateAvoir()"></div>
+        <button class="deleteBtn" onclick="deleteLineAvoir(${i})">✖</button>
+      </div>
+    </div>`;
+  });
+  calculateAvoir();
+}
+function addLineAvoir() { devisAvoir.lignes.push({ designation: "", quantite: 1, prix: 0, tva: "" }); renderAvoir(); }
+function deleteLineAvoir(i) { devisAvoir.lignes.splice(i, 1); renderAvoir(); }
+function clearAllAvoir() {
+  devisAvoir = { lignes: [] }; factureAvoirSelectionnee = null;
+  clientInputAvoir.value = ""; refFactureAvoir.value = ""; motifAvoir.value = ""; remiseAvoir.value = "";
+  const sel = document.getElementById("factureAvoirSelect"); if (sel) sel.value = "";
+  renderAvoir();
+}
+function setDateAvoir() {
+  const d = new Date();
+  dateAvoir.value = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+function loadNumeroAvoir() {
+  fetch(WEBAPP_URL + "?lastAvoir=1").then(r => r.json()).then(data => {
+    const annee = new Date().getFullYear(); let next = 1;
+    if (data && data.numero) { const p = data.numero.split("-"); next = Number(p[1]) + 1; }
+    numeroAvoir.placeholder = ""; numeroAvoir.value = `AV-${annee}-${next}`;
+  }).catch(() => { numeroAvoir.placeholder = ""; numeroAvoir.value = `AV-${new Date().getFullYear()}-1`; });
+}
+function calculateAvoir() {
+  let ht = 0, totalTVA = 0;
+  devisAvoir.lignes.forEach(l => { const lHT = Number(l.quantite||0)*Number(l.prix||0); ht += lHT; totalTVA += lHT*(Number(l.tva||0)/100); });
+  const r = Number(remiseAvoir.value)||0, remVal = ht*(r/100), htA = ht-remVal, ttc = htA+totalTVA;
+  totalHTAvoir.textContent = ht.toFixed(2)+" €"; montantRemiseAvoir.textContent = remVal.toFixed(2)+" €";
+  totalApresRemiseAvoir.textContent = htA.toFixed(2)+" €"; montantTVAAvoir.textContent = totalTVA.toFixed(2)+" €"; totalTTCAvoir.textContent = ttc.toFixed(2)+" €";
+}
+function loadFacturesPourAvoir() {
+  const sel = document.getElementById("factureAvoirSelect");
+  sel.innerHTML = '<option value="">Chargement des factures...</option>';
+  fetch(WEBAPP_URL + "?historiqueFacture=1").then(r => r.json()).then(docs => {
+    facturesAvoir = docs || [];
+    sel.innerHTML = '<option value="">Sélectionner une facture</option>';
+    facturesAvoir.forEach((doc, i) => {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = `${doc.numero || ""} - ${doc.client || ""} - ${doc.totalTTC || ""}`;
+      sel.appendChild(opt);
+    });
+  }).catch(() => { sel.innerHTML = '<option value="">Erreur de chargement</option>'; });
+}
+function selectFacturePourAvoir() {
+  const idx = document.getElementById("factureAvoirSelect").value;
+  factureAvoirSelectionnee = idx === "" ? null : facturesAvoir[Number(idx)];
+  if (!factureAvoirSelectionnee) { clearAllAvoir(); return; }
+  clientInputAvoir.value = factureAvoirSelectionnee.client || "";
+  refFactureAvoir.value = factureAvoirSelectionnee.numero || "";
+  remiseAvoir.value = factureAvoirSelectionnee.remise || "";
+  devisAvoir.lignes = (factureAvoirSelectionnee.lignes || []).map(l => ({
+    designation: l.designation || "",
+    quantite: Number(l.quantite) || 1,
+    prix: Number(l.prix) || 0,
+    tva: String(l.tva ?? "")
+  }));
+  updateAvoirMode();
+  renderAvoir();
+}
+function updateAvoirMode() {
+  const mode = document.getElementById("modeAvoir").value;
+  const input = document.getElementById("remplacementAvoirInfo");
+  input.value = mode === "remplace" ? "Après sauvegarde, une nouvelle facture sera ouverte" : "Aucune facture de remplacement automatique";
+  if (!motifAvoir.value) {
+    motifAvoir.value = mode === "remplace" ? "Annule et remplace la facture d'origine" : mode === "total" ? "Annulation totale de la facture" : "";
+  }
+}
+function getAvoirPayload() {
+  return {
+    type:"avoir",
+    numero:numeroAvoir.value,
+    date:dateAvoir.value,
+    client:clientInputAvoir.value,
+    refFacture:refFactureAvoir.value,
+    mode:modeAvoir.value,
+    motif:motifAvoir.value,
+    lignes:devisAvoir.lignes,
+    remise:remiseAvoir.value
+  };
+}
+function saveAvoir(btn) {
+  if (!refFactureAvoir.value) { alert("Sélectionnez d'abord une facture."); return; }
+  saveFireAndForget(getAvoirPayload(), "💾 Avoir enregistré", btn);
+}
+function saveAvoirAndReplace(btn) {
+  if (!refFactureAvoir.value) { alert("Sélectionnez d'abord une facture."); return; }
+  modeAvoir.value = "remplace"; updateAvoirMode();
+  saveFireAndForget(getAvoirPayload(), "💾 Avoir enregistré, facture prête à corriger", btn);
+  devisFacture.lignes = JSON.parse(JSON.stringify(devisAvoir.lignes));
+  clientInputFacture.value = clientInputAvoir.value;
+  remiseFacture.value = remiseAvoir.value;
+  delaiPaiementFacture.value = "";
+  renderFacture();
+  setTimeout(() => showPage("facturePage"), 450);
+}
+
 let devisBL = { lignes: [] };
 function renderBL() {
   linesBL.innerHTML = "";
@@ -1767,6 +1957,7 @@ function saveBL(btn) {
 const HISTO_CONFIG = {
   devis:   { param: "historiqueDevis",   cols: ["Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
   facture: { param: "historiqueFacture", cols: ["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  avoir:   { param: "historiqueAvoir",   cols: ["Date","Client","N° Avoir","Facture origine","Mode","Motif","Total HT","Total TTC"] },
   bl:      { param: "historiqueBL",      cols: ["Date","Client","N° BL"] },
 };
 let histoAbortController = null;
@@ -1787,6 +1978,8 @@ function loadHistorique() {
         const tr = document.createElement("tr"); tr.style.cursor = "pointer";
         if (type === "bl") {
           tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td>`;
+        } else if (type === "avoir") {
+          tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.refFacture||""}</td><td>${doc.mode||""}</td><td>${doc.motif||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         } else {
           const fmtDate = v => { if (!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
           tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
