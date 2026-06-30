@@ -121,6 +121,13 @@
   .info-table th { background:var(--surface2); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid var(--border); }
   .info-table td { padding:10px 14px; color:var(--text-2); border-bottom:1px solid rgba(52,211,153,0.04); cursor:pointer; }
   .info-table tr:hover td { color:var(--text); background:var(--surface2); }
+  .info-table tr.status-ok td { background:rgba(52,211,153,0.10); color:var(--text); }
+  .info-table tr.status-ko td { background:rgba(244,63,94,0.07); color:var(--text-2); }
+  .info-table tr.status-ok:hover td { background:rgba(52,211,153,0.16); }
+  .info-table tr.status-ko:hover td { background:rgba(244,63,94,0.12); }
+  .status-check { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; vertical-align:middle; }
+  .status-cell { white-space:nowrap; font-weight:700; font-size:12px; }
+  .status-cell span { margin-left:7px; }
   .divider { height:1px; background:linear-gradient(90deg,transparent,var(--border2),transparent); margin:24px 0; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   @media(max-width:520px) { .grid-2 { grid-template-columns:1fr; } }
@@ -1955,12 +1962,42 @@ function saveBL(btn) {
 // HISTORIQUE
 // ══════════════════════════════════════════════
 const HISTO_CONFIG = {
-  devis:   { param: "historiqueDevis",   cols: ["Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
-  facture: { param: "historiqueFacture", cols: ["Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
+  devis:   { param: "historiqueDevis",   cols: ["Accepté","Date","Client","N° Devis","Remise","TVA","Validité","Total HT","Total TTC"] },
+  facture: { param: "historiqueFacture", cols: ["Payée","Date","Client","N° Facture","Remise","TVA","Délai paiement","Total HT","Total TTC"] },
   avoir:   { param: "historiqueAvoir",   cols: ["Date","Client","N° Avoir","Facture origine","Mode","Motif","Total HT","Total TTC"] },
   bl:      { param: "historiqueBL",      cols: ["Date","Client","N° BL"] },
 };
 let histoAbortController = null;
+function isHistoriqueChecked(value) {
+  return value === true || value === "TRUE" || value === "true" || value === "Oui" || value === "oui" || value === 1 || value === "1";
+}
+function renderStatusCell(type, doc) {
+  const checked = isHistoriqueChecked(doc.statut);
+  const label = type === "facture" ? (checked ? "Payée" : "Non payée") : (checked ? "Accepté" : "En attente");
+  return `<td class="status-cell" onclick="event.stopPropagation()">
+    <input class="status-check" type="checkbox" ${checked ? "checked" : ""} onchange='toggleHistoriqueStatut(event, ${JSON.stringify(type)}, ${JSON.stringify(doc.numero||"")})'>
+    <span>${label}</span>
+  </td>`;
+}
+function applyHistoriqueRowStatus(tr, type, checked) {
+  if (type !== "devis" && type !== "facture") return;
+  tr.classList.toggle("status-ok", checked);
+  tr.classList.toggle("status-ko", !checked);
+  const label = tr.querySelector(".status-cell span");
+  if (label) label.textContent = type === "facture" ? (checked ? "Payée" : "Non payée") : (checked ? "Accepté" : "En attente");
+}
+function toggleHistoriqueStatut(event, type, numero) {
+  event.stopPropagation();
+  const input = event.currentTarget;
+  const tr = input.closest("tr");
+  const checked = input.checked;
+  applyHistoriqueRowStatus(tr, type, checked);
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ type: "statutHistorique", docType: type, numero, checked }),
+    mode: "no-cors"
+  }).then(() => showToast(checked ? "✅ Statut mis à jour" : "↩ Statut retiré")).catch(() => {});
+}
 function loadHistorique() {
   const type = document.getElementById("histoType").value, cfg = HISTO_CONFIG[type];
   const head = document.getElementById("histoHead"), body = document.getElementById("histoBody"), loading = document.getElementById("histoLoading");
@@ -1982,7 +2019,8 @@ function loadHistorique() {
           tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.refFacture||""}</td><td>${doc.mode||""}</td><td>${doc.motif||""}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
         } else {
           const fmtDate = v => { if (!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
-          tr.innerHTML = `<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+          tr.innerHTML = `${renderStatusCell(type, doc)}<td>${doc.date||""}</td><td>${doc.client||""}</td><td>${doc.numero||""}</td><td>${doc.remise||""}</td><td>${doc.tva||""}</td><td>${fmtDate(doc.delai||doc.validite||"")}</td><td>${doc.totalHT||""}</td><td>${doc.totalTTC||""}</td>`;
+          applyHistoriqueRowStatus(tr, type, isHistoriqueChecked(doc.statut));
         }
         tr.onclick = () => chargerDepuisHistorique(type, doc, tr);
         body.appendChild(tr);
