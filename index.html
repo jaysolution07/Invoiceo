@@ -182,6 +182,16 @@
   .modal-close:hover { color:var(--text); }
   .mail-sent-badge { background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--accent); margin-top:14px; display:none; text-align:center; }
   .mail-sent-badge.visible { display:block; }
+  .preview-modal-box { max-width:min(980px, calc(100vw - 28px)); height:min(86vh, 820px); padding:18px; display:flex; flex-direction:column; }
+  .preview-toolbar { display:flex; align-items:center; gap:10px; padding-right:34px; margin-bottom:12px; }
+  .preview-toolbar .modal-title { margin-bottom:0; }
+  .preview-frame-wrap { flex:1; min-height:360px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+  #pdfPreviewFrame { width:100%; height:100%; border:0; background:#fff; display:block; }
+  .column-panel { display:none; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin:-8px 0 16px; }
+  .column-panel.visible { display:block; }
+  .column-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+  .column-toggle { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; color:var(--text-2); font-size:12px; cursor:pointer; }
+  .column-toggle input { width:16px; height:16px; accent-color:var(--accent); padding:0; }
 
   /* ══ SKELETON LOADER ══ */
   @keyframes shimmer {
@@ -332,6 +342,23 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeMailModal()">Annuler</button>
       <button class="btn btn-mail" id="btnSendMail" onclick="confirmerEnvoiMail()">📤 Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL APERÇU PDF ══ -->
+<div id="pdfPreviewModal" class="modal-overlay" onclick="if(event.target===this) closePDFPreview()">
+  <div class="modal-box preview-modal-box">
+    <button class="modal-close" onclick="closePDFPreview()">✕</button>
+    <div class="preview-toolbar">
+      <div>
+        <div class="modal-title">Aperçu PDF</div>
+        <div class="modal-sub" id="pdfPreviewSub">Prévisualisation du document</div>
+      </div>
+      <button class="btn btn-ghost" onclick="closePDFPreview()" style="margin-left:auto">Fermer</button>
+    </div>
+    <div class="preview-frame-wrap">
+      <iframe id="pdfPreviewFrame" title="Aperçu PDF"></iframe>
     </div>
   </div>
 </div>
@@ -529,6 +556,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveDevis(this)">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="transformerEnFacture()">🔁 En facture</button>
+        <button class="btn btn-ghost" onclick="ouvrirPreviewPDF('devis', this)">👁 Aperçu</button>
         <button class="btn btn-purple" onclick="telechargerPDFDevis(event)">📄 PDF</button>
         <button id="btnMailDevis" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('devis')" title="Enregistrez d'abord le devis">📧 Envoyer</button>
         <button class="btn btn-danger" onclick="clearAll()">🧹 Effacer</button>
@@ -580,6 +608,7 @@
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveFacture(this)">💾 Enregistrer facture</button>
+        <button class="btn btn-ghost" onclick="ouvrirPreviewPDF('facture', this)">👁 Aperçu</button>
         <button class="btn btn-purple" onclick="telechargerPDFFacture(event)">📄 PDF</button>
         <button id="btnMailFacture" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('facture')" title="Enregistrez d'abord la facture">📧 Envoyer</button>
         <button class="btn btn-ghost" onclick="transformerEnBL()">📦 En BL</button>
@@ -661,8 +690,10 @@
           <option value="avoir">Avoir</option>
           <option value="bl">Bon de Livraison</option>
         </select>
+        <button class="btn btn-ghost" onclick="toggleColumnPanel()" style="padding:8px 14px;font-size:12px">▦ Colonnes</button>
         <button class="btn btn-ghost" onclick="loadHistorique()" style="padding:8px 14px;font-size:12px;margin-left:auto">🔄 Actualiser</button>
       </div>
+      <div id="columnPanel" class="column-panel"></div>
       <div id="histoLoading" class="hidden" style="text-align:center;padding:30px;color:var(--text-3)">Chargement...</div>
       <div style="overflow-x:auto">
         <table class="info-table" id="histoTable">
@@ -760,6 +791,7 @@
       <button class="btn btn-ghost" onclick="addLineBL()">➕ Ajouter une ligne</button>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveBL(this)">💾 Enregistrer BL</button>
+        <button class="btn btn-ghost" onclick="ouvrirPreviewPDF('bl', this)">👁 Aperçu</button>
         <button class="btn btn-purple" onclick="telechargerPDFBL(event)">📄 PDF</button>
         <button id="btnMailBL" class="btn btn-mail disabled" disabled onclick="ouvrirMailModal('bl')" title="Enregistrez d'abord le BL">📧 Envoyer</button>
         <button class="btn btn-danger" onclick="clearAllBL()">🧹 Effacer</button>
@@ -1267,6 +1299,48 @@ async function telechargerPDFBL(e) {
   try{const doc=await genererPDF({docType:"bl",numero:numeroBL.value,date:dateBL.value,client:clientInputBL.value,lignes:devisBL.lignes,refFacture:refFactureBL.value});doc.save(`${clientInputBL.value} - ${numeroBL.value}.pdf`);}
   catch(err){console.error(err);alert("❌ Erreur PDF");}
   finally{btn.innerHTML=old;btn.disabled=false;}
+}
+let pdfPreviewUrl = "";
+function getPDFDataFromForm(type) {
+  if (type === "devis") return {
+    docType:"devis", numero:numeroDevis.value, date:dateDevis.value, client:clientInput.value,
+    lignes:devis.lignes, remise:remise.value, validite:validiteDevis.value
+  };
+  if (type === "facture") return {
+    docType:"facture", numero:numeroFacture.value, date:dateFacture.value, client:clientInputFacture.value,
+    lignes:devisFacture.lignes, remise:remiseFacture.value, delaiPaiement:delaiPaiementFacture.value
+  };
+  if (type === "bl") return {
+    docType:"bl", numero:numeroBL.value, date:dateBL.value, client:clientInputBL.value,
+    lignes:devisBL.lignes, refFacture:refFactureBL.value
+  };
+  return null;
+}
+async function ouvrirPreviewPDF(type, btn) {
+  const data = getPDFDataFromForm(type);
+  if (!data) return;
+  const old = btn ? btn.innerHTML : "";
+  if (btn) { btn.innerHTML = "⏳ Aperçu..."; btn.disabled = true; }
+  try {
+    const pdfDoc = await genererPDF(data);
+    const blob = pdfDoc.output("blob");
+    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+    pdfPreviewUrl = URL.createObjectURL(blob);
+    document.getElementById("pdfPreviewFrame").src = pdfPreviewUrl;
+    const label = { devis:"Devis", facture:"Facture", bl:"Bon de livraison" }[type] || "Document";
+    document.getElementById("pdfPreviewSub").textContent = `${label} ${data.numero || ""} - ${data.client || ""}`;
+    document.getElementById("pdfPreviewModal").classList.add("visible");
+  } catch(err) {
+    console.error(err);
+    alert("❌ Impossible de générer l'aperçu PDF");
+  } finally {
+    if (btn) { btn.innerHTML = old; btn.disabled = false; }
+  }
+}
+function closePDFPreview() {
+  document.getElementById("pdfPreviewModal").classList.remove("visible");
+  document.getElementById("pdfPreviewFrame").src = "about:blank";
+  if (pdfPreviewUrl) { URL.revokeObjectURL(pdfPreviewUrl); pdfPreviewUrl = ""; }
 }
 async function chargerDepuisHistorique(type,doc,tr) {
   const formatDateFR = v => { if (!v) return ""; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString("fr-FR"); };
@@ -1998,14 +2072,73 @@ function toggleHistoriqueStatut(event, type, numero) {
     mode: "no-cors"
   }).then(() => showToast(checked ? "✅ Statut mis à jour" : "↩ Statut retiré")).catch(() => {});
 }
+function getHiddenColumns(type) {
+  try { return JSON.parse(localStorage.getItem("invoiceo_hidden_cols_" + type) || "[]"); }
+  catch(e) { return []; }
+}
+function setHiddenColumns(type, cols) {
+  localStorage.setItem("invoiceo_hidden_cols_" + type, JSON.stringify(cols));
+}
+function toggleColumnPanel() {
+  const panel = document.getElementById("columnPanel");
+  panel.classList.toggle("visible");
+  renderColumnPanel();
+}
+function renderColumnPanel() {
+  const type = document.getElementById("histoType").value;
+  const cfg = HISTO_CONFIG[type];
+  const panel = document.getElementById("columnPanel");
+  if (!cfg) return;
+  const hidden = getHiddenColumns(type);
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em">Colonnes visibles</span>
+      <button class="btn btn-ghost" onclick="showAllColumns()" style="padding:6px 10px;font-size:11px;margin-left:auto">Tout afficher</button>
+    </div>
+    <div class="column-grid">
+      ${cfg.cols.map((col, i) => `
+        <label class="column-toggle">
+          <input type="checkbox" ${hidden.includes(i) ? "" : "checked"} onchange="toggleHistoryColumn(${i}, this.checked)">
+          <span>${col}</span>
+        </label>
+      `).join("")}
+    </div>
+  `;
+}
+function toggleHistoryColumn(index, visible) {
+  const type = document.getElementById("histoType").value;
+  const hidden = getHiddenColumns(type).filter(i => i !== index);
+  if (!visible) hidden.push(index);
+  setHiddenColumns(type, hidden);
+  applyColumnVisibility();
+}
+function showAllColumns() {
+  const type = document.getElementById("histoType").value;
+  setHiddenColumns(type, []);
+  renderColumnPanel();
+  applyColumnVisibility();
+}
+function applyColumnVisibility() {
+  const type = document.getElementById("histoType").value;
+  const hidden = getHiddenColumns(type);
+  const table = document.getElementById("histoTable");
+  table.querySelectorAll("tr").forEach(row => {
+    [...row.children].forEach((cell, index) => {
+      cell.style.display = hidden.includes(index) ? "none" : "";
+    });
+  });
+}
 function loadHistorique() {
   const type = document.getElementById("histoType").value, cfg = HISTO_CONFIG[type];
   const head = document.getElementById("histoHead"), body = document.getElementById("histoBody"), loading = document.getElementById("histoLoading");
   if (histoAbortController) histoAbortController.abort();
   histoAbortController = new AbortController();
   head.innerHTML = "<tr>"+cfg.cols.map(c => `<th>${c}</th>`).join("")+"</tr>";
+  renderColumnPanel();
+  applyColumnVisibility();
   // ✅ Skeleton pendant le chargement
   showTableSkeleton("histoBody", cfg.cols.length, 5);
+  applyColumnVisibility();
   loading.classList.add("hidden");
   fetch(WEBAPP_URL + "?" + cfg.param + "=1", { signal: histoAbortController.signal })
     .then(r => r.json()).then(docs => {
@@ -2025,6 +2158,7 @@ function loadHistorique() {
         tr.onclick = () => chargerDepuisHistorique(type, doc, tr);
         body.appendChild(tr);
       });
+      applyColumnVisibility();
     }).catch(err => {
       if (err.name === "AbortError") return;
       body.innerHTML = `<tr><td colspan="${cfg.cols.length}" style="text-align:center;color:var(--danger);padding:30px">Erreur de chargement</td></tr>`;
