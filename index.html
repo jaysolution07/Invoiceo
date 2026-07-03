@@ -48,8 +48,19 @@
   .nav-shell { position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:100; width:min(900px, calc(100vw - 32px)); }
   .nav { background: rgba(14,24,18,0.78); backdrop-filter: blur(28px) saturate(1.8); border: 1px solid var(--border2); border-radius: 20px; padding: 6px 20px; display: flex; align-items: center; box-shadow: 0 0 0 1px rgba(52,211,153,0.06), 0 8px 40px rgba(0,0,0,0.5); }
   .logo-full { width:100%; height:70px; padding:0; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; position:relative; }
-  .logo-full img { width:auto; height:100%; object-fit:contain; -webkit-mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); mask-image:radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); filter:drop-shadow(0 0 25px rgba(52,211,153,.25)); }
-  .logo-full::after { content:""; position:absolute; top:0; left:-200%; width:60%; height:100%; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%); transform:skewX(-18deg); pointer-events:none; animation:logoShine 10s ease-in-out infinite; }
+.logo-text{
+  font-family:var(--font-head);
+  font-size:46px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:1px;
+  text-shadow:0 0 25px rgba(52,211,153,.12);
+}
+
+.logo-text span{
+  color:#34d399;
+}
+  
   @keyframes logoShine { 0% { left:-200%; opacity:0; } 8% { opacity:.6; } 25% { left:200%; opacity:0; } 100% { left:200%; opacity:0; } }
   @media (min-width:768px) { .logo-full { height:88px; } }
   .main { position:relative; z-index:1; max-width:900px; margin:0 auto; padding: 130px 16px 60px; }
@@ -137,9 +148,31 @@
   .login-shell { position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-shell.hidden { display:none !important; }
   .login-box { width:100%; max-width:400px; }
-  .login-logo { display:flex; justify-content:center; margin-bottom:32px; }
-  .login-logo img { height:72px; object-fit:contain; filter:drop-shadow(0 0 30px rgba(52,211,153,0.3)); }
-  .login-title { font-family:var(--font-head); font-size:28px; font-weight:800; text-align:center; margin-bottom:6px; }
+  .login-logo-text{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:32px;
+  font-family:var(--font-head);
+  font-size:52px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:1px;
+  text-shadow:0 0 25px rgba(52,211,153,.15);
+}
+
+.login-logo-text span{
+  color:#34d399;
+}
+  .login-title {
+  font-family:var(--font-head);
+  font-size:56px;
+  font-weight:800;
+  text-align:center;
+  margin-bottom:12px;
+  letter-spacing:1px;
+  text-shadow:0 0 25px rgba(52,211,153,.15);
+}
   .login-title span { color:var(--accent); }
   .login-sub { text-align:center; color:var(--text-3); font-size:13px; margin-bottom:32px; }
   .login-card { background:rgba(14,24,18,0.85); backdrop-filter:blur(24px); border:1px solid var(--border2); border-radius:var(--radius); padding:32px; box-shadow:0 0 0 1px rgba(52,211,153,0.06), 0 24px 60px rgba(0,0,0,0.6); }
@@ -243,11 +276,7 @@
   body[data-theme="light"] .btn-primary:hover { box-shadow: 0 8px 28px rgba(20,184,166,0.30); }
   body[data-theme="light"] label,
   body[data-theme="light"] [style*="#a8d8b8"] { color: #4d8792 !important; }
-  body[data-theme="light"] .logo-full img,
-  body[data-theme="light"] .login-logo img { filter: drop-shadow(0 0 22px rgba(14,165,233,.20)); }
-  @keyframes toast-in { from { opacity:0; transform:translateY(10px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
-  @keyframes toast-out { from { opacity:1; transform:translateY(0) scale(1); } to { opacity:0; transform:translateY(10px) scale(0.95); } }
-  .toast.leaving { animation: toast-out 0.25s cubic-bezier(0.4,0,0.2,1) forwards; }
+  body[data-theme="light"] 
 
   /* ══ CLIENT INPUT LOADING STATE ══ */
   .client-input-wrap { position: relative; }
@@ -307,7 +336,7 @@
 <!-- ══ LOGIN PAGE ══ -->
 <div id="loginShell" class="login-shell">
   <div class="login-box">
-    <div class="login-logo"><img src="logo.png" alt="INVOICEO"></div>
+    
     <div class="login-title">Invoice<span>O</span></div>
     <div class="login-sub">Connectez-vous à votre espace</div>
     <div class="login-card">
@@ -319,7 +348,7 @@
       <div id="loginError" class="login-error">Email ou mot de passe incorrect</div>
       <button id="btnLogin" class="btn btn-primary btn-login" onclick="doLogin(this)">🔐 Se connecter</button>
     </div>
-    <div class="login-version">INVOICEO v1.0 — Multi-tenant</div>
+    <div class="login-version">INVOICEO v2.0 — Multi-tenant</div>
   </div>
 </div>
 
@@ -371,7 +400,11 @@
 
 <div class="nav-shell">
   <nav class="nav">
-    <div class="logo-full"><img src="logo.png" alt="logo"></div>
+    <div class="logo-full">
+    <div class="logo-text">
+        Invoice<span>O</span>
+    </div>
+</div>
     <div class="nav-user" id="navUser" style="display:none">
       <div class="user-badge">
         <div class="user-dot"></div>
