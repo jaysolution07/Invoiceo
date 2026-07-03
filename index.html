@@ -1319,22 +1319,57 @@ function getPDFDataFromForm(type) {
 async function ouvrirPreviewPDF(type, btn) {
   const data = getPDFDataFromForm(type);
   if (!data) return;
+
   const old = btn ? btn.innerHTML : "";
-  if (btn) { btn.innerHTML = "⏳ Aperçu..."; btn.disabled = true; }
+
+  if (btn) {
+    btn.innerHTML = "⏳ Aperçu...";
+    btn.disabled = true;
+  }
+
   try {
     const pdfDoc = await genererPDF(data);
     const blob = pdfDoc.output("blob");
-    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+    }
+
     pdfPreviewUrl = URL.createObjectURL(blob);
-    document.getElementById("pdfPreviewFrame").src = pdfPreviewUrl;
-    const label = { devis:"Devis", facture:"Facture", bl:"Bon de livraison" }[type] || "Document";
-    document.getElementById("pdfPreviewSub").textContent = `${label} ${data.numero || ""} - ${data.client || ""}`;
-    document.getElementById("pdfPreviewModal").classList.add("visible");
+
+    const label = {
+      devis: "Devis",
+      facture: "Facture",
+      bl: "Bon de livraison"
+    }[type] || "Document";
+
+    document.getElementById("pdfPreviewSub").textContent =
+      `${label} ${data.numero || ""} - ${data.client || ""}`;
+
+    // Détection mobile
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Ouvre directement le PDF dans le lecteur du téléphone
+      const a = document.createElement("a");
+      a.href = pdfPreviewUrl;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.click();
+    } else {
+      // Garde la fenêtre d'aperçu sur ordinateur
+      document.getElementById("pdfPreviewFrame").src = pdfPreviewUrl;
+      document.getElementById("pdfPreviewModal").classList.add("visible");
+    }
+
   } catch(err) {
     console.error(err);
     alert("❌ Impossible de générer l'aperçu PDF");
   } finally {
-    if (btn) { btn.innerHTML = old; btn.disabled = false; }
+    if (btn) {
+      btn.innerHTML = old;
+      btn.disabled = false;
+    }
   }
 }
 function closePDFPreview() {
