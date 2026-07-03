@@ -1346,21 +1346,31 @@ async function ouvrirPreviewPDF(type, btn) {
     document.getElementById("pdfPreviewSub").textContent =
       `${label} ${data.numero || ""} - ${data.client || ""}`;
 
-    // Détection mobile
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = /Android/i.test(navigator.userAgent);
 
-    if (isMobile) {
-      // Ouvre directement le PDF dans le lecteur du téléphone
-      const a = document.createElement("a");
-      a.href = pdfPreviewUrl;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.click();
-    } else {
-      // Garde la fenêtre d'aperçu sur ordinateur
-      document.getElementById("pdfPreviewFrame").src = pdfPreviewUrl;
-      document.getElementById("pdfPreviewModal").classList.add("visible");
-    }
+if (isIOS) {
+
+  // Safari iPhone n'aime pas les blob URL
+  const pdfDataUri = pdfDoc.output("datauristring");
+  window.open(pdfDataUri, "_blank");
+
+}
+else if (isAndroid) {
+
+  const a = document.createElement("a");
+  a.href = pdfPreviewUrl;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.click();
+
+}
+else {
+
+  document.getElementById("pdfPreviewFrame").src = pdfPreviewUrl;
+  document.getElementById("pdfPreviewModal").classList.add("visible");
+
+}
 
   } catch(err) {
     console.error(err);
