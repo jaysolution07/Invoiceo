@@ -1351,9 +1351,9 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 
 if (isIOS) {
 
-  // Safari iPhone n'aime pas les blob URL
-  const pdfDataUri = pdfDoc.output("datauristring");
-  window.open(pdfDataUri, "_blank");
+  // En PWA iOS on télécharge directement le PDF
+  pdfDoc.save(`${label} ${data.numero || ""}.pdf`);
+  return;
 
 }
 else if (isAndroid) {
